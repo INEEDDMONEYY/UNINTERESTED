@@ -38,3 +38,68 @@ main {
 .logo {
   width: 100px;
 }
+
+
+/*SignIn & Signup page styles*/
+.signin-bg, .signup-bg {
+    background: url('./assets/silhouette.jpg') no-repeat center center/cover;
+    object-fit: cover;
+    width: 100%;
+}
+
+.form-bg {
+    backdrop-filter: blur(50px);
+    background: rgba(247, 244, 244, 0.5);
+}
+
+.signin-logo {
+    width: 50px;
+}
+
+
+
+@media only screen and (max-width: 1024px) {
+    header .nav-btn {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    header nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2.5rem;
+        background-color: var(--mainColorDark);
+        transition: 1s;
+        transform: translateY(-120%);
+        cursor: pointer;
+    }
+
+    header .responsive_nav {
+        transform: none;
+    }
+
+    nav .nav-close-btn {
+        position: absolute;
+        top: 2rem;
+        right: 2rem;
+    }
+
+    .nav-items .nav-item {
+        font-size: 1.7rem;
+    }
+
+    .nav-items .nav-item:hover {
+        color: var(--mainColor);
+    }
+    .main-bg-container {
+        flex-direction: column;
+    }
+
+}
