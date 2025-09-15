@@ -23,8 +23,8 @@ return(
         <img src={Logo} alt="" className="logo"/>
         <nav className="nav-items flex gap-5 text-white" ref={navRef}>
             {/**Link the sign up/in pages */}
-            <Link to="/Signin"><User /> Sign In</Link>
-            <Link to="/signup"><FileUser />Sign Up</Link>
+            <Link to="/Signin" className="flex"><User /> Sign In</Link>
+            <Link to="/signup" className="flex"><FileUser />Sign Up</Link>
             {/**Close btn for nav on smaller screens*/}
             <button className="nav-btn nav-close-btn" onClick={showNavbar}>
                 <ArrowUpRight />
