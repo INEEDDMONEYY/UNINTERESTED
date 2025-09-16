@@ -48,7 +48,7 @@ button:hover {
 }
 
 
-/*SignIn & Signup page styles*/
+/*SignIn & Signup/ page styles*/
 .signin-bg, .signup-bg {
     background: url('./assets/silhouette.jpg') no-repeat center center/cover;
     object-fit: cover;
@@ -62,6 +62,15 @@ button:hover {
 
 .signin-logo {
     width: 50px;
+}
+
+/*Button styles*/
+
+.signout-btn:hover {
+    background: hsla(308, 60%, 53%, 0.486)
+}
+.post-btn:hover {
+    background: hsla(308, 81%, 43%, 0.486)
 }
 
 

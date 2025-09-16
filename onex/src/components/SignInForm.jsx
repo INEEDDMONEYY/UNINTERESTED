@@ -1,11 +1,33 @@
 import { Link } from 'react-router'
-
+    //Form submission logic
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        //Log input values to console (for testing purposes)
+        console.log("Username: ", username);
+        console.log("Password: ", password);
+        //Regex for validating password (min 8 characters, at least one uppercase letter, one lowercase letter, one number and one special character)
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if(!passwordRegex.test(password)){
+            alert("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number and one special character");
+            return;
+        }
+        //Clear form fields on submission
+        document.getElementById("username").value = "";
+        document.getElementById("password").value = "";
+        //Display username in greet user id in header component (testing purposes only)
+        localStorage.setItem("username", username);
+        //On successful sign in redirect to home page
+        window.location.href = "/home";
+        //Add logic to send data to backend
+    }
 export default function Form() {
     return(
         <>
-        <form action="" method="post" className="flex flex-col w-96">
-            <input type="text" name="email" placeholder="Enter your username" className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg" id="username"/>
-            <input type="text" name="password" placeholder="Enter your password" className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg" id="password"/>
+        <form action="" method="post" className="flex flex-col w-96" onSubmit={handleSubmit}>
+            <input type="text" name="email" placeholder="Enter your username" className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg" id="username" required/>
+            <input type="text" name="password" placeholder="Enter your password" className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg" id="password" required/>
             <div>
                 <button name="submit-btn" type="submit" className="border-2 border-white m-1 px-1 text-black text-[1.3rem] rounded-md" id="sign-in-btn">Sign In</button>
             </div>
