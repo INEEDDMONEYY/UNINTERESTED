@@ -43,6 +43,10 @@ main {
   width: 100px;
 }
 
+button:hover {
+    cursor: pointer
+}
+
 
 /*SignIn & Signup page styles*/
 .signin-bg, .signup-bg {

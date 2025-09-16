@@ -8,6 +8,7 @@ import Home from './pages/homePage.jsx'
 import SignIn from './pages/signInPage.jsx'
 import SignUp from './pages/signUpPage.jsx'
 import ForgotPass from './pages/forgotPassPage.jsx'
+import Post from './pages/postPage'
 
 const router = createBrowserRouter([
   {
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
   {
     path: "forgotpass",
     element: <ForgotPass />,
+  },
+  {
+    path: "post",
+    element: <Post />,
   },
 ]);
 

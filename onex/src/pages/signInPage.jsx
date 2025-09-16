@@ -4,9 +4,9 @@ import SigninLogo from '../assets/Logo.png'
 export default function SignIn() {
     return(
         <>
-        <div className="flex flex-col signin-bg h-screen w-[100vh] p-[200px] overflow-hidden">
+        <div className="flex flex-col signin-bg h-screen p-[200px] overflow-hidden place-content-center">
             <div className="inline-block bg-gray-300 text-center rounded-lg w-96 self-center p-2 form-bg">
-                <div className="flex place-items-center justify-self-center align-center">
+                <div className="flex place-items-center justify-self-center align-center text-center">
                     <h1 className="text-black text-[2rem]">Mystery Mansion</h1>
                     <img src={SigninLogo} alt="" className="signin-logo" />
                 </div>

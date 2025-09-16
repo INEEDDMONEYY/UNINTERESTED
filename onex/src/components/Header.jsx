@@ -1,6 +1,7 @@
 import Logo from '../assets/Logo2.png'
 
 export default function Header() {
+    //Dev message for updates
     function OptionalMessage(message) {
         message = 'Respect all members on the platform, Post often and get rewarded in platfrom benefits 🌟';
         return message;
@@ -17,7 +18,7 @@ export default function Header() {
         // /
         <>
             <section>
-                <div className="m-10">
+                <div className="m-2">
                     <div className="bg-white p-1 flex items-center rounded justify-between">
                         <div className="inline-block items-center text-center">
                             <img src={Logo} alt="Company Logo" className="logo" />
