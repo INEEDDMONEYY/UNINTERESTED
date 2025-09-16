@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+:root {
+    background: black;
+}
+
 
 * {
   box-sizing: border-box;
@@ -62,6 +66,7 @@ main {
     header .nav-btn {
         visibility: visible;
         opacity: 1;
+        color: white;
     }
 
     header nav {
@@ -75,7 +80,7 @@ main {
         align-items: center;
         justify-content: center;
         gap: 2.5rem;
-        background-color: var(--mainColorDark);
+        background-color: black;
         transition: 1s;
         transform: translateY(-120%);
         cursor: pointer;
@@ -96,10 +101,28 @@ main {
     }
 
     .nav-items .nav-item:hover {
-        color: var(--mainColor);
+        color: rgb(211, 110, 127);
     }
     .main-bg-container {
         flex-direction: column;
+    }
+    /*Signin/up queries*/
+    .signin-bg, .signup-bg {
+        padding: 50px;
+    }
+    form {
+        width: auto;
+    }
+
+    form, h1, h3 {
+        font-size: 1.5rem;
+    }
+    form, link {
+        font-size: 1rem;
+    }
+
+    form, h3 {
+        font-size: 1rem;
     }
 
 }

@@ -1,4 +1,5 @@
 import Navbar from '../components/Navbar.jsx'
+import Heading from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 export default function HomePage() {
     return(
@@ -7,11 +8,11 @@ export default function HomePage() {
             <Navbar />
         </nav>
         <main>
-            <div className="h-screen bg-orange-300 bg-img">
-                
+            <div className="bg-img">
+                <Heading />
             </div>
         </main>
-        <footer>
+        <footer className="absolute bottom-0">
             <Footer />
         </footer>
         </>

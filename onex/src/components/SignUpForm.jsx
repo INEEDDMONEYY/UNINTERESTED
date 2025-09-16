@@ -7,6 +7,7 @@ export default function SignupForm() {
             <input type="text" name="username" placeholder="Create a username" className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg" id="username"/>
             <input type="text" name="email" placeholder="Enter your email" className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg" id="email"/>
             <input type="text" name="password" placeholder="Enter your password" className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg" id="password"/>
+            <input type="text" name="password" placeholder="Confirm your password" className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg" id="retype-password"/>
             <div>
                 <button name="submit-btn" type="submit" className="border-2 border-white m-1 px-1 text-black text-[1.3rem] rounded-md" id="sign-up-btn">Sign Up</button>
             </div>

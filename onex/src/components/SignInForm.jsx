@@ -12,7 +12,7 @@ export default function Form() {
             <div>
                 {/**Import link from react router & link sign up to it's link */}
                 <h3 className="text-black text-[1rem] underline">Don't have an account yet? <Link to="/signup" className="text-pink-700">Sign Up</Link></h3>
-                <Link to="/forgotpassword">Forgot password ?</Link>
+                <Link to="/forgotpass"><p className="underline text-red-700">Forgot password ?</p></Link>
                 <Link to="/home"><p className="underline text-pink-700">Return home</p></Link>
             </div>
         </form>

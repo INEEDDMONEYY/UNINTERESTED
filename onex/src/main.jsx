@@ -7,6 +7,7 @@ import App from './App.jsx'
 import Home from './pages/homePage.jsx'
 import SignIn from './pages/signInPage.jsx'
 import SignUp from './pages/signUpPage.jsx'
+import ForgotPass from './pages/forgotPassPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -25,11 +26,15 @@ const router = createBrowserRouter([
     path: "signup",
     element: <SignUp />,
   },
+  {
+    path: "forgotpass",
+    element: <ForgotPass />,
+  },
 ]);
 
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RouterProvider router={router} />,
+    <RouterProvider router={router} />
   </StrictMode>,
 )
