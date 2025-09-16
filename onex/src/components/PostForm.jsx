@@ -11,10 +11,37 @@ export default function PostForm() {
         return message;
     }
 
+    //Pst form logic 
+    function handleSubmit(event) {
+        event.preventDefault();
+        const picture = document.getElementById("post-picture").files[0];
+        const username = document.getElementById("post-username").value;
+        const description = document.getElementById("post-description").value;
+        const paymentChecked = document.getElementById("payment-checkbox").checked;
+        //Log input values to console (for testing purposes)
+        console.log("Picture: ", picture);
+        console.log("Username: ", username);
+        console.log("Description: ", description);
+        console.log("Payment Checked: ", paymentChecked);
+        if(!paymentChecked){
+            alert("You must agree to the payment terms to post.");
+            return;
+        }
+        //Clear form fields on submission
+        document.getElementById("post-picture").value = "";
+        document.getElementById("post-username").value = "";
+        document.getElementById("post-description").value = "";
+        document.getElementById("payment-checkbox").checked = false;
+        //Add logic to send data to backend
+        alert("Post submitted successfully!");
+        //Redirect to home page on successful post submission
+        window.location.href = "/home";
+    }   
+
     return(
         <>
-        <form action="" method="post" className="flex flex-col w-96" id="post-form">
-            <input type="file" name="picture" id="post-picture" className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg" required/>
+        <form action="" method="post" className="flex flex-col w-96" id="post-form" onSubmit={handleSubmit}>
+            <input type="file" name="picture" id="post-picture" className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg"/>
             <input type="text" name="username" id="post-username" className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg" placeholder="Enter alias" required/>
             <textarea name="post" id="post-description" className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg" placeholder="Enter text" required></textarea>
             <div className="p-1 text-[0.7rem]">
