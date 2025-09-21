@@ -28,7 +28,7 @@ body {
 header .nav-btn {
     padding: 5px;
     cursor: pointer;
-    background: transparent;
+    background: none;
     outline: none;
     visibility: hidden;
     opacity: 0;

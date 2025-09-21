@@ -42,7 +42,7 @@ export default function PostForm() {
         <>
         <form action="" method="post" className="flex flex-col w-96" id="post-form" onSubmit={handleSubmit}>
             <input type="file" name="picture" id="post-picture" className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg"/>
-            <input type="text" name="username" id="post-username" className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg" placeholder="Enter alias" required/>
+            <input type="text" name="username" id="post-username" className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg" placeholder="Enter Title" required/>
             <textarea name="post" id="post-description" className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg" placeholder="Enter text" required></textarea>
             <div className="p-1 text-[0.7rem]">
                 <input type="checkbox" name="payment-checkbox" id="payment-checkbox" required/>
