@@ -1,4 +1,4 @@
-import Logo from '../assets/Logo2.png'
+import Logo from '../assets/Logo.png'
 
 export default function Header() {
     //Dev message for updates
@@ -38,7 +38,7 @@ export default function Header() {
         // /
         <>
             <section>
-                <div className="m-2">
+                <div className="">
                     <div className="bg-white p-1 flex items-center rounded justify-between">
                         <div className="inline-block items-center text-center">
                             <img src={Logo} alt="Company Logo" className="logo" />

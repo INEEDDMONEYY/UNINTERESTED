@@ -1,6 +1,8 @@
 import { Link } from 'react-router'
+//import { useState } from "react"
 
 export default function SignupForm() {
+    //const [error, setError] = useState('');
     return(
         <>
         <form action="" method="post" className="flex flex-col w-96">

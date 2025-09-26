@@ -9,6 +9,7 @@ import SignIn from './pages/signInPage.jsx'
 import SignUp from './pages/signUpPage.jsx'
 import ForgotPass from './pages/forgotPassPage.jsx'
 import Post from './pages/postPage'
+//import AdminDash from './admin/pages/adminDashboardPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
     path: "post",
     element: <Post />,
   },
+  /*{
+    path: "admin",
+    element: <AdminDash />,
+  },*/
 ]);
 
 

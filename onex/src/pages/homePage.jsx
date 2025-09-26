@@ -1,5 +1,4 @@
 import Navbar from '../components/Navbar.jsx'
-import Heading from '../components/Header.jsx'
 import Body from '../components/Body.jsx'
 import Footer from '../components/Footer.jsx'
 export default function HomePage() {
@@ -10,13 +9,10 @@ export default function HomePage() {
         </nav>
         <main>
             <div className="bg-img">
-                <Heading />
+                <Body />
             </div>
         </main>
-        <section>
-            <Body />
-        </section>
-        <footer className="absolute bottom-0">
+        <footer className="static bottom-0">
             <Footer />
         </footer>
         </>
