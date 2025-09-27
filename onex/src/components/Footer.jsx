@@ -16,7 +16,7 @@ export default function Footer() {
                     <h3 className="underline">Follow us!</h3>
                 </div>
             </div>
-            <div className="text-[0.8rem] place-self-center text-black">
+            <div className="text-[0.8rem] place-self-center text-black text-center">
                 <p>© Mystery Masnion {year}. All rights reserved.</p>
             </div>
         </div>

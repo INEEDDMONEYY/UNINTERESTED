@@ -1,11 +1,15 @@
 import { Link } from 'react-router'
 //import { useState } from "react"
 
+
 export default function SignupForm() {
     //const [error, setError] = useState('');
+
+    
+
     return(
         <>
-        <form action="" method="post" className="flex flex-col w-96">
+        <form action="" method="post" className="flex flex-col w-96" >
             <input type="text" name="username" placeholder="Create a username" className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg" id="username"/>
             <input type="text" name="email" placeholder="Enter your email" className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg" id="email"/>
             <input type="text" name="password" placeholder="Enter your password" className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg" id="password"/>

@@ -1,4 +1,4 @@
-require("dotenv").config();
+
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 4000;
@@ -8,9 +8,12 @@ app.use(express.json()); // To parse JSON bodies
 // MongoDB connection
 const mongoURI = 'mongodb+srv://FT_Admin:<MysteryMansion.1>@mm1.vcpson3.mongodb.net/?retryWrites=true&w=majority&appName=MM1'; // Replace with your actual connection string
 const cors = require('cors');
-app.use(cors()); // Enable CORS for all routes
+app.use(cors({
+  origin: "*",
+  credentials: true,
+})); // Enable CORS for all routes
 const bodyParser = require('body-parser')
-app.use(bodyParser).json(); // To parse JSON bodies
+app.use(bodyParser.json()); // To parse JSON bodies
 //const routes = require('./routes')
 //Authentication
 const authRoutes = require('./controllers/auth');

@@ -54,7 +54,7 @@ export default function Header() {
                                 >Sign out</button>
                             </div>
                         </div>
-                        <div className="bg-gray-300 mx-5 p-1 rounded border-1 border-red-600">
+                        <div className="bg-gray-300 mx-3 p-1 rounded border-1 border-red-600">
                             <p className="">{OptionalMessage()}</p>
                         </div>
                     </div>
