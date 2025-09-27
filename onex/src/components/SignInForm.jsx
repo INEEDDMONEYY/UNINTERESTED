@@ -17,14 +17,15 @@ export default function Form() {
             return;
         }
         try {
-            const response = await fetch('http://localhost:5000/auth/signin', {
+            const response = await fetch('https://glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev/Signin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password }),
                 credentials: 'include'
             });
             
-            const data = await response.join();
+            const data = await response.json();
+
             if (response.ok) {
                 localStorage.setItem("token", data.token);
                 navigate('/home');

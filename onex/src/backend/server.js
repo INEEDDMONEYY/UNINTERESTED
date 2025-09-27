@@ -1,23 +1,24 @@
-
+require('dotenv').config(); // Load environment variables from .env file
 const express = require('express');
 const app = express();
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 5000;
 const mongoose = require('mongoose');
 const User = require('./models/User');
 app.use(express.json()); // To parse JSON bodies
 // MongoDB connection
-const mongoURI = 'mongodb+srv://FT_Admin:<MysteryMansion.1>@mm1.vcpson3.mongodb.net/?retryWrites=true&w=majority&appName=MM1'; // Replace with your actual connection string
+const mongoURI = 'mongodb+srv://FT_Admin:MysteryMansion@mm1.vcpson3.mongodb.net/?retryWrites=true&w=majority&appName=MM1'; // Replace with your actual connection string
 const cors = require('cors');
 app.use(cors({
-  origin: "*",
+  origin: "http://localhost:5173", // Adjust to frontend
   credentials: true,
 })); // Enable CORS for all routes
 const bodyParser = require('body-parser')
 app.use(bodyParser.json()); // To parse JSON bodies
+
+const cookieParser = require('cookie-parser');
+app.use(cookieParser()); // To parse cookies
 //const routes = require('./routes')
-//Authentication
-const authRoutes = require('./controllers/auth');
-app.use('/auth', authRoutes);
+
 
 
 //Controllers
@@ -59,7 +60,7 @@ app.post('/signin', async (req, res) => {
     if (user.password !== password) { // In production, use bcrypt to compare hashed passwords
       return res.status(401).send('Invalid username or password');
     }
-    res.send('Sign in successful');
+    res.status(200).json({ message: 'Sign in successful', token: 'mockToken123' });
   } catch (err) {
     res.status(500).send('Server error');
   }
@@ -70,20 +71,10 @@ app.post('/signup', (req, res) => {
   res.send('Sign up route')
 })
 
-//Profile route
-app.get('/profile/:id', (req, res) => {
-  const { id } = req.params
-  //Fetch user profile logic here
-  res.send(`User profile for user with ID: ${id}`)
-})
 
 //Other routes
 
-//Use routes
-//app.use('/api', routes)
-
 //Start the server
-
 //Log that the serve is running
   app.listen(port, () =>  {
     console.log(`Server is running on port ${port}`);
