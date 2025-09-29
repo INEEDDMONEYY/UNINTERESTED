@@ -1,47 +1,47 @@
-// auth.js
-const jwt = require('jsonwebtoken');
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const User = require('../models/User');
 
-const SECRET_KEY = 'your-secret-key'; // Replace with env variable in production
-
-// Dummy user for demonstration
-const mockUser = {
-  id: 1,
-  username: 'Admin',
-  password: 'devpass123!' // Never store plain passwords in real apps!
-};
-
-// Login route – generates JWT
-router.post('/signin', (req, res) => {
+router.post('/signup', async (req, res) => {
   const { username, password } = req.body;
 
-  // Basic check (replace with DB lookup in real app)
-  if (username === mockUser.username && password === mockUser.password) {
-    const token = jwt.sign({ id: mockUser.id, username }, SECRET_KEY, { expiresIn: '1h' });
-    return res.json({ token });
+  // Validate input
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password are required' });
   }
 
-  res.status(401).json({ error: 'Invalid credentials' });
-});
+  try {
+    // Check if user already exists
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(409).json({ error: 'Username already taken' });
+    }
 
-// Middleware to verify JWT
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer <token>
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  if (!token) return res.sendStatus(401);
+    // Create new user
+    const newUser = new User({ username, password: hashedPassword });
+    await newUser.save();
 
-  jwt.verify(token, SECRET_KEY, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-}
+    // Generate JWT
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-// Protected route example
-router.get('/profile', authenticateToken, (req, res) => {
-  res.json({ message: `Welcome, ${req.user.username}!`, user: req.user });
+    // Set cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      maxAge: 3600000 // 1 hour
+    });
+
+    res.status(201).json({ message: 'Signup successful', token });
+  } catch (err) {
+    console.error('Signup error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 module.exports = router;
