@@ -11,7 +11,7 @@ export default function SignupForm() {
     const handleSignup = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:8080/signup', {
+            const response = await fetch('https://uninterested.onrender.com/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json'},
                 body: JSON.stringify({ username, password }),

@@ -1,7 +1,7 @@
 require('dotenv').config(); // Load environment variables from .env file
 const express = require('express');
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT;
 const mongoose = require('mongoose');
 const User = require('./models/User');
 app.use(express.json()); // To parse JSON bodies
@@ -9,7 +9,7 @@ app.use(express.json()); // To parse JSON bodies
 const mongoURI = process.env.MONGO_URI; // Replace with your actual connection string
 const cors = require('cors');
 
-const allowedOrigin = "http://localhost:5173";
+const allowedOrigin = "https://glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev";
 
 app.use(cors({
   origin: allowedOrigin,
@@ -74,7 +74,6 @@ app.post('/signin', async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      domain: 'glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev',
     });
     res.status(200).json({ message: 'Signin successful', user});
   } catch (err) {
@@ -98,9 +97,10 @@ app.post('/signup', async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
-      domain: 'glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev',
     });
     res.status(201).json({message: 'Signup successful', user: newUser });
+    console.log('Signin request from:', req.headers.origin);
+
   } catch (err) {
     console.error(err);
     res.status(500).json('Signup failed');
