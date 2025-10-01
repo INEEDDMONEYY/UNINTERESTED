@@ -1,15 +1,17 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter } from "react-router";
-import { RouterProvider } from "react-router/dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+
 import './index.css'
+
 import App from './App.jsx'
 import Home from './pages/homePage.jsx'
 import SignIn from './pages/signInPage.jsx'
 import SignUp from './pages/signUpPage.jsx'
 import ForgotPass from './pages/forgotPassPage.jsx'
 import Post from './pages/postPage'
-//import AdminDash from './admin/pages/adminDashboardPage.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
+
 
 const router = createBrowserRouter([
   {
@@ -18,7 +20,11 @@ const router = createBrowserRouter([
   },
   {
     path: "home",
-    element: <Home />,
+    element: (
+      <ProtectedRoute>
+        <Home />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "signin",
@@ -36,10 +42,7 @@ const router = createBrowserRouter([
     path: "post",
     element: <Post />,
   },
-  /*{
-    path: "admin",
-    element: <AdminDash />,
-  },*/
+  
 ]);
 
 

@@ -1,10 +1,11 @@
 import { Link } from "react-router";
+//import { useState } from React;
+//import { useNavigate } from "react-router";
+//import React from "react";
+//import axios from "axios";
 
 export default function PostForm() {
-    //Form logic
-    function PostFormSubmission() {
-        const Form = document.getElementById('post-form')
-    }
+
     //Payment Message
     function CheckboxMessage(message) {
         message = 'Checking this box you are acknowledging that each post will cost $10, if for any reason you have questions on our post requirements please look at our post policy. Sincerly, Myster Mansion !'

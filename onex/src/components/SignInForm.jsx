@@ -17,7 +17,7 @@ export default function Form() {
             return;
         }
         try {
-            const response = await fetch('https://glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev/Signin', {
+            const response = await fetch('http://localhost:8080/signin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password }),

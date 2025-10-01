@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 //import { Scrollbars } from 'react-scrollbars-custom'
 import SetLocation from '../components/LocationSet'
 import Heading from '../components/Header'
+//import Example from '../components/Example'
 export default function Body() {
     //Display posts in
     return(
@@ -21,7 +22,7 @@ export default function Body() {
                 </div>
                 <div className="h-full bg-gray-400 grid" id="post-grid-container">
                     {/**Post card will go here */}
-                    
+                    {/*<Example />*/}
                 </div>
             </div>
         </section>
