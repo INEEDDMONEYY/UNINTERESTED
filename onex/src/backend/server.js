@@ -11,12 +11,16 @@ const cors = require('cors');
 
 const allowedOrigin = [
   'https://glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev',
-  'https://uninterested.vercel.app'
+  'https://uninterested.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5020'
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (allowedOrigin.includes(origin)) {
+    console.log('CORS request from origin:', origin);
+
+    if (!origin || allowedOrigin.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -72,7 +76,10 @@ app.post('/signin', async (req, res) => {
   const { username, password } = req.body;
   try {
     const user = await User.findOne({ username });
-    if (!user) return res.status(401).send('Invaild credentials');
+    if (!user) {
+      console.log('User not found');
+      return res.status(401).send('Invaild credentials')
+    };
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).send('Invaild credentials');
