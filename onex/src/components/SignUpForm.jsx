@@ -6,6 +6,7 @@ export default function SignupForm() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [role, setRole] = useState('user')
     const navigate = useNavigate();
 
     const handleSignup = async (e) => {
@@ -14,7 +15,7 @@ export default function SignupForm() {
             const response = await fetch('https://uninterested.onrender.com/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json'},
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ username, password, role }),
                 credentials: 'include',
             });
 
@@ -36,6 +37,16 @@ export default function SignupForm() {
         <form onSubmit={handleSignup} action="" method="post" className="flex flex-col w-96" >
             <input type="text" name="username" placeholder="Create a username" className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg" onChange={(e) => setUsername(e.target.value)} />
             <input type="text" name="password" placeholder="Enter your password" className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg" id="password" onChange={(e) => setPassword(e.target.value)}/>
+            <select
+                name="role"
+                className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+            >
+                <option value="user">User</option>
+                <option value="admin">Admin</option> {/* Only if secure */}
+            </select>
+
             <div>
                 <button name="submit-btn" type="submit" className="border-2 border-white m-1 px-1 text-black text-[1.3rem] rounded-md" id="sign-up-btn">Sign Up</button>
             </div>

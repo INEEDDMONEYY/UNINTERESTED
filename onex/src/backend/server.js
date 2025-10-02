@@ -75,7 +75,7 @@ They are endpoints that process incoming data (like form submissions) and respon
 app.post('/signin', async (req, res) => {
   const { username, password } = req.body;
   try {
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ username: new RegExp(`^${username}$`, 'i') });
     if (!user) {
       console.log('User not found');
       return res.status(401).send('Invaild credentials')
@@ -105,7 +105,7 @@ app.post('/signup', async (req, res) => {
     if (existingUser) return res.status(400).send('User already exists');
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ username, password: hashedPassword, role });
+    const newUser = await User.create({ username, password: hashedPassword, 'user' });
 
     const token = jwt.sign({ id: newUser._id, role: User.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.cookie('token', token, {
@@ -137,11 +137,20 @@ const authMiddleware = (req, res, next) => {
 }
 
 //Signout route 
-
 app.post('/logout', (req, res) => {
   res.clearCookie('token');
   res.status(200).send('Logged out');
 });
+
+//Admin stat route 
+app.get('/admin/stats', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).send('Access denied');
+
+  const totalUsers = await User.countDocuments({ role: 'user' });
+  const totalAdmins = await User.countDocuments({ role: 'admin' });
+
+  res.json({ totalUsers, totalAdmins });
+})
 
 //Start the server
 app.get('/', (req, res) => {

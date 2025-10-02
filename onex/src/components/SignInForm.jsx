@@ -30,12 +30,15 @@ export default function Form() {
         if (response.ok) {
             // Optional: store token if needed
             localStorage.setItem("token", data.token);
+            //Store user object
+            localStorage.setItem("user", JSON.stringify(data.user));
 
             // Redirect based on role
             if (data.user && data.user.role === 'admin') {
                 navigate('/admin');
             } else {
                 navigate('/home');
+                console.log(data.user)
             }
         } else {
             setError(data.error || 'Sign in failed');

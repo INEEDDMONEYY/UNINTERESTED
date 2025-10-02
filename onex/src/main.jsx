@@ -10,6 +10,7 @@ import SignIn from './pages/signInPage.jsx'
 import SignUp from './pages/signUpPage.jsx'
 import ForgotPass from './pages/forgotPassPage.jsx'
 import Post from './pages/postPage'
+import AdminDashboard from './pages/admin/dashboard.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 
 
@@ -23,6 +24,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <Home />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "admin",
+    element: (
+      <ProtectedRoute role="admin">
+        <AdminDashboard />
       </ProtectedRoute>
     ),
   },
