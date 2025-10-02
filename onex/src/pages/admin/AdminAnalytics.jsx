@@ -1,0 +1,137 @@
+import { useEffect, useState } from 'react';
+import { Line, Bar } from 'react-chartjs-2';
+import { format } from 'date-fns';
+import { useNavigate } from 'react-router';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+export default function AdminAnalytics() {
+  const navigate = useNavigate();
+  const [analytics, setAnalytics] = useState(null);
+  const [dateRange, setDateRange] = useState('7d');
+  const [userType, setUserType] = useState('all');
+  const [activityType, setActivityType] = useState('all');
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const res = await fetch(`https://uninterested.onrender.com/admin/analytics?range=${dateRange}&userType=${userType}&activityType=${activityType}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        });
+        const data = await res.json();
+        setAnalytics(data);
+      } catch (err) {
+        console.error('Failed to fetch analytics:', err);
+      }
+    };
+
+    fetchAnalytics();
+  }, [dateRange, userType, activityType]);
+
+  const lineData = {
+    labels: analytics?.traffic?.map(item => format(new Date(item.date), 'MMM d')) || [],
+    datasets: [
+      {
+        label: 'Site Traffic',
+        data: analytics?.traffic?.map(item => item.visits) || [],
+        borderColor: '#ec4899',
+        backgroundColor: 'rgba(236, 72, 153, 0.2)',
+        tension: 0.4
+      }
+    ]
+  };
+
+  const barData = {
+    labels: analytics?.posts?.map(item => item.category) || [],
+    datasets: [
+      {
+        label: 'Post Count',
+        data: analytics?.posts?.map(item => item.count) || [],
+        backgroundColor: '#f472b6'
+      }
+    ]
+  };
+
+  return (
+    <div className="min-h-screen bg-white p-6">
+      {/* Breadcrumbs + Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+        <nav className="text-sm text-gray-600 mb-2 md:mb-0">
+          <ol className="list-reset flex items-center gap-2">
+            <li>
+              <button onClick={() => navigate('/admin')} className="text-pink-700 hover:underline">
+                Admin Dashboard
+              </button>
+            </li>
+            <li>/</li>
+            <li className="text-gray-800 font-medium">Site Analytics</li>
+          </ol>
+        </nav>
+        <button
+          onClick={() => navigate('/admin')}
+          className="bg-pink-200 text-pink-800 px-3 py-1 rounded hover:bg-pink-300 text-sm font-medium"
+        >
+          ← Back to Dashboard
+        </button>
+      </div>
+
+      <h1 className="text-3xl font-bold text-pink-700 mb-4">Site Analytics</h1>
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-4 mb-6">
+        <select value={dateRange} onChange={e => setDateRange(e.target.value)} className="border rounded px-3 py-1">
+          <option value="7d">Last 7 Days</option>
+          <option value="30d">Last 30 Days</option>
+          <option value="90d">Last 90 Days</option>
+        </select>
+        <select value={userType} onChange={e => setUserType(e.target.value)} className="border rounded px-3 py-1">
+          <option value="all">All Users</option>
+          <option value="admin">Admins</option>
+          <option value="user">Regular Users</option>
+        </select>
+        <select value={activityType} onChange={e => setActivityType(e.target.value)} className="border rounded px-3 py-1">
+          <option value="all">All Activity</option>
+          <option value="posts">Posts</option>
+          <option value="logins">Logins</option>
+          <option value="comments">Comments</option>
+        </select>
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-pink-50 p-4 rounded shadow">
+          <h2 className="text-lg font-semibold text-pink-700 mb-2">Traffic Over Time</h2>
+          <Line data={lineData} />
+        </div>
+        <div className="bg-pink-50 p-4 rounded shadow">
+          <h2 className="text-lg font-semibold text-pink-700 mb-2">Post Distribution</h2>
+          <Bar data={barData} />
+        </div>
+      </div>
+    </div>
+  );
+}

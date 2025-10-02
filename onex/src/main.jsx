@@ -11,6 +11,8 @@ import SignUp from './pages/signUpPage.jsx'
 import ForgotPass from './pages/forgotPassPage.jsx'
 import Post from './pages/postPage'
 import AdminDashboard from './pages/admin/dashboard.jsx'
+import AdminAnalytics from './pages/admin/AdminAnalytics.jsx'
+import UserDashboard from './pages/users/dashboard.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 
 
@@ -21,11 +23,7 @@ const router = createBrowserRouter([
   },
   {
     path: "home",
-    element: (
-      <ProtectedRoute>
-        <Home />
-      </ProtectedRoute>
-    ),
+    element: <Home />
   },
   {
     path: "admin",
@@ -36,8 +34,16 @@ const router = createBrowserRouter([
     ),
   },
   {
+    path: "analytics",
+    element: <AdminAnalytics />,
+  },
+  {
+    path: "user/dashboard",
+    element: <UserDashboard />,
+  },
+  {
     path: "signin",
-    element: <SignIn/>,
+    element: <SignIn />,
   },
   {
     path: "signup",

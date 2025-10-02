@@ -1,40 +1,82 @@
-//Using logic code for a export default function className={``} are need. Use ?: alternative for (If else).
 import { useRef } from "react";
-import Logo from "../assets/Logo2.png"
-import { 
-    ArrowUpRight, 
-    ChevronsRightLeft, 
-    User, 
-    FileUser,
-} 
-from "lucide-react"
-import { Link } from "react-router"
+import { useNavigate } from "react-router";
+import Logo from "../assets/Logo2.png";
+import {
+  ArrowUpRight,
+  ChevronsRightLeft,
+  User,
+  FileUser,
+  Contact,
+  CircleUser
+} from "lucide-react";
 
 export default function Navbar() {
-    const navRef = useRef();
-    //Arrow function
-    const showNavbar = () => {
-        navRef.current.classList.toggle("responsive_nav")
-    }
+  const navRef = useRef();
+  const navigate = useNavigate();
 
-return(
-    <>
-    <header className="navbar-bg-container bg-black flex justify-between w-full mb-3 items-center">
-        <img src={Logo} alt="" className="logo"/>
-        <nav className="nav-items flex gap-5 text-white" ref={navRef}>
-            {/**Link the sign up/in pages */}
-            <Link to="/Signin" className="flex"><User /> Sign In</Link>
-            <Link to="/signup" className="flex"><FileUser />Sign Up</Link>
-            {/**Close btn for nav on smaller screens*/}
-            <button className="nav-btn nav-close-btn" onClick={showNavbar}>
-                <ArrowUpRight />
-            </button>
-        </nav>
-        {/**Open btn for nav on smaller screens*/}
-        <button className="nav-btn nav-open-btn" onClick={showNavbar}>
-            <ChevronsRightLeft />
+  const showNavbar = () => {
+    navRef.current.classList.toggle("responsive_nav");
+  };
+
+  const handleProfileClick = () => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const role = user?.role;
+
+    role === "admin"
+      ? navigate("/admin")
+      : role === "user"
+      ? navigate("/user/dashboard")
+      : navigate("/signin"); // fallback if not logged in
+  };
+
+  return (
+    <header className="bg-black text-white flex justify-between items-center px-4 py-3 w-full shadow-md">
+      {/* Logo */}
+      <a href="/home">
+        <img src={Logo} alt="Logo" className="h-10 w-auto" />
+      </a>
+
+      {/* Navigation Links */}
+      <nav
+        ref={navRef}
+        className={`nav-items flex-col md:flex-row md:flex gap-5 items-center absolute md:static top-16 left-0 w-full md:w-auto bg-black md:bg-transparent z-50 p-4 md:p-0 ${
+          navRef.current?.classList.contains("responsive_nav")
+            ? "flex"
+            : "hidden md:flex"
+        }`}
+      >
+        <a href="/signin" className="flex items-center gap-1 hover:text-pink-400">
+          <User size={18} /> Sign In
+        </a>
+        <a href="/signup" className="flex items-center gap-1 hover:text-pink-400">
+          <FileUser size={18} /> Sign Up
+        </a>
+        <button
+          onClick={handleProfileClick}
+          className="flex items-center gap-1 hover:text-pink-400"
+        >
+          <CircleUser size={18} /> Profile
         </button>
+        <a href="/contact" className="flex items-center gap-1 hover:text-pink-400">
+          <Contact size={18} /> Contact
+        </a>
+
+        {/* Close button for mobile */}
+        <button
+          className="nav-btn nav-close-btn md:hidden text-white"
+          onClick={showNavbar}
+        >
+          <ArrowUpRight />
+        </button>
+      </nav>
+
+      {/* Open button for mobile */}
+      <button
+        className="nav-btn nav-open-btn md:hidden text-white"
+        onClick={showNavbar}
+      >
+        <ChevronsRightLeft />
+      </button>
     </header>
-    </>
-)
+  );
 }
