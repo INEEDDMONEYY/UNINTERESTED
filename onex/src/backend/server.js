@@ -28,7 +28,7 @@ app.use(cors({
   // Explicitly handle preflight requests
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -77,13 +77,13 @@ app.post('/signin', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).send('Invaild credentials');
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {expiresIn: '1h'});
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {expiresIn: '1h'});
     res.cookie('token', token, {
       httpOnly: true,
       secure: true,
       sameSite: 'None',
     });
-    res.status(200).json({ message: 'Signin successful', user});
+    res.status(200).json({ message: 'Signin successful', user: { username: user.username, role: user.role }, token});
   } catch (err) {
     console.error(err);
     res.status(500).send('Signin failed');
@@ -92,15 +92,15 @@ app.post('/signin', async (req, res) => {
 
 //Signup route
 app.post('/signup', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, role = 'user' } = req.body;
   try {
     const existingUser = await User.findOne({ username });
     if (existingUser) return res.status(400).send('User already exists');
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ username, password: hashedPassword });
+    const newUser = await User.create({ username, password: hashedPassword, role });
 
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: newUser._id, role: User.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.cookie('token', token, {
       httpOnly: true,
       secure: true,

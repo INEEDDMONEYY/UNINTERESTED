@@ -9,36 +9,45 @@ export default function Form() {
     const navigate = useNavigate()
 
     const handleSubmit = async (event) => {
-        event.preventDefault();
-        //Regex for validating password (min 8 characters, at least one uppercase letter, one lowercase letter, one number and one special character)
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-        if(!passwordRegex.test(password)){
-            setError("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number and one special character");
-            return;
-        }
-        try {
-            const response = await fetch('https://uninterested.onrender.com/signin', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password }),
-                credentials: 'include'
-            });
-            
-            const data = await response.json();
+    event.preventDefault();
 
-            if (response.ok) {
-                localStorage.setItem("token", data.token);
-                navigate('/home');
-            } else {
-                setError(data.error || 'Sign in failed');
-            }
-        } catch (err) {
-            setError('Error connecting to server. ' + (err && err.message ? err.message : ''));
-        }
-        //Clear form fields on submission
-        setUsername('');
-        setPassword('');
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+        setError("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number and one special character");
+        return;
     }
+
+    try {
+        const response = await fetch('https://uninterested.onrender.com/signin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Optional: store token if needed
+            localStorage.setItem("token", data.token);
+
+            // Redirect based on role
+            if (data.user && data.user.role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/home');
+            }
+        } else {
+            setError(data.error || 'Sign in failed');
+        }
+    } catch (err) {
+        setError('Error connecting to server. ' + (err?.message || ''));
+    }
+
+    setUsername('');
+    setPassword('');
+};
+
 
     return(
         <>
