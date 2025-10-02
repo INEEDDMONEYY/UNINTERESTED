@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { useNavigate } from "react-router";
+import { Link } from "react-router-dom";
 import Logo from "../assets/Logo2.png";
 import {
   ArrowUpRight,
@@ -32,9 +33,9 @@ export default function Navbar() {
   return (
     <header className="bg-black text-white flex justify-between items-center px-4 py-3 w-full shadow-md">
       {/* Logo */}
-      <a href="/home">
+      <Link to="/home">
         <img src={Logo} alt="Logo" className="h-10 w-auto" />
-      </a>
+      </Link>
 
       {/* Navigation Links */}
       <nav
@@ -45,21 +46,21 @@ export default function Navbar() {
             : "hidden md:flex"
         }`}
       >
-        <a href="/signin" className="flex items-center gap-1 hover:text-pink-400">
+        <Link to="/signin" className="flex items-center gap-1 hover:text-pink-400">
           <User size={18} /> Sign In
-        </a>
-        <a href="/signup" className="flex items-center gap-1 hover:text-pink-400">
+        </Link>
+        <Link to="/signup" className="flex items-center gap-1 hover:text-pink-400">
           <FileUser size={18} /> Sign Up
-        </a>
+        </Link>
         <button
           onClick={handleProfileClick}
           className="flex items-center gap-1 hover:text-pink-400"
         >
           <CircleUser size={18} /> Profile
         </button>
-        <a href="/contact" className="flex items-center gap-1 hover:text-pink-400">
+        <Link to="/contact" className="flex items-center gap-1 hover:text-pink-400">
           <Contact size={18} /> Contact
-        </a>
+        </Link>
 
         {/* Close button for mobile */}
         <button
