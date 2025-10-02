@@ -9,13 +9,21 @@ app.use(express.json()); // To parse JSON bodies
 const mongoURI = process.env.MONGO_URI; // Replace with your actual connection string
 const cors = require('cors');
 
-const allowedOrigin = "https://glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev";
+const allowedOrigin = [
+  'https://glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev',
+  'https://uninterested.vercel.app'
+];
 
 app.use(cors({
-  origin: allowedOrigin,
+  origin: function (origin, callback) {
+    if (allowedOrigin.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
-
 
   // Explicitly handle preflight requests
 app.use((req, res, next) => {
