@@ -1,24 +1,26 @@
 const AdminSettings = require("../models/AdminSettings");
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
-const path = require("path");
 
-/* ✅ GET current admin settings */
+/* --------------------------- 📄 Get Admin Settings --------------------------- */
 exports.getSettings = async (req, res) => {
   try {
     let settings = await AdminSettings.findOne();
     if (!settings) settings = await AdminSettings.create({});
+
     res.json({ success: true, settings });
   } catch (err) {
+    console.error("❌ Error fetching settings:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
 
-/* ✅ PUT - Update specific or multiple settings */
+/* --------------------------- 🛠 Update Admin Settings --------------------------- */
 exports.updateSettings = async (req, res) => {
   try {
     let updates = {};
 
+    // Support both { field, value } or full object from frontend
     if (req.body.field && req.body.value !== undefined) {
       updates[req.body.field] = req.body.value;
     } else {
@@ -30,31 +32,34 @@ exports.updateSettings = async (req, res) => {
       upsert: true,
     });
 
-    res.json({ success: true, settings });
+    res.json({ success: true, settings, message: "Settings updated successfully" });
   } catch (err) {
     console.error("❌ Error updating settings:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
 
-/* ✅ GET all users (for admin dropdown) */
+/* --------------------------- 👥 Get All Users --------------------------- */
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find({}, "-password");
     res.json({ success: true, users });
   } catch (err) {
+    console.error("❌ Error fetching users:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
 
-/* ✅ Update admin username or password */
+/* --------------------------- 🔑 Update Admin Credentials --------------------------- */
 exports.updateAdminCredentials = async (req, res) => {
   try {
     const { username, password } = req.body;
     const updates = {};
 
     if (username) updates.username = username;
-    if (password) updates.password = await bcrypt.hash(password, 10);
+    if (password) {
+      updates.password = await bcrypt.hash(password, 10);
+    }
 
     const admin = await User.findOneAndUpdate(
       { role: "admin" },
@@ -63,50 +68,41 @@ exports.updateAdminCredentials = async (req, res) => {
     );
 
     if (!admin) {
-      return res.status(404).json({ success: false, error: "Admin not found" });
+      return res.status(404).json({ success: false, error: "Admin user not found" });
     }
 
     res.json({ success: true, message: "Admin credentials updated", admin });
   } catch (err) {
-    console.error("❌ updateAdminCredentials error:", err);
+    console.error("❌ Error updating admin credentials:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
 
-/* ✅ Upload admin profile picture */
+/* --------------------------- 🖼 Upload Profile Picture --------------------------- */
 exports.uploadProfilePicture = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, error: "No file uploaded" });
-    }
+    if (!req.file) return res.status(400).json({ success: false, error: "No file uploaded" });
 
-    const fileUrl = `/uploads/${req.file.filename}`;
+    const adminId = req.user?.id;
+    if (!adminId) return res.status(401).json({ success: false, error: "Unauthorized" });
 
-    // update admin user profile pic
-    const admin = await User.findOneAndUpdate(
-      { role: "admin" },
-      { profilePic: fileUrl },
-      { new: true }
-    );
+    const imageUrl = `/uploads/${req.file.filename}`;
+    await User.findByIdAndUpdate(adminId, { profilePic: imageUrl });
 
-    res.json({
-      success: true,
-      message: "Profile picture updated",
-      url: fileUrl,
-      admin,
-    });
+    res.json({ success: true, url: imageUrl, message: "Profile picture updated" });
   } catch (err) {
-    console.error("❌ uploadProfilePicture error:", err);
-    res.status(500).json({ success: false, error: err.message });
+    console.error("❌ Upload error:", err);
+    res.status(500).json({ success: false, error: "Failed to upload profile picture" });
   }
 };
 
-/* ✅ DELETE user by ID */
+/* --------------------------- 🗑 Delete User --------------------------- */
 exports.deleteUser = async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: "User deleted successfully" });
   } catch (err) {
+    console.error("❌ Error deleting user:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };

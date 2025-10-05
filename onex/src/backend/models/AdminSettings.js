@@ -1,10 +1,11 @@
-import mongoose from 'mongoose';
+// models/AdminSettings.js
+const mongoose = require("mongoose");
 
 const AdminSettingsSchema = new mongoose.Schema(
   {
     siteName: {
       type: String,
-      default: 'Mystery Mansion',
+      default: "Mystery Mansion",
     },
     maintenanceMode: {
       type: Boolean,
@@ -12,7 +13,7 @@ const AdminSettingsSchema = new mongoose.Schema(
     },
     supportEmail: {
       type: String,
-      default: 'fantometechnologies@gmail.com',
+      default: "fantometechnologies@gmail.com",
     },
     maxUploadSize: {
       type: Number,
@@ -20,7 +21,7 @@ const AdminSettingsSchema = new mongoose.Schema(
     },
     allowedFileTypes: {
       type: [String],
-      default: ['jpg', 'png', 'pdf'],
+      default: ["jpg", "png", "pdf"],
     },
     customSettings: {
       type: Map,
@@ -29,23 +30,27 @@ const AdminSettingsSchema = new mongoose.Schema(
     },
     devMessage: {
       type: String,
-      default: 'Respect all members on the platform, post often to get rewarded 🌟',
+      default:
+        "Respect all members on the platform, post often to get rewarded 🌟",
     },
     roleRestriction: {
       type: String,
-      default: '',
+      default: "",
     },
     suspendUserId: {
       type: String,
-      default: '',
+      default: "",
     },
     lastUpdatedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       default: null,
     },
   },
   { timestamps: true }
 );
 
-export default mongoose.model('AdminSettings', AdminSettingsSchema);
+// ✅ Avoid model overwrite error in development or hot reload
+module.exports =
+  mongoose.models.AdminSettings ||
+  mongoose.model("AdminSettings", AdminSettingsSchema);

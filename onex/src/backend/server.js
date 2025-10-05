@@ -10,6 +10,7 @@ const path = require('path');
 const User = require('./models/User');
 const adminSettingsRoutes = require('./routes/adminSettings');
 const adminUserRoutes = require('./routes/adminUsers');
+const adminProfileRoutes = require('./routes/adminProfile'); // ✅ NEW import
 
 const app = express();
 const port = process.env.PORT || 5020;
@@ -70,6 +71,7 @@ const verifyAdmin = (req, res, next) => {
 /* -------------------------- 🧩 Protected Admin Routes ---------------------- */
 app.use('/api/admin/settings', authenticateToken, verifyAdmin, adminSettingsRoutes);
 app.use('/api/admin', authenticateToken, verifyAdmin, adminUserRoutes);
+app.use('/api/admin', authenticateToken, verifyAdmin, adminProfileRoutes); // ✅ NEW route for uploads
 
 /* ----------------------------- 🔑 Auth Routes ------------------------------ */
 app.post('/signin', async (req, res) => {
