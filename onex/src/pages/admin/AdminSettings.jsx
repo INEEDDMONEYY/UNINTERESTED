@@ -24,7 +24,7 @@ export default function AdminSettings() {
   const [uploading, setUploading] = useState(false);
 
   // ✅ PUT handler for admin settings
-  const updateSetting = async (field, value) => {
+  const updateSetting = async (field, value, clearField) => {
     try {
       const res = await fetch("https://uninterested.onrender.com/api/admin/settings", {
         method: "PUT",
@@ -41,6 +41,8 @@ export default function AdminSettings() {
       alert(`${field} updated successfully!`);
       console.log("✅ Updated:", data);
 
+      if (clearField) clearField(""); // 👈 Clear the input field
+
       if (field === "devMessage") {
         localStorage.setItem("devMessage", value);
         window.dispatchEvent(new Event("storage"));
@@ -52,7 +54,7 @@ export default function AdminSettings() {
   };
 
   // ✅ Handle admin credentials update
-  const saveCredentials = async () => {
+  const saveCredentials = async (clearUsername, clearPassword) => {
     try {
       const res = await fetch(
         "https://uninterested.onrender.com/api/admin/settings/credentials",
@@ -74,13 +76,16 @@ export default function AdminSettings() {
       const data = await res.json();
       alert("✅ Admin credentials updated!");
       console.log("Updated credentials:", data);
+
+      if (clearUsername) clearUsername("");
+      if (clearPassword) clearPassword("");
     } catch (err) {
       console.error("❌ Error updating credentials:", err);
       alert("Failed to update credentials.");
     }
   };
 
-  // ✅ NEW: Handle profile picture upload
+  // ✅ Handle profile picture upload
   const handleProfileUpload = async () => {
     if (!profilePic) return alert("Please select a file first!");
 
@@ -160,7 +165,7 @@ export default function AdminSettings() {
         title="Restrict Role Access"
         value={roleRestriction}
         onChange={(e) => setRoleRestriction(e.target.value)}
-        onSave={() => updateSetting("roleRestriction", roleRestriction)}
+        onSave={() => updateSetting("roleRestriction", roleRestriction, setRoleRestriction)}
         placeholder="e.g. restrict 'user' from posting"
       />
 
@@ -169,7 +174,7 @@ export default function AdminSettings() {
         title="Suspend User Account"
         value={suspendUserId}
         onChange={(e) => setSuspendUserId(e.target.value)}
-        onSave={() => updateSetting("suspendUserId", suspendUserId)}
+        onSave={() => updateSetting("suspendUserId", suspendUserId, setSuspendUserId)}
         placeholder="Enter user ID to suspend"
       />
 
@@ -178,7 +183,7 @@ export default function AdminSettings() {
         title="Homepage Developer Message"
         value={devMessage}
         onChange={(e) => setDevMessage(e.target.value)}
-        onSave={() => updateSetting("devMessage", devMessage)}
+        onSave={() => updateSetting("devMessage", devMessage, setDevMessage)}
         placeholder="Update the homepage message"
       />
 
@@ -188,7 +193,7 @@ export default function AdminSettings() {
         title="Update Admin Username"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
-        onSave={saveCredentials}
+        onSave={() => saveCredentials(setUsername, null)}
         placeholder="Enter new username"
       />
 
@@ -197,7 +202,7 @@ export default function AdminSettings() {
         title="Reset Admin Password"
         value={newPassword}
         onChange={(e) => setNewPassword(e.target.value)}
-        onSave={saveCredentials}
+        onSave={() => saveCredentials(null, setNewPassword)}
         placeholder="Enter new password"
       />
 
@@ -264,6 +269,7 @@ export default function AdminSettings() {
   );
 }
 
+/* ✅ Shared Reusable Components */
 const SettingCard = ({ icon, title, value, onChange, onSave, placeholder }) => (
   <div className="bg-white border border-pink-200 rounded-lg p-4 shadow-sm">
     <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">

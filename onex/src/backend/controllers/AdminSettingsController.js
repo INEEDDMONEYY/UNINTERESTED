@@ -59,25 +59,31 @@ exports.getAllUsers = async (req, res) => {
 exports.updateAdminCredentials = async (req, res) => {
   try {
     const { username, password } = req.body;
-    const adminId = req.user?.id;
+    const adminId = req.user?.id || req.user?._id;
 
     if (!adminId) {
-      return res.status(401).json({ success: false, error: "Unauthorized" });
+      console.warn("⚠️ No adminId found in token payload:", req.user);
+      return res.status(401).json({ success: false, error: "Unauthorized or invalid token" });
+    }
+
+    if (!username && !password) {
+      return res.status(400).json({ success: false, error: "No fields provided for update" });
     }
 
     const updates = {};
-    if (username) updates.username = username;
+    if (username) updates.username = username.trim();
     if (password) updates.password = await bcrypt.hash(password, 10);
 
-    const updatedAdmin = await User.findByIdAndUpdate(adminId, updates, { new: true });
+    const updatedAdmin = await User.findByIdAndUpdate(adminId, updates, { new: true }).select("-password");
 
     if (!updatedAdmin) {
-      return res.status(404).json({ success: false, error: "Admin user not found" });
+      console.error("❌ Admin not found in DB:", adminId);
+      return res.status(404).json({ success: false, error: "Admin not found" });
     }
 
-    console.log(`✅ Admin credentials updated for user ID: ${adminId}`);
+    console.log(`✅ Admin credentials updated for ${updatedAdmin.username} (ID: ${adminId})`);
 
-    res.json({
+    return res.status(200).json({
       success: true,
       message: "Admin credentials updated successfully.",
       admin: {
@@ -88,14 +94,14 @@ exports.updateAdminCredentials = async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Error updating admin credentials:", err);
-    res.status(500).json({ success: false, error: err.message });
+    return res.status(500).json({ success: false, error: err.message });
   }
 };
 
 /* --------------------------- 🖼 Upload Profile Picture --------------------------- */
 exports.uploadProfilePicture = async (req, res) => {
   try {
-    const adminId = req.user?.id;
+    const adminId = req.user?.id || req.user?._id;
     if (!adminId) return res.status(401).json({ success: false, error: "Unauthorized" });
     if (!req.file) return res.status(400).json({ success: false, error: "No file uploaded" });
 
