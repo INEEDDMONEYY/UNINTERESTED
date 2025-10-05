@@ -10,7 +10,6 @@ import {
   ArrowLeftCircle,
 } from "lucide-react";
 import AdminAnalytics from "./AdminAnalytics";
-import AdminSettings from "./AdminSettings";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -20,60 +19,87 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({ totalUsers: 0, totalAdmins: 0 });
   const [restrictedAccounts, setRestrictedAccounts] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Fetch data on load
+  // Fetch all dashboard data on load
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
 
-    // Fetch site stats
-    fetch("https://uninterested.onrender.com/admin/stats", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch stats");
-        return res.json();
-      })
-      .then((data) => {
-        setStats(data);
-        setLoading(false);
-      })
-      .catch((err) => {
+    const fetchData = async () => {
+      try {
+        // Site stats
+        const statsRes = await fetch(
+          "https://uninterested.onrender.com/admin/stats",
+          { headers, credentials: "include" }
+        );
+        if (!statsRes.ok) throw new Error("Failed to fetch stats");
+        const statsData = await statsRes.json();
+        setStats(statsData);
+
+        // Restricted accounts
+        const restrictedRes = await fetch(
+          "https://uninterested.onrender.com/admin/restricted",
+          { headers, credentials: "include" }
+        );
+        const restrictedData = await restrictedRes.json();
+        setRestrictedAccounts(restrictedData);
+
+        // Messages
+        const messagesRes = await fetch(
+          "https://uninterested.onrender.com/admin/messages",
+          { headers, credentials: "include" }
+        );
+        const messagesData = await messagesRes.json();
+        setMessages(messagesData);
+
+        // ✅ Admin Settings (Step 4)
+        const settingsRes = await fetch(
+          "https://uninterested.onrender.com/api/admin/settings",
+          { headers, credentials: "include" }
+        );
+        if (!settingsRes.ok) throw new Error("Failed to fetch admin settings");
+        const settingsData = await settingsRes.json();
+        setSettings(settingsData);
+      } catch (err) {
         setError(err.message);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
 
-    // Fetch user messages
-    fetch("https://uninterested.onrender.com/admin/messages", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => setMessages(data))
-      .catch((err) => console.error("Failed to fetch messages:", err));
-
-    // Fetch restricted accounts
-    fetch("https://uninterested.onrender.com/admin/restricted", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => setRestrictedAccounts(data))
-      .catch((err) =>
-        console.error("Failed to fetch restricted accounts:", err)
-      );
+    fetchData();
   }, []);
+
+  // ✅ Update admin settings handler
+  const handleUpdateSettings = async (updatedSettings) => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(
+        "https://uninterested.onrender.com/api/admin/settings",
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(updatedSettings),
+        }
+      );
+      if (!res.ok) throw new Error("Failed to update settings");
+      const data = await res.json();
+      setSettings(data);
+      alert("✅ Settings updated successfully!");
+    } catch (err) {
+      alert("❌ " + err.message);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -102,9 +128,17 @@ export default function AdminDashboard() {
       {/* Sidebar */}
       <aside className="w-full md:w-64 bg-white shadow-lg flex flex-col justify-between p-6">
         <div>
-          <h2 className="text-xl font-bold text-pink-700 mb-6 text-center">
-            Admin Panel
-          </h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-pink-700">Admin Panel</h2>
+            <img
+              src={
+                localStorage.getItem("profilePicture") ||
+                "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"
+              }
+              alt="Admin Profile"
+              className="w-10 h-10 rounded-full object-cover border border-pink-300 shadow-sm"
+            />
+          </div>
 
           <nav className="space-y-4 text-sm">
             <SidebarButton icon={Home} label="Dashboard" view="dashboard" />
@@ -138,7 +172,6 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">
-        {/* Breadcrumbs */}
         <nav className="text-sm text-gray-600 mb-4">
           <ol className="list-reset flex items-center gap-2">
             <li>
@@ -160,7 +193,7 @@ export default function AdminDashboard() {
           </ol>
         </nav>
 
-        {/* Dynamic Views */}
+        {/* Dashboard View */}
         {activeView === "dashboard" && (
           <div>
             <h1 className="text-3xl font-bold text-pink-700 mb-2">
@@ -190,91 +223,76 @@ export default function AdminDashboard() {
                 </div>
               </div>
             )}
-
-            {/* Restricted Accounts Section */}
-            <section className="mt-6">
-              <h2 className="text-2xl font-bold text-pink-700 mb-3">
-                Restricted Accounts
-              </h2>
-              {restrictedAccounts.length > 0 ? (
-                <ul className="space-y-3">
-                  {restrictedAccounts.map((acc, i) => (
-                    <li
-                      key={i}
-                      className="bg-white border border-pink-200 rounded-lg p-4 shadow-sm"
-                    >
-                      <p className="text-gray-800 font-medium">
-                        {acc.username}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Reason: {acc.reason || "N/A"}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-600">No restricted accounts found.</p>
-              )}
-            </section>
           </div>
         )}
 
-        {activeView === "users" && (
-          <div>
-            <h2 className="text-2xl font-bold text-pink-700 mb-2">
-              User Management
-            </h2>
-            <p className="text-gray-700">View, edit, or promote users here.</p>
-          </div>
-        )}
-
+        {/* Settings View (Step 4 UI) */}
         {activeView === "settings" && (
           <div>
-            <h2 className="text-2xl font-bold text-pink-700 mb-2">Settings</h2>
-            <p className="text-gray-700 mb-4">
-              Configure platform preferences and admin tools.
-            </p>
-            <AdminSettings />
-          </div>
-        )}
-
-        {activeView === "analytics" && (
-          <div>
             <h2 className="text-2xl font-bold text-pink-700 mb-2">
-              Site Analytics
+              Admin Settings
             </h2>
-            <p className="text-gray-700 mb-4">
-              Monitor traffic, engagement, and performance metrics.
-            </p>
-            <AdminAnalytics />
-          </div>
-        )}
+            {settings ? (
+              <form
+                className="space-y-4 max-w-lg"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleUpdateSettings(settings);
+                }}
+              >
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Site Name
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.siteName}
+                    onChange={(e) =>
+                      setSettings({ ...settings, siteName: e.target.value })
+                    }
+                    className="w-full mt-1 border border-pink-300 rounded-lg p-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Support Email
+                  </label>
+                  <input
+                    type="email"
+                    value={settings.supportEmail}
+                    onChange={(e) =>
+                      setSettings({ ...settings, supportEmail: e.target.value })
+                    }
+                    className="w-full mt-1 border border-pink-300 rounded-lg p-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Developer Message
+                  </label>
+                  <textarea
+                    value={settings.devMessage}
+                    onChange={(e) =>
+                      setSettings({ ...settings, devMessage: e.target.value })
+                    }
+                    className="w-full mt-1 border border-pink-300 rounded-lg p-2"
+                  />
+                </div>
 
-        {activeView === "messages" && (
-          <div>
-            <h2 className="text-2xl font-bold text-pink-700 mb-4">
-              Messages from Users
-            </h2>
-            {messages.length > 0 ? (
-              <ul className="space-y-4">
-                {messages.map((msg, i) => (
-                  <li
-                    key={i}
-                    className="bg-white rounded-lg p-4 shadow border border-pink-100"
-                  >
-                    <h3 className="text-pink-700 font-semibold">{msg.title}</h3>
-                    <p className="text-gray-700 text-sm">{msg.description}</p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      From: {msg.sender}
-                    </p>
-                  </li>
-                ))}
-              </ul>
+                <button
+                  type="submit"
+                  className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 transition"
+                >
+                  Save Changes
+                </button>
+              </form>
             ) : (
-              <p className="text-gray-600">No messages found.</p>
+              <p>Loading settings...</p>
             )}
           </div>
         )}
+
+        {activeView === "analytics" && <AdminAnalytics />}
       </main>
     </div>
   );

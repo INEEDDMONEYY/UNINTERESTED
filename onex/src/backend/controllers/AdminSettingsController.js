@@ -1,45 +1,69 @@
-import AdminSettings from '../models/AdminSettings.js'; // ✅ Add .js extension (ESM style)
+const AdminSettings = require('../models/AdminSettings');
+const User = require('../models/User');
+const bcrypt = require('bcrypt');
 
-// Get current settings
-export const getSettings = async (req, res) => {
-  console.log("🔹 PUT /api/admin/settings hit with body:", req.body);
+// ✅ Get current admin settings
+exports.getSettings = async (req, res) => {
   try {
     let settings = await AdminSettings.findOne();
-
-    // If no settings exist yet, create default ones
     if (!settings) {
-      settings = await AdminSettings.create({
-        roleRestriction: '',
-        suspendUserId: '',
-        devMessage: 'Welcome to the platform 🌟',
-      });
+      settings = new AdminSettings();
+      await settings.save();
     }
-
     res.json(settings);
   } catch (err) {
-    console.error('Error fetching settings:', err);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
-// Update or create settings
-export const updateSettings = async (req, res) => { // ✅ fixed typo: 'aysnc' → 'async'
+// ✅ Update site settings
+exports.updateSettings = async (req, res) => {
   try {
-    const data = req.body;
-    let settings = await AdminSettings.findOne();
-
-    if (settings) {
-      // ✅ Apply new values to existing settings
-      Object.assign(settings, data);
-      await settings.save();
-    } else {
-      // ✅ Fix capitalization typo: Adminsettings → AdminSettings
-      settings = await AdminSettings.create(data);
-    }
-
+    const updates = req.body;
+    const settings = await AdminSettings.findOneAndUpdate({}, updates, {
+      new: true,
+      upsert: true,
+    });
     res.json(settings);
   } catch (err) {
-    console.error('Error updating settings:', err);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ✅ Get all users (for admin panel dropdown)
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, '-password');
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ✅ Update admin username/password
+exports.updateAdminCredentials = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const updates = {};
+
+    if (username) updates.username = username;
+    if (password) {
+      updates.password = await bcrypt.hash(password, 10);
+    }
+
+    const admin = await User.findOneAndUpdate({ role: 'admin' }, updates, { new: true });
+    res.json({ message: 'Admin credentials updated', admin });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ✅ Delete user
+exports.deleteUser = async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: 'User deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };

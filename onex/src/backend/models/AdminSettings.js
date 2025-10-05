@@ -24,15 +24,13 @@ const AdminSettingsSchema = new mongoose.Schema(
     },
     customSettings: {
       type: Map,
-      of: String, // Flexible key-value settings
+      of: String,
       default: {},
     },
     devMessage: {
       type: String,
       default: 'Respect all members on the platform, post often to get rewarded 🌟',
     },
-
-    // ✅ Add these missing fields
     roleRestriction: {
       type: String,
       default: '',
@@ -40,6 +38,11 @@ const AdminSettingsSchema = new mongoose.Schema(
     suspendUserId: {
       type: String,
       default: '',
+    },
+    lastUpdatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
     },
   },
   { timestamps: true }

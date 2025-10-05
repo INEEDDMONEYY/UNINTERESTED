@@ -5,37 +5,37 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const path = require('path');
 const User = require('./models/User');
-const adminSettingsRoutes = require('./routes/adminSettings'); // ✅ ensure correct path
+const adminSettingsRoutes = require('./routes/adminSettings');
+const adminUserRoutes = require('./routes/adminUsers');
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5020;
 
-// ✅ CORS Setup (must be BEFORE routes)
+/* ------------------------------ 🌐 CORS Setup ------------------------------ */
 const allowedOrigins = [
-  'https://glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev',
   'https://uninterested.vercel.app',
+  'https://glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev',
   'http://localhost:5173',
-  'http://localhost:5020'
+  'http://localhost:5020',
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    console.log('CORS request from:', origin);
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    console.log('🌍 CORS request from:', origin);
+    if (!origin || allowedOrigins.includes(origin)) callback(null, true);
+    else callback(new Error('❌ Not allowed by CORS'));
   },
   credentials: true,
 }));
 
-// ✅ Global Middleware
+/* --------------------------- 🌍 Global Middleware -------------------------- */
 app.use(express.json());
 app.use(cookieParser());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ✅ MongoDB Connection
+/* ---------------------------- ⚙️ MongoDB Setup ----------------------------- */
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -43,37 +43,32 @@ mongoose.connect(process.env.MONGO_URI, {
   .then(() => console.log('✅ MongoDB connected successfully'))
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 
-
-// ✅ Auth Middleware
+/* --------------------------- 🔐 Auth Middleware ---------------------------- */
 const authenticateToken = (req, res, next) => {
   const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Unauthorized - no token provided' });
+  if (!token) return res.status(401).json({ error: 'Unauthorized - no token' });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
-  } catch (err) {
-    console.error('Invalid token:', err);
+  } catch {
     res.status(403).json({ error: 'Invalid token' });
   }
 };
 
-// ✅ Admin-only middleware
 const verifyAdmin = (req, res, next) => {
-  if (req.user?.role !== 'admin') {
-    return res.status(403).json({ error: 'Access denied - admin only' });
-  }
+  if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Admins only' });
   next();
 };
 
-// ✅ Mount Admin Settings Route (AFTER middlewares)
+/* -------------------------- 🧩 Protected Admin Routes -------------------------- */
 app.use('/api/admin/settings', authenticateToken, verifyAdmin, adminSettingsRoutes);
+app.use('/api/admin', authenticateToken, verifyAdmin, adminUserRoutes);
 
-// ✅ Auth Routes
+/* ------------------------------ 🔑 Auth Routes ----------------------------- */
 app.post('/signin', async (req, res) => {
   const { username, password } = req.body;
-
   try {
     const user = await User.findOne({ username: new RegExp(`^${username}$`, 'i') });
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
@@ -82,77 +77,60 @@ app.post('/signin', async (req, res) => {
     if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
     res.cookie('token', token, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'None',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
     });
 
     res.status(200).json({
       message: 'Signin successful',
-      user: { username: user.username, role: user.role },
-      token
+      user: { username: user.username, role: user.role, profilePic: user.profilePic },
+      token,
     });
   } catch (err) {
-    console.error('Signin error:', err);
     res.status(500).json({ error: 'Signin failed' });
   }
 });
 
 app.post('/signup', async (req, res) => {
   const { username, password, role = 'user' } = req.body;
-
   try {
-    const existingUser = await User.findOne({ username });
-    if (existingUser) return res.status(400).json({ error: 'User already exists' });
+    const existing = await User.findOne({ username });
+    if (existing) return res.status(400).json({ error: 'User already exists' });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ username, password: hashedPassword, role });
+    const hashed = await bcrypt.hash(password, 10);
+    const newUser = await User.create({ username, password: hashed, role });
 
     const token = jwt.sign({ id: newUser._id, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'None',
+    res.cookie('token', token, { httpOnly: true });
+    res.status(201).json({
+      message: 'Signup successful',
+      user: { username: newUser.username, role: newUser.role, profilePic: newUser.profilePic },
     });
-
-    res.status(201).json({ message: 'Signup successful', user: newUser });
-    console.log('Signup request from:', req.headers.origin);
-
   } catch (err) {
-    console.error('Signup error:', err);
     res.status(500).json({ error: 'Signup failed' });
   }
 });
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('token');
+  res.clearCookie('token', { sameSite: 'None', secure: true });
   res.status(200).json({ message: 'Logged out successfully' });
 });
 
+/* ----------------------------- 📊 Admin Stats ------------------------------ */
 app.get('/admin/stats', authenticateToken, verifyAdmin, async (req, res) => {
   try {
     const totalUsers = await User.countDocuments({ role: 'user' });
     const totalAdmins = await User.countDocuments({ role: 'admin' });
     res.json({ totalUsers, totalAdmins });
-  } catch (err) {
-    console.error('Stats error:', err);
+  } catch {
     res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
 
-// ✅ Root route
-app.get('/', (req, res) => {
-  res.send(`✅ Backend server is running on port ${port}`);
-});
+/* ---------------------------- 🧭 Utility Routes ---------------------------- */
+app.get('/', (req, res) => res.send(`✅ Server running on port ${port}`));
+app.get('/test-admin-route', (req, res) => res.send('✅ Admin routes working'));
 
-// ✅ Test route to verify admin settings mount (optional)
-app.get('/test-admin-route', (req, res) => {
-  res.send('✅ /api/admin/settings route is mounted correctly');
-});
-
-app.listen(port, () => {
-  console.log(`🚀 Server is running on port ${port}`);
-});
+app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
