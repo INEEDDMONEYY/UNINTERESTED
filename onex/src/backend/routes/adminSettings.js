@@ -3,14 +3,20 @@ const router = express.Router();
 const {
   getSettings,
   updateSettings,
+  getAllUsers,
   updateAdminCredentials,
+  deleteUser,
 } = require('../controllers/AdminSettingsController');
 
-// ✅ Get or update admin site settings
+// ✅ Core admin settings
 router.get('/', getSettings);
 router.put('/', updateSettings);
 
-// ✅ Update admin username/password
+// ✅ Admin credentials management
 router.put('/credentials', updateAdminCredentials);
+
+// ✅ Users management (for admin panel)
+router.get('/users', getAllUsers);
+router.delete('/user/:id', deleteUser);
 
 module.exports = router;

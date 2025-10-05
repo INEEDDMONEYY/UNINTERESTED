@@ -21,16 +21,16 @@ export default function AdminSettings() {
   const [profilePic, setProfilePic] = useState(null);
   const [preview, setPreview] = useState(null);
 
-  // ✅ Keep your existing update logic
+  // ✅ PUT handler for admin settings
   const updateSetting = async (field, value) => {
     try {
       const res = await fetch("https://uninterested.onrender.com/api/admin/settings", {
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ [field]: value }),
+        body: JSON.stringify({ field, value }),
         credentials: "include",
       });
 
@@ -41,6 +41,7 @@ export default function AdminSettings() {
 
       if (field === "devMessage") {
         localStorage.setItem("devMessage", value);
+        window.dispatchEvent(new Event("storage")); // triggers header re-render if same tab
       }
     } catch (err) {
       console.error("❌ Error updating setting:", err);
@@ -48,18 +49,75 @@ export default function AdminSettings() {
     }
   };
 
-  // ✅ Fetch all users for dropdown
+  // ✅ NEW: Handle admin credentials update (username/password)
+  const saveCredentials = async () => {
+    try {
+      const res = await fetch(
+        "https://uninterested.onrender.com/api/admin/settings/credentials",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            username: username || undefined,
+            password: newPassword || undefined,
+          }),
+          credentials: "include",
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to update admin credentials");
+      const data = await res.json();
+      alert("✅ Admin credentials updated!");
+      console.log("Updated credentials:", data);
+    } catch (err) {
+      console.error("❌ Error updating credentials:", err);
+      alert("Failed to update credentials.");
+    }
+  };
+
+  // ✅ NEW: Handle profile picture upload
+  const handleProfileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("profilePic", file);
+
+    try {
+      const res = await fetch(
+        "https://uninterested.onrender.com/api/admin/profile-picture",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: formData,
+          credentials: "include",
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to upload profile picture");
+      const data = await res.json();
+      setPreview(data.url);
+      alert("✅ Profile picture updated!");
+    } catch (err) {
+      console.error("❌ Upload error:", err);
+    }
+  };
+
+  // ✅ Fetch all users
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const res = await fetch("https://uninterested.onrender.com/api/admin/users", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         if (!res.ok) throw new Error("Failed to fetch users");
         const data = await res.json();
-        setUsers(data);
+        setUsers(data.users || data); // ensure compatibility
       } catch (err) {
         console.error("❌ Error fetching users:", err);
       }
@@ -67,10 +125,10 @@ export default function AdminSettings() {
     fetchUsers();
   }, []);
 
-  // ✅ Delete user logic
+  // ✅ Delete user
   const deleteUser = async () => {
     if (!selectedUserId) return alert("Please select a user to delete.");
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    if (!window.confirm("Are you sure?")) return;
 
     try {
       const res = await fetch(
@@ -83,46 +141,8 @@ export default function AdminSettings() {
       if (!res.ok) throw new Error("Failed to delete user");
       alert("User deleted successfully!");
       setUsers(users.filter((u) => u._id !== selectedUserId));
-      setSelectedUserId("");
     } catch (err) {
       console.error("❌ Error deleting user:", err);
-      alert("Failed to delete user.");
-    }
-  };
-
-  // ✅ Upload profile picture logic
-  const uploadProfilePicture = async () => {
-    if (!profilePic) return alert("Please select an image first.");
-    const formData = new FormData();
-    formData.append("profilePic", profilePic);
-
-    try {
-      const res = await fetch(
-        "https://uninterested.onrender.com/api/admin/profile-picture",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: formData,
-        }
-      );
-      if (!res.ok) throw new Error("Failed to upload image");
-      const data = await res.json();
-      alert("Profile picture updated successfully!");
-      setPreview(data.url);
-    } catch (err) {
-      console.error("❌ Error uploading profile picture:", err);
-      alert("Failed to upload profile picture.");
-    }
-  };
-
-  // ✅ Preview selected image
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setProfilePic(file);
-    if (file) {
-      setPreview(URL.createObjectURL(file));
     }
   };
 
@@ -130,57 +150,72 @@ export default function AdminSettings() {
     <div className="p-4 w-full max-w-2xl space-y-6">
       <h1 className="text-2xl font-bold text-pink-700 mb-4">Admin Settings</h1>
 
-      {/* Restrict Role Access */}
       <SettingCard
         icon={<ShieldCheck size={18} />}
         title="Restrict Role Access"
-        placeholder="e.g. restrict 'user' from posting"
         value={roleRestriction}
         onChange={(e) => setRoleRestriction(e.target.value)}
         onSave={() => updateSetting("roleRestriction", roleRestriction)}
+        placeholder="e.g. restrict 'user' from posting"
       />
 
-      {/* Suspend User */}
       <SettingCard
         icon={<Ban size={18} />}
         title="Suspend User Account"
-        placeholder="Enter user ID to suspend"
         value={suspendUserId}
         onChange={(e) => setSuspendUserId(e.target.value)}
         onSave={() => updateSetting("suspendUserId", suspendUserId)}
+        placeholder="Enter user ID to suspend"
       />
 
-      {/* Developer Message */}
       <SettingTextArea
         icon={<MessageSquare size={18} />}
         title="Homepage Developer Message"
-        placeholder="Update the message shown on homepage"
         value={devMessage}
         onChange={(e) => setDevMessage(e.target.value)}
         onSave={() => updateSetting("devMessage", devMessage)}
+        placeholder="Update the homepage message"
       />
 
-      {/* Update Username */}
+      {/* ✅ Updated Username and Password to use saveCredentials */}
       <SettingCard
         icon={<User size={18} />}
         title="Update Admin Username"
-        placeholder="Enter new username"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
-        onSave={() => updateSetting("username", username)}
+        onSave={saveCredentials}
+        placeholder="Enter new username"
       />
 
-      {/* Reset Password */}
       <SettingCard
         icon={<Lock size={18} />}
         title="Reset Admin Password"
-        placeholder="Enter new password"
         value={newPassword}
         onChange={(e) => setNewPassword(e.target.value)}
-        onSave={() => updateSetting("password", newPassword)}
+        onSave={saveCredentials}
+        placeholder="Enter new password"
       />
 
-      {/* Delete User Dropdown */}
+      {/* ✅ NEW: Profile Picture Upload */}
+      <div className="bg-white border border-pink-200 rounded-lg p-4 shadow-sm">
+        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+          <Image size={18} /> Upload Profile Picture
+        </label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleProfileUpload}
+          className="block w-full text-sm text-gray-700"
+        />
+        {preview && (
+          <img
+            src={`https://uninterested.onrender.com${preview}`}
+            alt="Preview"
+            className="mt-3 w-24 h-24 rounded-full object-cover border"
+          />
+        )}
+      </div>
+
       <div className="bg-white border border-pink-200 rounded-lg p-4 shadow-sm">
         <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
           <Trash2 size={18} /> Delete User Account
@@ -206,39 +241,10 @@ export default function AdminSettings() {
           </button>
         </div>
       </div>
-
-      {/* Profile Picture Upload */}
-      <div className="bg-white border border-pink-200 rounded-lg p-4 shadow-sm">
-        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-          <Image size={18} /> Update Profile Picture
-        </label>
-        <div className="flex items-center gap-3">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="flex-1 border border-gray-300 rounded px-3 py-2"
-          />
-          <button
-            onClick={uploadProfilePicture}
-            className="flex items-center gap-2 bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 transition"
-          >
-            <Save size={16} /> Save
-          </button>
-        </div>
-        {preview && (
-          <img
-            src={preview}
-            alt="Profile Preview"
-            className="w-20 h-20 mt-3 rounded-full object-cover border-2 border-pink-300"
-          />
-        )}
-      </div>
     </div>
   );
 }
 
-/* ✅ Small Reusable Components for Clean UI */
 const SettingCard = ({ icon, title, value, onChange, onSave, placeholder }) => (
   <div className="bg-white border border-pink-200 rounded-lg p-4 shadow-sm">
     <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">

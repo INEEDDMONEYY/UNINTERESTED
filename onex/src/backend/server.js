@@ -31,7 +31,8 @@ app.use(cors({
 }));
 
 /* --------------------------- 🌍 Global Middleware -------------------------- */
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // ✅ JSON consistency
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -63,8 +64,23 @@ const verifyAdmin = (req, res, next) => {
 };
 
 /* -------------------------- 🧩 Protected Admin Routes -------------------------- */
+// ✅ JSON consistency & bulletproof route handling
 app.use('/api/admin/settings', authenticateToken, verifyAdmin, adminSettingsRoutes);
 app.use('/api/admin', authenticateToken, verifyAdmin, adminUserRoutes);
+
+// ✅ Global error handler for JSON and server issues
+app.use((err, req, res, next) => {
+  console.error('🚨 Global error handler:', err.message);
+  if (err instanceof SyntaxError && 'body' in err) {
+    return res.status(400).json({ error: 'Invalid JSON payload' });
+  }
+  res.status(500).json({ error: 'Server error', details: err.message });
+});
+
+// ✅ 404 fallback for unknown routes
+app.use('*', (req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
 
 /* ------------------------------ 🔑 Auth Routes ----------------------------- */
 app.post('/signin', async (req, res) => {

@@ -2,45 +2,54 @@ const AdminSettings = require('../models/AdminSettings');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 
-// ✅ Get current admin settings
+/* ✅ GET current admin settings */
 exports.getSettings = async (req, res) => {
   try {
     let settings = await AdminSettings.findOne();
     if (!settings) {
-      settings = new AdminSettings();
-      await settings.save();
+      settings = await AdminSettings.create({});
     }
-    res.json(settings);
+    res.json({ success: true, settings });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 };
 
-// ✅ Update site settings
+/* ✅ PUT - Update specific or multiple settings */
 exports.updateSettings = async (req, res) => {
   try {
-    const updates = req.body;
+    let updates = {};
+
+    // Support both direct field:value and { field, value } from frontend
+    if (req.body.field && req.body.value !== undefined) {
+      updates[req.body.field] = req.body.value;
+    } else {
+      updates = req.body;
+    }
+
     const settings = await AdminSettings.findOneAndUpdate({}, updates, {
       new: true,
       upsert: true,
     });
-    res.json(settings);
+
+    res.json({ success: true, settings });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('❌ Error updating settings:', err);
+    res.status(500).json({ success: false, error: err.message });
   }
 };
 
-// ✅ Get all users (for admin panel dropdown)
+/* ✅ GET all users (for admin dropdown) */
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find({}, '-password');
-    res.json(users);
+    res.json({ success: true, users });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 };
 
-// ✅ Update admin username/password
+/* ✅ Update admin username or password */
 exports.updateAdminCredentials = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -52,18 +61,18 @@ exports.updateAdminCredentials = async (req, res) => {
     }
 
     const admin = await User.findOneAndUpdate({ role: 'admin' }, updates, { new: true });
-    res.json({ message: 'Admin credentials updated', admin });
+    res.json({ success: true, message: 'Admin credentials updated', admin });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 };
 
-// ✅ Delete user
+/* ✅ DELETE user by ID */
 exports.deleteUser = async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
-    res.json({ message: 'User deleted successfully' });
+    res.json({ success: true, message: 'User deleted successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 };
