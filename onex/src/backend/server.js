@@ -1,15 +1,18 @@
-require('dotenv').config(); // Load environment variables from .env file
+require('dotenv').config();
 const express = require('express');
-const app = express();
-const port = process.env.PORT;
 const mongoose = require('mongoose');
-const User = require('./models/User');
-app.use(express.json()); // To parse JSON bodies
-// MongoDB connection
-const mongoURI = process.env.MONGO_URI; // Replace with your actual connection string
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const User = require('./models/User');
+const adminSettingsRoutes = require('./routes/adminSettings'); // ✅ ensure correct path
 
-const allowedOrigin = [
+const app = express();
+const port = process.env.PORT || 5000;
+
+// ✅ CORS Setup (must be BEFORE routes)
+const allowedOrigins = [
   'https://glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev',
   'https://uninterested.vercel.app',
   'http://localhost:5173',
@@ -18,9 +21,8 @@ const allowedOrigin = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    console.log('CORS request from origin:', origin);
-
-    if (!origin || allowedOrigin.includes(origin)) {
+    console.log('CORS request from:', origin);
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -29,139 +31,128 @@ app.use(cors({
   credentials: true,
 }));
 
-  // Explicitly handle preflight requests
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    return res.sendStatus(204);
-  }
-  next();
-});
+// ✅ Global Middleware
+app.use(express.json());
+app.use(cookieParser());
 
-
-const bodyParser = require('body-parser')
-app.use(bodyParser.json()); // To parse JSON bodies
-const cookieParser = require('cookie-parser');
-app.use(cookieParser()); // To parse cookies
-
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
-//const routes = require('./routes')
-
-//Controllers
-//const logoutController = require('./controllers/logoutController');
-
-//Data connection 
-mongoose.connect(mongoURI, {
+// ✅ MongoDB Connection
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log('MongoDB connected successfully'))
-.catch((err) => console.error('MongoDB connection error:', err));
+  .then(() => console.log('✅ MongoDB connected successfully'))
+  .catch((err) => console.error('❌ MongoDB connection error:', err));
 
-//Furture Middleware
 
-//Sign in/ sign up routes
-{/**What do they do?
-They listen for HTTP POST requests to /signin and /signup.
-When a POST request is made to either route (usually from a form submission), the corresponding function runs.
-Right now, each handler just sends a simple text response ('Sign in route' or 'Sign up route').
-They are endpoints that process incoming data (like form submissions) and respond to the client. */}
-
-//Signin route 
-app.post('/signin', async (req, res) => {
-  const { username, password } = req.body;
-  try {
-    const user = await User.findOne({ username: new RegExp(`^${username}$`, 'i') });
-    if (!user) {
-      console.log('User not found');
-      return res.status(401).send('Invaild credentials')
-    };
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).send('Invaild credentials');
-
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {expiresIn: '1h'});
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'None',
-    });
-    res.status(200).json({ message: 'Signin successful', user: { username: user.username, role: user.role }, token});
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Signin failed');
-  }
-})
-
-//Signup route
-app.post('/signup', async (req, res) => {
-  const { username, password, role = 'user' } = req.body;
-  try {
-    const existingUser = await User.findOne({ username });
-    if (existingUser) return res.status(400).send('User already exists');
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ username, password: hashedPassword, 'user' });
-
-    const token = jwt.sign({ id: newUser._id, role: User.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'None',
-    });
-    res.status(201).json({message: 'Signup successful', user: newUser });
-    console.log('Signin request from:', req.headers.origin);
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json('Signup failed');
-  }
-})
-
-//Middleware for protected routes 
-const authMiddleware = (req, res, next) => {
-  const token = req.cookies.token;
-  if (!token) return res.status(401).send('Unauthorized');
+// ✅ Auth Middleware
+const authenticateToken = (req, res, next) => {
+  const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Unauthorized - no token provided' });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
   } catch (err) {
-    res.status(403).send('Invalid token')
+    console.error('Invalid token:', err);
+    res.status(403).json({ error: 'Invalid token' });
   }
-}
+};
 
-//Signout route 
+// ✅ Admin-only middleware
+const verifyAdmin = (req, res, next) => {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ error: 'Access denied - admin only' });
+  }
+  next();
+};
+
+// ✅ Mount Admin Settings Route (AFTER middlewares)
+app.use('/api/admin/settings', authenticateToken, verifyAdmin, adminSettingsRoutes);
+
+// ✅ Auth Routes
+app.post('/signin', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const user = await User.findOne({ username: new RegExp(`^${username}$`, 'i') });
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
+
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'None',
+    });
+
+    res.status(200).json({
+      message: 'Signin successful',
+      user: { username: user.username, role: user.role },
+      token
+    });
+  } catch (err) {
+    console.error('Signin error:', err);
+    res.status(500).json({ error: 'Signin failed' });
+  }
+});
+
+app.post('/signup', async (req, res) => {
+  const { username, password, role = 'user' } = req.body;
+
+  try {
+    const existingUser = await User.findOne({ username });
+    if (existingUser) return res.status(400).json({ error: 'User already exists' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await User.create({ username, password: hashedPassword, role });
+
+    const token = jwt.sign({ id: newUser._id, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'None',
+    });
+
+    res.status(201).json({ message: 'Signup successful', user: newUser });
+    console.log('Signup request from:', req.headers.origin);
+
+  } catch (err) {
+    console.error('Signup error:', err);
+    res.status(500).json({ error: 'Signup failed' });
+  }
+});
+
 app.post('/logout', (req, res) => {
   res.clearCookie('token');
-  res.status(200).send('Logged out');
+  res.status(200).json({ message: 'Logged out successfully' });
 });
 
-//Admin stat route 
-app.get('/admin/stats', authenticateToken, async (req, res) => {
-  if (req.user.role !== 'admin') return res.status(403).send('Access denied');
-
-  const totalUsers = await User.countDocuments({ role: 'user' });
-  const totalAdmins = await User.countDocuments({ role: 'admin' });
-
-  res.json({ totalUsers, totalAdmins });
-})
-
-//Start the server
-app.get('/', (req, res) => {
+app.get('/admin/stats', authenticateToken, verifyAdmin, async (req, res) => {
   try {
-    res.send(`Backend server is running on port ${port}`);
+    const totalUsers = await User.countDocuments({ role: 'user' });
+    const totalAdmins = await User.countDocuments({ role: 'admin' });
+    res.json({ totalUsers, totalAdmins });
   } catch (err) {
-    console.error('Error handling root route:', err);
+    console.error('Stats error:', err);
+    res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
 
-//Log that the serve is running
-  app.listen(port, () =>  {
-    console.log(`Server is running on port ${port}`);
-  })
+// ✅ Root route
+app.get('/', (req, res) => {
+  res.send(`✅ Backend server is running on port ${port}`);
+});
+
+// ✅ Test route to verify admin settings mount (optional)
+app.get('/test-admin-route', (req, res) => {
+  res.send('✅ /api/admin/settings route is mounted correctly');
+});
+
+app.listen(port, () => {
+  console.log(`🚀 Server is running on port ${port}`);
+});
