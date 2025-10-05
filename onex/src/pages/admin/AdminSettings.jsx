@@ -8,6 +8,7 @@ import {
   Trash2,
   Lock,
   Image,
+  Upload,
 } from "lucide-react";
 
 export default function AdminSettings() {
@@ -20,6 +21,7 @@ export default function AdminSettings() {
   const [selectedUserId, setSelectedUserId] = useState("");
   const [profilePic, setProfilePic] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   // ✅ PUT handler for admin settings
   const updateSetting = async (field, value) => {
@@ -41,7 +43,7 @@ export default function AdminSettings() {
 
       if (field === "devMessage") {
         localStorage.setItem("devMessage", value);
-        window.dispatchEvent(new Event("storage")); // triggers header re-render if same tab
+        window.dispatchEvent(new Event("storage"));
       }
     } catch (err) {
       console.error("❌ Error updating setting:", err);
@@ -49,7 +51,7 @@ export default function AdminSettings() {
     }
   };
 
-  // ✅ NEW: Handle admin credentials update (username/password)
+  // ✅ Handle admin credentials update
   const saveCredentials = async () => {
     try {
       const res = await fetch(
@@ -79,13 +81,13 @@ export default function AdminSettings() {
   };
 
   // ✅ NEW: Handle profile picture upload
-  const handleProfileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleProfileUpload = async () => {
+    if (!profilePic) return alert("Please select a file first!");
 
     const formData = new FormData();
-    formData.append("profilePic", file);
+    formData.append("profilePic", profilePic);
 
+    setUploading(true);
     try {
       const res = await fetch(
         "https://uninterested.onrender.com/api/admin/profile-picture",
@@ -105,6 +107,9 @@ export default function AdminSettings() {
       alert("✅ Profile picture updated!");
     } catch (err) {
       console.error("❌ Upload error:", err);
+      alert("Failed to upload profile picture.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -117,7 +122,7 @@ export default function AdminSettings() {
         });
         if (!res.ok) throw new Error("Failed to fetch users");
         const data = await res.json();
-        setUsers(data.users || data); // ensure compatibility
+        setUsers(data.users || data);
       } catch (err) {
         console.error("❌ Error fetching users:", err);
       }
@@ -177,7 +182,7 @@ export default function AdminSettings() {
         placeholder="Update the homepage message"
       />
 
-      {/* ✅ Updated Username and Password to use saveCredentials */}
+      {/* ✅ Admin Credentials */}
       <SettingCard
         icon={<User size={18} />}
         title="Update Admin Username"
@@ -196,26 +201,40 @@ export default function AdminSettings() {
         placeholder="Enter new password"
       />
 
-      {/* ✅ NEW: Profile Picture Upload */}
+      {/* ✅ Profile Picture Upload with Button */}
       <div className="bg-white border border-pink-200 rounded-lg p-4 shadow-sm">
         <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-          <Image size={18} /> Upload Profile Picture
+          <Image size={18} /> Update Profile Picture
         </label>
         <input
           type="file"
           accept="image/*"
-          onChange={handleProfileUpload}
-          className="block w-full text-sm text-gray-700"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            setProfilePic(file);
+            if (file) setPreview(URL.createObjectURL(file));
+          }}
+          className="block w-full text-sm text-gray-700 mb-3"
         />
         {preview && (
           <img
-            src={`https://uninterested.onrender.com${preview}`}
+            src={preview}
             alt="Preview"
-            className="mt-3 w-24 h-24 rounded-full object-cover border"
+            className="mt-2 w-24 h-24 rounded-full object-cover border"
           />
         )}
+        <button
+          onClick={handleProfileUpload}
+          disabled={uploading}
+          className={`mt-3 flex items-center gap-2 ${
+            uploading ? "bg-gray-400" : "bg-pink-600 hover:bg-pink-700"
+          } text-white px-4 py-2 rounded transition`}
+        >
+          <Upload size={16} /> {uploading ? "Uploading..." : "Upload"}
+        </button>
       </div>
 
+      {/* ✅ Delete User */}
       <div className="bg-white border border-pink-200 rounded-lg p-4 shadow-sm">
         <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
           <Trash2 size={18} /> Delete User Account

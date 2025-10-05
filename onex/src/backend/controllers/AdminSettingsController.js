@@ -1,4 +1,10 @@
-const AdminSettings = require('../models/AdminSettings');
+// controllers/AdminSettingsController.js
+const mongoose = require('mongoose');
+
+// ✅ Import AdminSettings model safely whether ESM or CJS
+let AdminSettings = require('../models/AdminSettings');
+if (AdminSettings.default) AdminSettings = AdminSettings.default;
+
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 
@@ -20,7 +26,6 @@ exports.updateSettings = async (req, res) => {
   try {
     let updates = {};
 
-    // Support both direct field:value and { field, value } from frontend
     if (req.body.field && req.body.value !== undefined) {
       updates[req.body.field] = req.body.value;
     } else {
