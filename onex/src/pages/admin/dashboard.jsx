@@ -10,6 +10,7 @@ import {
   ArrowLeftCircle,
 } from "lucide-react";
 import AdminAnalytics from "./AdminAnalytics";
+import AdminSettings from "./AdminSettings"; // ✅ import your settings component
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Fetch all dashboard data on load
+  // Fetch dashboard data
   useEffect(() => {
     const token = localStorage.getItem("token");
     const headers = {
@@ -33,7 +34,7 @@ export default function AdminDashboard() {
 
     const fetchData = async () => {
       try {
-        // Site stats
+        // Stats
         const statsRes = await fetch(
           "https://uninterested.onrender.com/admin/stats",
           { headers, credentials: "include" }
@@ -42,7 +43,7 @@ export default function AdminDashboard() {
         const statsData = await statsRes.json();
         setStats(statsData);
 
-        // Restricted accounts
+        // Restricted
         const restrictedRes = await fetch(
           "https://uninterested.onrender.com/admin/restricted",
           { headers, credentials: "include" }
@@ -58,7 +59,7 @@ export default function AdminDashboard() {
         const messagesData = await messagesRes.json();
         setMessages(messagesData);
 
-        // ✅ Admin Settings (Step 4)
+        // Admin settings
         const settingsRes = await fetch(
           "https://uninterested.onrender.com/api/admin/settings",
           { headers, credentials: "include" }
@@ -75,31 +76,6 @@ export default function AdminDashboard() {
 
     fetchData();
   }, []);
-
-  // ✅ Update admin settings handler
-  const handleUpdateSettings = async (updatedSettings) => {
-    const token = localStorage.getItem("token");
-    try {
-      const res = await fetch(
-        "https://uninterested.onrender.com/api/admin/settings",
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(updatedSettings),
-        }
-      );
-      if (!res.ok) throw new Error("Failed to update settings");
-      const data = await res.json();
-      setSettings(data);
-      alert("✅ Settings updated successfully!");
-    } catch (err) {
-      alert("❌ " + err.message);
-    }
-  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -226,72 +202,14 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Settings View (Step 4 UI) */}
+        {/* ✅ Replaced settings form with your AdminSettings component */}
         {activeView === "settings" && (
           <div>
-            <h2 className="text-2xl font-bold text-pink-700 mb-2">
-              Admin Settings
-            </h2>
-            {settings ? (
-              <form
-                className="space-y-4 max-w-lg"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleUpdateSettings(settings);
-                }}
-              >
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Site Name
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.siteName}
-                    onChange={(e) =>
-                      setSettings({ ...settings, siteName: e.target.value })
-                    }
-                    className="w-full mt-1 border border-pink-300 rounded-lg p-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Support Email
-                  </label>
-                  <input
-                    type="email"
-                    value={settings.supportEmail}
-                    onChange={(e) =>
-                      setSettings({ ...settings, supportEmail: e.target.value })
-                    }
-                    className="w-full mt-1 border border-pink-300 rounded-lg p-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Developer Message
-                  </label>
-                  <textarea
-                    value={settings.devMessage}
-                    onChange={(e) =>
-                      setSettings({ ...settings, devMessage: e.target.value })
-                    }
-                    className="w-full mt-1 border border-pink-300 rounded-lg p-2"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 transition"
-                >
-                  Save Changes
-                </button>
-              </form>
-            ) : (
-              <p>Loading settings...</p>
-            )}
+            <AdminSettings />
           </div>
         )}
 
+        {/* Analytics View */}
         {activeView === "analytics" && <AdminAnalytics />}
       </main>
     </div>
