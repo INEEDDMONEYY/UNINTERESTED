@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema(
   {
@@ -26,7 +26,7 @@ const UserSchema = new mongoose.Schema(
     },
     profilePic: {
       type: String,
-      default: '', // will be updated when uploading via /api/admin/profile-picture
+      default: '',
     },
     status: {
       type: String,
@@ -41,9 +41,8 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ✅ Virtual: convenience field for checking admin status
 UserSchema.virtual('isAdmin').get(function () {
   return this.role === 'admin';
 });
 
-export default mongoose.model('User', UserSchema);
+module.exports = mongoose.model('User', UserSchema);
