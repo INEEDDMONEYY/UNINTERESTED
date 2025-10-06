@@ -91,34 +91,38 @@ export default function AdminMessages() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-black via-gray-900 to-pink-700 text-white">
+    <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-black via-gray-900 to-pink-700 text-white overflow-hidden">
       {/* 🧭 Sidebar */}
-      <ConversationList
-        conversations={conversations}
-        selected={selectedConversation}
-        onSelect={setSelectedConversation}
-        onNewConversation={() => setShowNewConversation(true)}
-      />
+      <div className="md:w-1/3 lg:w-1/4 w-full md:flex-shrink-0 border-b md:border-b-0 md:border-r border-pink-500/20 bg-black/30 backdrop-blur-sm">
+        <ConversationList
+          conversations={conversations}
+          selected={selectedConversation}
+          onSelect={setSelectedConversation}
+          onNewConversation={() => setShowNewConversation(true)}
+        />
+      </div>
 
       {/* 📨 Main Message Panel */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col w-full overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-pink-500/40 bg-black/30 backdrop-blur-sm">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between px-4 sm:px-6 py-4 border-b border-pink-500/40 bg-black/30 backdrop-blur-sm">
+          <div className="flex items-center gap-3 mb-2 sm:mb-0">
             <Shield className="text-pink-400" size={22} />
-            <h1 className="text-xl font-semibold tracking-wide">Admin Messages</h1>
+            <h1 className="text-lg sm:text-xl font-semibold tracking-wide">
+              Admin Messages
+            </h1>
           </div>
           <div className="flex gap-2">
             <button
               onClick={handleRefresh}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-500 transition-colors text-sm font-medium"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-500 transition-colors text-xs sm:text-sm font-medium"
             >
               <RefreshCw size={16} />
               Refresh
             </button>
             <button
               onClick={() => setShowNewConversation(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-pink-500 hover:bg-pink-400 transition-colors text-sm font-medium"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-pink-500 hover:bg-pink-400 transition-colors text-xs sm:text-sm font-medium"
             >
               <PlusCircle size={16} />
               New Chat
@@ -128,32 +132,39 @@ export default function AdminMessages() {
 
         {/* Message Area */}
         {selectedConversation ? (
-          <div className="flex-1 flex flex-col max-w-4xl w-full mx-auto my-6 bg-white/10 rounded-2xl backdrop-blur-sm overflow-hidden shadow-lg">
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-white/10 bg-black/20">
-              <MessageSquareText className="text-pink-400" size={20} />
-              <h2 className="text-lg font-medium">
-                Chat with{" "}
-                {
-                  selectedConversation.participants
-                    ?.filter((p) => p.role !== "admin")[0]?.username || "User"
-                }
-              </h2>
+          <div className="flex-1 flex flex-col mx-auto w-full max-w-5xl my-4 sm:my-6 px-2 sm:px-0">
+            <div className="flex flex-col flex-1 bg-white/10 rounded-2xl backdrop-blur-sm overflow-hidden shadow-lg">
+              <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-white/10 bg-black/20">
+                <MessageSquareText className="text-pink-400" size={20} />
+                <h2 className="text-base sm:text-lg font-medium">
+                  Chat with{" "}
+                  {
+                    selectedConversation.participants?.filter(
+                      (p) => p.role !== "admin"
+                    )[0]?.username || "User"
+                  }
+                </h2>
+              </div>
+
+              <div className="flex-1 overflow-y-auto">
+                <MessageList
+                  messages={messages}
+                  currentRole="admin"
+                  className="bg-transparent text-white"
+                />
+              </div>
+
+              <div className="border-t border-white/10 bg-black/20">
+                <MessageInput
+                  onSend={handleSend}
+                  senderRole="admin"
+                  placeholder="Send a message..."
+                />
+              </div>
             </div>
-
-            <MessageList
-              messages={messages}
-              currentRole="admin"
-              className="bg-transparent text-white"
-            />
-
-            <MessageInput
-              onSend={handleSend}
-              senderRole="admin"
-              placeholder="Send a message..."
-            />
           </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-300">
+          <div className="flex-1 flex items-center justify-center text-gray-300 text-sm sm:text-base p-4">
             Select or start a conversation to begin messaging.
           </div>
         )}
