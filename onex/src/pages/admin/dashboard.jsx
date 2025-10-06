@@ -10,7 +10,8 @@ import {
   ArrowLeftCircle,
 } from "lucide-react";
 import AdminAnalytics from "./AdminAnalytics";
-import AdminSettings from "./AdminSettings"; // ✅ import your settings component
+import AdminSettings from "./AdminSettings";
+import AdminMessages from "./AdminMessages"; // ✅ Import your Messages page
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Fetch dashboard data
+  // ✅ Fetch dashboard data
   useEffect(() => {
     const token = localStorage.getItem("token");
     const headers = {
@@ -43,7 +44,7 @@ export default function AdminDashboard() {
         const statsData = await statsRes.json();
         setStats(statsData);
 
-        // Restricted
+        // Restricted accounts
         const restrictedRes = await fetch(
           "https://uninterested.onrender.com/admin/restricted",
           { headers, credentials: "include" }
@@ -100,7 +101,7 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-pink-100 to-pink-300">
+    <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-black via-gray-900 to-pink-800">
       {/* Sidebar */}
       <aside className="w-full md:w-64 bg-white shadow-lg flex flex-col justify-between p-6">
         <div>
@@ -148,12 +149,12 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">
-        <nav className="text-sm text-gray-600 mb-4">
+        <nav className="text-sm text-gray-300 mb-4">
           <ol className="list-reset flex items-center gap-2">
             <li>
               <button
                 onClick={() => setActiveView("dashboard")}
-                className="text-pink-700 hover:underline"
+                className="text-pink-300 hover:underline"
               >
                 Dashboard
               </button>
@@ -161,7 +162,7 @@ export default function AdminDashboard() {
             {activeView !== "dashboard" && (
               <>
                 <li>/</li>
-                <li className="text-gray-800 font-medium capitalize">
+                <li className="text-white font-medium capitalize">
                   {activeView}
                 </li>
               </>
@@ -172,17 +173,17 @@ export default function AdminDashboard() {
         {/* Dashboard View */}
         {activeView === "dashboard" && (
           <div>
-            <h1 className="text-3xl font-bold text-pink-700 mb-2">
+            <h1 className="text-3xl font-bold text-white mb-2">
               Welcome, {user.username}
             </h1>
-            <p className="text-gray-700 mb-6">
+            <p className="text-gray-300 mb-6">
               Here’s a quick overview of your platform stats.
             </p>
 
             {loading ? (
-              <p className="text-gray-600">Loading site analytics...</p>
+              <p className="text-gray-400">Loading site analytics...</p>
             ) : error ? (
-              <p className="text-red-600">Error: {error}</p>
+              <p className="text-red-400">Error: {error}</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div className="bg-white border border-pink-300 rounded-lg p-4 shadow-sm">
@@ -202,15 +203,18 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* ✅ Replaced settings form with your AdminSettings component */}
-        {activeView === "settings" && (
-          <div>
-            <AdminSettings />
-          </div>
-        )}
+        {/* Settings View */}
+        {activeView === "settings" && <AdminSettings />}
 
         {/* Analytics View */}
         {activeView === "analytics" && <AdminAnalytics />}
+
+        {/* ✅ New Messages View */}
+        {activeView === "messages" && (
+          <div className="bg-gradient-to-br from-black via-gray-900 to-pink-800 min-h-[80vh] rounded-lg p-6 shadow-lg border border-pink-400">
+            <AdminMessages messages={messages} />
+          </div>
+        )}
       </main>
     </div>
   );

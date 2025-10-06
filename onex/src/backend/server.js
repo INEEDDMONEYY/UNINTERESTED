@@ -8,10 +8,15 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 
+// 🧩 Models
 const User = require('./models/User');
+
+// 🧭 Routes
 const adminSettingsRoutes = require('./routes/adminSettings');
 const adminUserRoutes = require('./routes/adminUsers');
 const adminProfileRoutes = require('./routes/adminProfile');
+const messageRoutes = require('./routes/messageRoutes');
+const conversationRoutes = require('./routes/conversationRoutes'); // ✅ NEW
 
 const app = express();
 const port = process.env.PORT || 5020;
@@ -36,7 +41,6 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   })
 );
-
 
 /* --------------------------- 🌍 Global Middleware -------------------------- */
 app.use(express.json({ limit: '10mb' }));
@@ -98,6 +102,12 @@ const verifyAdmin = (req, res, next) => {
 app.use('/api/admin/settings', authenticateToken, verifyAdmin, adminSettingsRoutes);
 app.use('/api/admin/users', authenticateToken, verifyAdmin, adminUserRoutes);
 app.use('/api/admin/profile', authenticateToken, verifyAdmin, adminProfileRoutes);
+
+/* -------------------------- 💬 Message Routes ------------------------------ */
+app.use('/api/messages', authenticateToken, messageRoutes);
+
+/* -------------------------- 🗨️ Conversation Routes ------------------------ */
+app.use('/api/conversations', authenticateToken, conversationRoutes); // ✅ NEW
 
 /* ----------------------------- 🔑 Auth Routes ------------------------------ */
 app.post('/signin', async (req, res) => {
