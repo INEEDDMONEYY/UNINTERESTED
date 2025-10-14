@@ -13,6 +13,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       trim: true,
       lowercase: true,
+      default: '', // optional field
     },
     password: {
       type: String,
@@ -28,6 +29,12 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    bio: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+      default: '',
+    },
     status: {
       type: String,
       enum: ['active', 'suspended'],
@@ -37,12 +44,28 @@ const UserSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    conversations: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Conversation', // link to conversation model
+      },
+    ],
   },
   { timestamps: true }
 );
 
+// Virtual property to check if user is admin
 UserSchema.virtual('isAdmin').get(function () {
   return this.role === 'admin';
+});
+
+// Optional: transform output when sending to client
+UserSchema.set('toJSON', {
+  virtuals: true,
+  transform: (doc, ret) => {
+    delete ret.password; // never send password
+    return ret;
+  },
 });
 
 module.exports = mongoose.model('User', UserSchema);

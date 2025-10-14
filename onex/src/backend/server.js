@@ -1,4 +1,4 @@
-// server.js 
+// server.js
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -16,8 +16,11 @@ const adminSettingsRoutes = require('./routes/adminSettings');
 const adminUserRoutes = require('./routes/adminUsers');
 const adminProfileRoutes = require('./routes/adminProfile');
 const messageRoutes = require('./routes/messageRoutes');
-const conversationRoutes = require('./routes/conversationRoutes'); // ✅ Existing
-const postRoutes = require('./routes/postRoutes'); // ✅ NEW - post routes
+const conversationRoutes = require('./routes/conversationRoutes');
+const postRoutes = require('./routes/postRoutes');
+
+// ✅ NEW: User routes
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 const port = process.env.PORT || 5020;
@@ -111,8 +114,10 @@ app.use('/api/messages', authenticateToken, messageRoutes);
 app.use('/api/conversations', authenticateToken, conversationRoutes);
 
 /* -------------------------- 📝 Post Routes (NEW) --------------------------- */
-// Users can create and fetch posts (no admin restriction)
-app.use('/api/posts', postRoutes); // ✅ Added here
+app.use('/api/posts', postRoutes);
+
+/* -------------------------- 👤 User Routes ------------------------------- */
+app.use('/api/user', authenticateToken, userRoutes);
 
 /* ----------------------------- 🔑 Auth Routes ------------------------------ */
 app.post('/signin', async (req, res) => {

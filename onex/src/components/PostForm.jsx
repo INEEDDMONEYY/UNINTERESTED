@@ -4,9 +4,26 @@ import axios from "axios";
 
 export default function PostForm() {
   const navigate = useNavigate();
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState(null);
+
+  // 🧩 Local state hooks
+  const [formData, setFormData] = useState({
+    picture: null,
+    username: "",
+    description: "",
+    city: "",
+    state: "",
+  });
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null); // { type: 'success'|'error', msg: string }
+
+  // 🧠 Controlled form inputs
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
+  };
 
   function CheckboxMessage() {
     return `Checking this box acknowledges that each post will cost $10. 
@@ -15,47 +32,58 @@ export default function PostForm() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    const paymentChecked = document.getElementById("payment-checkbox").checked;
-    if (!paymentChecked) {
-      alert("You must agree to the payment terms to post.");
-      return;
-    }
-    setShowPaymentModal(true);
-  }
+    setToast(null);
 
-  async function handlePayment(confirm) {
-    if (!confirm) {
-      setPaymentStatus("failed");
-      setShowPaymentModal(false);
+    const { username, description } = formData;
+    if (!username.trim() || !description.trim()) {
+      setToast({ type: "error", msg: "Title and description are required." });
       return;
     }
 
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // mock payment delay
-      setPaymentStatus("success");
-      setShowPaymentModal(false);
+      const data = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value) data.append(key, value);
+      });
 
-      const form = document.getElementById("post-form");
-      const formData = new FormData(form);
+      // Map client field names to backend equivalents
+      data.append("title", username);
+      data.append("content", description);
 
-      // Rename fields to match your backend
-      formData.append("title", formData.get("username"));
-      formData.append("content", formData.get("description"));
-      formData.delete("username");
-      formData.delete("description");
+      // ✅ API URL fallback logic
+      const API_BASE =
+        import.meta.env.VITE_API_URL ||
+        (window.location.hostname === "localhost"
+          ? "http://localhost:5020"
+          : "https://uninterested.onrender.com");
 
-      await axios.post(
-        `${import.meta.env.VITE_API_URL || ""}/api/posts`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      await axios.post(`${API_BASE}/api/posts`, data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-      form.reset();
-      setTimeout(() => navigate("/home"), 1000);
+      setToast({
+        type: "success",
+        msg: "Post submitted successfully! Redirecting...",
+      });
+
+      // Reset form
+      setFormData({
+        picture: null,
+        username: "",
+        description: "",
+        city: "",
+        state: "",
+      });
+
+      // Redirect after success
+      setTimeout(() => navigate("/home"), 900);
     } catch (err) {
-      console.error("Payment/post failed:", err);
-      setPaymentStatus("failed");
+      console.error("❌ Upload failed:", err);
+      setToast({
+        type: "error",
+        msg: "Failed to post — check console for details.",
+      });
     } finally {
       setLoading(false);
     }
@@ -68,12 +96,15 @@ export default function PostForm() {
           type="file"
           name="picture"
           id="post-picture"
+          onChange={handleChange}
           className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg"
         />
         <input
           type="text"
           name="username"
           id="post-username"
+          value={formData.username}
+          onChange={handleChange}
           className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg"
           placeholder="Enter Title"
           required
@@ -81,34 +112,44 @@ export default function PostForm() {
         <textarea
           name="description"
           id="post-description"
+          value={formData.description}
+          onChange={handleChange}
           className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg"
           placeholder="Enter text"
           required
-        ></textarea>
+        />
 
-        {/* Optional city/state for location-based filtering */}
+        {/* Optional city/state for filtering */}
         <input
           type="text"
           name="city"
+          value={formData.city}
+          onChange={handleChange}
           placeholder="City (optional)"
           className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg"
         />
         <input
           type="text"
           name="state"
+          value={formData.state}
+          onChange={handleChange}
           placeholder="State (optional)"
           className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg"
         />
 
         <div className="p-1 text-[0.7rem]">
-          <input type="checkbox" id="payment-checkbox" required />
+          <input type="checkbox" id="payment-checkbox" />
           <label htmlFor="payment-checkbox" className="mx-1">
             {CheckboxMessage()}
           </label>
         </div>
 
-        <button type="submit" className="border-2 border-white m-1 px-1 text-black text-[1.3rem] rounded-md">
-          Post
+        <button
+          type="submit"
+          className="border-2 border-white m-1 px-1 text-black text-[1.3rem] rounded-md"
+          disabled={loading}
+        >
+          {loading ? "Posting..." : "Post"}
         </button>
 
         <Link to="/home">
@@ -116,41 +157,22 @@ export default function PostForm() {
         </Link>
       </form>
 
-      {/* Payment Modal */}
-      {showPaymentModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
-          <div className="bg-white text-black p-6 rounded-lg shadow-lg w-80 text-center">
-            <h2 className="text-lg font-semibold mb-2">Mock Payment</h2>
-            <p className="text-sm mb-4">Confirm $10 payment to post?</p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={() => handlePayment(true)}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded"
-              >
-                {loading ? "Processing..." : "Confirm"}
-              </button>
-              <button
-                onClick={() => handlePayment(false)}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-1 rounded"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {paymentStatus === "success" && (
-        <div className="fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg animate-bounce">
-          Payment Successful! Posting...
-        </div>
-      )}
-      {paymentStatus === "failed" && (
+      {/* Toasts */}
+      {toast && (
         <div
-          className="fixed bottom-5 right-5 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg cursor-pointer"
-          onClick={() => setPaymentStatus(null)}
+          className={`fixed bottom-5 right-5 px-4 py-2 rounded-lg shadow-lg ${
+            toast.type === "success"
+              ? "bg-green-600 text-white"
+              : "bg-red-600 text-white"
+          }`}
         >
-          Payment Failed or Cancelled. Click to close.
+          {toast.msg}
+          <button
+            onClick={() => setToast(null)}
+            className="ml-3 underline text-sm opacity-90"
+          >
+            Close
+          </button>
         </div>
       )}
     </div>

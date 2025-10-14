@@ -13,7 +13,7 @@ import Post from './pages/postPage'
 import AdminDashboard from './pages/admin/dashboard.jsx'
 import AdminAnalytics from './pages/admin/AdminAnalytics.jsx'
 import UserDashboard from './pages/users/dashboard.jsx'
-import UserProfile from './pages/users/UserProfile.jsx'
+import UserProfileSettings from './pages/users/UserProfileSettings.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 
 
@@ -44,7 +44,7 @@ const router = createBrowserRouter([
   },
   {
     path: "user/profile",
-    element: <UserProfile />,
+    element: <UserProfileSettings />,
   },
   {
     path: "signin",
