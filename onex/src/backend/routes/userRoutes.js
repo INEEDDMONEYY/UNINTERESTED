@@ -28,31 +28,21 @@ router.put('/update-profile', upload.single('profilePic'), async (req, res) => {
     const { username, password, bio } = req.body;
     const updateData = {};
 
-    // Username
     if (username) updateData.username = username;
-
-    // Password
-    if (password) {
-      const hashed = await bcrypt.hash(password, 10);
-      updateData.password = hashed;
-    }
-
-    // Bio
+    if (password) updateData.password = await bcrypt.hash(password, 10);
     if (bio) updateData.bio = bio;
-
-    // Profile Picture
-    if (req.file) {
-      updateData.profilePic = `/uploads/profile-pics/${req.file.filename}`;
-    }
+    if (req.file) updateData.profilePic = `/uploads/profile-pics/${req.file.filename}`;
 
     const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
 
     res.status(200).json({
       message: 'Profile updated successfully',
-      user: {
+      updatedUser: {
         username: updatedUser.username,
         bio: updatedUser.bio || '',
         profilePic: updatedUser.profilePic || '',
+        role: updatedUser.role,
+        _id: updatedUser._id,
       },
     });
   } catch (err) {

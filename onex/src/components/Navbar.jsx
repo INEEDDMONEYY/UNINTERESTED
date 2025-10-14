@@ -58,8 +58,8 @@ export default function Navbar() {
         >
           <CircleUser size={18} /> Profile
         </button>
-        <Link to="/contact" className="flex items-center gap-1 hover:text-pink-400">
-          <Contact size={18} /> Contact
+        <Link to="/promote" className="flex items-center gap-1 hover:text-pink-400">
+          <Contact size={18} /> Promote Account
         </Link>
 
         {/* Close button for mobile */}

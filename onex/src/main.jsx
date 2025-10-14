@@ -14,6 +14,7 @@ import AdminDashboard from "./pages/admin/dashboard.jsx";
 import AdminAnalytics from "./pages/admin/AdminAnalytics.jsx";
 import UserDashboard from "./pages/users/dashboard.jsx";
 import UserProfileSettings from "./pages/users/UserProfileSettings.jsx";
+import PromoteAccount from "./pages/promoteAccount.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 // ✅ Import UserProvider
@@ -63,6 +64,10 @@ const router = createBrowserRouter([
   {
     path: "post",
     element: <Post />,
+  },
+  {
+    path: "promote",
+    element: <PromoteAccount />,
   },
 ]);
 
