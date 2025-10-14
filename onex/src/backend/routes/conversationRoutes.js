@@ -1,29 +1,31 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const Conversation = require('../models/Conversation');
-const User = require('../models/User');
-const Message = require('../models/Message');
+const Conversation = require("../models/Conversation");
+const User = require("../models/User");
+const auth = require("../middleware/authMiddleware");
 
-// GET all conversations for the logged-in user
-router.get('/', async (req, res) => {
+// ✅ GET all conversations for the logged-in user
+router.get("/", auth, async (req, res) => {
   try {
     const userId = req.user.id;
     const conversations = await Conversation.find({ participants: userId })
-      .populate('participants', 'username role profilePic')
-      .populate('lastMessage')
+      .populate("participants", "username role profilePic")
+      .populate("lastMessage")
       .sort({ updatedAt: -1 });
     res.json(conversations);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch conversations' });
+    console.error("❌ Failed to fetch conversations:", err);
+    res.status(500).json({ error: "Failed to fetch conversations" });
   }
 });
 
-// POST create new conversation
-router.post('/', async (req, res) => {
+// ✅ POST create new conversation
+router.post("/", auth, async (req, res) => {
   try {
     const { recipientId } = req.body;
     const userId = req.user.id;
 
+    // Check if conversation already exists
     const existing = await Conversation.findOne({
       participants: { $all: [userId, recipientId] },
     });
@@ -36,7 +38,8 @@ router.post('/', async (req, res) => {
 
     res.status(201).json(newConv);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to create conversation' });
+    console.error("❌ Failed to create conversation:", err);
+    res.status(500).json({ error: "Failed to create conversation" });
   }
 });
 

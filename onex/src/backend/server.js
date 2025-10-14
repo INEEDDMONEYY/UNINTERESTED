@@ -15,12 +15,10 @@ const User = require('./models/User');
 const adminSettingsRoutes = require('./routes/adminSettings');
 const adminUserRoutes = require('./routes/adminUsers');
 const adminProfileRoutes = require('./routes/adminProfile');
-const messageRoutes = require('./routes/messageRoutes');
-const conversationRoutes = require('./routes/conversationRoutes');
+const messageRoutes = require('./routes/messageRoutes'); // ✅ Messages
+const conversationRoutes = require('./routes/conversationRoutes'); // ✅ Conversations
 const postRoutes = require('./routes/postRoutes');
-
-// ✅ NEW: User routes
-const userRoutes = require('./routes/userRoutes');
+const userRoutes = require('./routes/userRoutes'); // ✅ Users
 
 const app = express();
 const port = process.env.PORT || 5020;
@@ -107,10 +105,10 @@ app.use('/api/admin/settings', authenticateToken, verifyAdmin, adminSettingsRout
 app.use('/api/admin/users', authenticateToken, verifyAdmin, adminUserRoutes);
 app.use('/api/admin/profile', authenticateToken, verifyAdmin, adminProfileRoutes);
 
-/* -------------------------- 💬 Message Routes ------------------------------ */
+/* -------------------------- 💬 Message Routes (Step 2) --------------------- */
 app.use('/api/messages', authenticateToken, messageRoutes);
 
-/* -------------------------- 🗨️ Conversation Routes ------------------------ */
+/* -------------------------- 🗨️ Conversation Routes (Step 2) --------------- */
 app.use('/api/conversations', authenticateToken, conversationRoutes);
 
 /* -------------------------- 📝 Post Routes (NEW) --------------------------- */

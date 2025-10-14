@@ -1,21 +1,23 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import './index.css'
+import "./index.css";
 
-import App from './App.jsx'
-import Home from './pages/homePage.jsx'
-import SignIn from './pages/signInPage.jsx'
-import SignUp from './pages/signUpPage.jsx'
-import ForgotPass from './pages/forgotPassPage.jsx'
-import Post from './pages/postPage'
-import AdminDashboard from './pages/admin/dashboard.jsx'
-import AdminAnalytics from './pages/admin/AdminAnalytics.jsx'
-import UserDashboard from './pages/users/dashboard.jsx'
-import UserProfileSettings from './pages/users/UserProfileSettings.jsx'
-import ProtectedRoute from './components/ProtectedRoute.jsx'
+import App from "./App.jsx";
+import Home from "./pages/homePage.jsx";
+import SignIn from "./pages/signInPage.jsx";
+import SignUp from "./pages/signUpPage.jsx";
+import ForgotPass from "./pages/forgotPassPage.jsx";
+import Post from "./pages/postPage";
+import AdminDashboard from "./pages/admin/dashboard.jsx";
+import AdminAnalytics from "./pages/admin/AdminAnalytics.jsx";
+import UserDashboard from "./pages/users/dashboard.jsx";
+import UserProfileSettings from "./pages/users/UserProfileSettings.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
+// ✅ Import UserProvider
+import { UserProvider } from "./context/UserContext.jsx";
 
 const router = createBrowserRouter([
   {
@@ -24,7 +26,7 @@ const router = createBrowserRouter([
   },
   {
     path: "home",
-    element: <Home />
+    element: <Home />,
   },
   {
     path: "admin",
@@ -62,12 +64,13 @@ const router = createBrowserRouter([
     path: "post",
     element: <Post />,
   },
-  
 ]);
 
-
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById("root")).render(
   <StrictMode>
+    {/* ✅ Wrap entire app in UserProvider */}
+    <UserProvider>
       <RouterProvider router={router} />
-  </StrictMode>,
-)
+    </UserProvider>
+  </StrictMode>
+);

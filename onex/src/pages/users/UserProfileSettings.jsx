@@ -1,53 +1,47 @@
-import { useState } from "react";
-import { User, Key, Image, FileText, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { useState, useContext } from "react";
+import {
+  User,
+  Key,
+  Image,
+  FileText,
+  Loader2,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { UserContext } from "../../context/UserContext"; // ✅ use context
 import api from "../../utils/api"; // centralized axios instance
 
 export default function UserProfileSettings() {
-  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const { user, updateProfile } = useContext(UserContext); // ✅ context access
 
-  const [user, setUser] = useState(storedUser);
-  const [username, setUsername] = useState(storedUser.username || "");
+  const [username, setUsername] = useState(user?.username || "");
   const [password, setPassword] = useState("");
-  const [bio, setBio] = useState(storedUser.bio || "");
+  const [bio, setBio] = useState(user?.bio || "");
   const [profilePic, setProfilePic] = useState(null);
   const [loadingField, setLoadingField] = useState(null);
   const [toast, setToast] = useState(null); // { type: 'success' | 'error', message: string }
 
-  // Reusable update handler
   const handleUpdate = async (field) => {
     if (!field) return;
     const formData = new FormData();
 
-    if (field === "profilePic" && profilePic) formData.append("profilePic", profilePic);
+    if (field === "profilePic" && profilePic)
+      formData.append("profilePic", profilePic);
     if (field === "username") formData.append("username", username);
     if (field === "password") formData.append("password", password);
     if (field === "bio") formData.append("bio", bio);
 
     try {
       setLoadingField(field);
-      const res = await api.put("/user/update-profile", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      await updateProfile(formData); // ✅ context handles update + state sync
+
+      setToast({
+        type: "success",
+        message: `${field.charAt(0).toUpperCase() + field.slice(1)} updated successfully!`,
       });
 
-      if (res.status === 200) {
-        // Success toast
-        setToast({
-          type: "success",
-          message: `${field.charAt(0).toUpperCase() + field.slice(1)} updated successfully!`,
-        });
-
-        // Update localStorage & component state
-        if (res.data?.updatedUser) {
-          localStorage.setItem("user", JSON.stringify(res.data.updatedUser));
-          setUser(res.data.updatedUser);
-          if (field === "username") setUsername(res.data.updatedUser.username || "");
-          if (field === "bio") setBio(res.data.updatedUser.bio || "");
-        }
-
-        // Clear sensitive or temporary fields
-        if (field === "password") setPassword("");
-        if (field === "profilePic") setProfilePic(null);
-      }
+      if (field === "password") setPassword("");
+      if (field === "profilePic") setProfilePic(null);
     } catch (err) {
       console.error("Error updating profile:", err.response?.data || err.message);
       setToast({
@@ -62,7 +56,6 @@ export default function UserProfileSettings() {
 
   return (
     <div className="relative bg-white/80 backdrop-blur-md rounded-xl shadow-xl p-6 w-full max-w-2xl mx-auto space-y-8 border border-white">
-
       {/* Toast Notification */}
       {toast && (
         <div
@@ -81,7 +74,11 @@ export default function UserProfileSettings() {
       <section className="flex flex-col sm:flex-row items-center gap-4 border-b border-pink-100 pb-6">
         <div className="flex-shrink-0 w-20 h-20 rounded-full overflow-hidden border-2 border-pink-400 shadow">
           <img
-            src={profilePic ? URL.createObjectURL(profilePic) : user.profilePic || "https://via.placeholder.com/96"}
+            src={
+              profilePic
+                ? URL.createObjectURL(profilePic)
+                : user?.profilePic || "https://via.placeholder.com/96"
+            }
             alt="Profile"
             className="w-full h-full object-cover"
           />
@@ -104,7 +101,11 @@ export default function UserProfileSettings() {
               loadingField === "profilePic" ? "opacity-70 cursor-not-allowed" : "hover:bg-pink-700"
             }`}
           >
-            {loadingField === "profilePic" ? <Loader2 className="animate-spin" size={16} /> : "Save Picture"}
+            {loadingField === "profilePic" ? (
+              <Loader2 className="animate-spin" size={16} />
+            ) : (
+              "Save Picture"
+            )}
           </button>
         </div>
       </section>
@@ -128,7 +129,11 @@ export default function UserProfileSettings() {
             loadingField === "username" ? "opacity-70 cursor-not-allowed" : "hover:bg-pink-700"
           }`}
         >
-          {loadingField === "username" ? <Loader2 className="animate-spin" size={16} /> : "Save Username"}
+          {loadingField === "username" ? (
+            <Loader2 className="animate-spin" size={16} />
+          ) : (
+            "Save Username"
+          )}
         </button>
       </section>
 
@@ -152,7 +157,11 @@ export default function UserProfileSettings() {
             loadingField === "password" ? "opacity-70 cursor-not-allowed" : "hover:bg-pink-700"
           }`}
         >
-          {loadingField === "password" ? <Loader2 className="animate-spin" size={16} /> : "Save Password"}
+          {loadingField === "password" ? (
+            <Loader2 className="animate-spin" size={16} />
+          ) : (
+            "Save Password"
+          )}
         </button>
       </section>
 
@@ -176,7 +185,11 @@ export default function UserProfileSettings() {
             loadingField === "bio" ? "opacity-70 cursor-not-allowed" : "hover:bg-pink-700"
           }`}
         >
-          {loadingField === "bio" ? <Loader2 className="animate-spin" size={16} /> : "Save Bio"}
+          {loadingField === "bio" ? (
+            <Loader2 className="animate-spin" size={16} />
+          ) : (
+            "Save Bio"
+          )}
         </button>
       </section>
     </div>

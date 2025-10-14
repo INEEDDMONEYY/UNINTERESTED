@@ -1,18 +1,18 @@
 import { useNavigate } from "react-router";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { User, BarChart3, LogOut, Home, MessageSquare } from "lucide-react";
 import UserProfile from "./UserProfileSettings.jsx";
 import UserMessages from "./UserMessages.jsx";
+import { UserContext } from "../../context/UserContext";
 
 export default function UserDashboard() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const { user, logout } = useContext(UserContext);
   const [activeView, setActiveView] = useState("dashboard");
 
-  const handleSignOut = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+  const handleSignOut = async () => {
+    await logout();
     navigate("/home");
   };
 
@@ -24,17 +24,22 @@ export default function UserDashboard() {
         <div className="flex flex-col items-center">
           <div className="w-24 h-24 mb-4">
             <img
-              src={user.image || "https://via.placeholder.com/96"}
-              alt={`${user.username}'s profile`}
+              src={user?.profilePic || "https://via.placeholder.com/96"}
+              alt={`${user?.username || "User"}'s profile`}
               className="w-full h-full rounded-full object-cover border-2 border-pink-400 shadow-md"
             />
           </div>
-          <h2 className="text-xl font-bold text-pink-700 mb-2 text-center">
-            {user.username ? `Welcome, ${user.username}!` : "Welcome!"}
+          <h2 className="text-xl font-bold text-pink-700 mb-1 text-center">
+            {user?.username ? `Welcome, ${user.username}!` : "Welcome!"}
           </h2>
+          {user?.bio && (
+            <p className="text-sm text-gray-600 text-center px-2 mb-4 italic">
+              {user.bio}
+            </p>
+          )}
 
           {/* Nav Menu */}
-          <nav className="mt-6 w-full space-y-2 text-sm">
+          <nav className="mt-2 w-full space-y-2 text-sm">
             <button
               onClick={() => setActiveView("profile")}
               className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
