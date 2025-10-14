@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link } from "react-router";
 import LocationSet from "../components/LocationSet";
 import Heading from "../components/Header";
+import PromotionPosts from "../components/Promotion/PromotedPosts";
 
 export default function Body() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -32,12 +33,6 @@ export default function Body() {
       )
     : posts;
 
-  const promotedUser = {
-    name: "Name Placeholder",
-    image: "https://via.placeholder.com/80",
-    message: "🔥 Don’t miss today’s spotlight performance!",
-  };
-
   return (
     <section className="bg-white min-h-screen p-5 scroll-smooth">
       <Heading />
@@ -58,16 +53,11 @@ export default function Body() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-        <div className="bg-pink-100 border border-pink-300 rounded-lg p-4 shadow-md col-span-1 md:col-span-2 lg:col-span-3 flex flex-col md:flex-row items-center gap-4">
-          <img src={promotedUser.image} alt="promoted" className="w-20 h-20 rounded-full border-2 border-pink-400" />
-          <div>
-            <h2 className="text-pink-700 font-bold text-xl mb-1">Promoted Entertainer for the Day</h2>
-            <p className="text-black font-semibold">{promotedUser.name}</p>
-            <p className="text-gray-800 text-sm mt-1">{promotedUser.message}</p>
-          </div>
-        </div>
+      {/* ✅ Promoted Entertainer Section */}
+      <PromotionPosts />
 
+      {/* ✅ Filtered Posts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
         {filteredPosts.length > 0 ? (
           filteredPosts.map((post, i) => (
             <div key={i} className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm">

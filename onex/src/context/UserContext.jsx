@@ -46,12 +46,38 @@ export const UserProvider = ({ children }) => {
   };
 
   const updateProfile = async (updatedData) => {
-    const res = await api.put("/user/profile", updatedData);
-    setUser(res.data);
-    localStorage.setItem("user", JSON.stringify(res.data));
+    const res = await api.put("/user/update-profile", updatedData); // ✅ correct route
+    const updatedUser = res.data.updatedUser || res.data.user || res.data;
+
+    setUser((prev) => ({ ...prev, ...updatedUser }));
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    return updatedUser;
   };
 
-  const value = { user, setUser, login, logout, updateProfile, loading, error };
+  // ✅ Step 4: Modular logic hook (can be renamed or expanded)
+  const stepFour = async () => {
+    try {
+      const res = await api.get("/user/profile");
+      const refreshedUser = res.data;
+      setUser(refreshedUser);
+      localStorage.setItem("user", JSON.stringify(refreshedUser));
+      return refreshedUser;
+    } catch (err) {
+      console.error("Step 4 failed:", err.response?.data || err.message);
+      throw err;
+    }
+  };
+
+  const value = {
+    user,
+    setUser,
+    login,
+    logout,
+    updateProfile,
+    stepFour, // ✅ exposed for use in other components
+    loading,
+    error,
+  };
 
   return (
     <UserContext.Provider value={value}>
