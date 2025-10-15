@@ -15,6 +15,8 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics.jsx";
 import UserDashboard from "./pages/users/dashboard.jsx";
 import UserProfileSettings from "./pages/users/UserProfileSettings.jsx";
 import PromoteAccount from "./pages/promoteAccount.jsx";
+import TermsOfUsePage from './pages/policies/TermsOfUsePage.jsx'
+import PrivacyPolicy from './pages/policies/PrivacyPolicyPage.jsx';
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 // ✅ Import UserProvider
@@ -68,6 +70,14 @@ const router = createBrowserRouter([
   {
     path: "promote",
     element: <PromoteAccount />,
+  },
+  {
+    path: "terms-policy",
+    element: <TermsOfUsePage />,
+  },
+  {
+    path: "privacy-policy",
+    element: <PrivacyPolicy />,
   },
 ]);
 

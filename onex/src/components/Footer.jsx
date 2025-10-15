@@ -1,4 +1,8 @@
+import React from 'react';
+import { Link } from 'react-router-dom'; // If using React Router
 import Logo from '../assets/Logo.png';
+import TermsPolicy from '../components/policy/TermsPolicy';
+import PrivacyPolicy from '../components/policy/PrivacyPolicy';
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -10,7 +14,7 @@ export default function Footer() {
         <div className="flex items-center gap-4">
           <img src={Logo} alt="Company Logo" className="h-10 w-auto" />
           <div className="text-sm">
-            <p className="font-semibold">Mystery Masnion</p>
+            <p className="font-semibold">Mystery Mansion</p>
             <p className="text-gray-600">© {year}. All rights reserved.</p>
           </div>
         </div>
@@ -19,7 +23,10 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center gap-6 text-sm">
           <div>
             <h3 className="font-semibold underline mb-1">Platform Policies</h3>
-            <p className="text-gray-600">Terms · Privacy · Guidelines</p>
+            <p className="text-gray-600">
+              <Link to="/terms-policy" className="hover:underline">Terms</Link> ·{' '}
+              <Link to="/privacy-policy" className="hover:underline">Privacy</Link> · Guidelines
+            </p>
           </div>
           <div>
             <h3 className="font-semibold underline mb-1">Follow Us</h3>

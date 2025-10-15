@@ -4,12 +4,15 @@ import { Link } from "react-router";
 import LocationSet from "../components/LocationSet";
 import Heading from "../components/Header";
 import PromotionPosts from "../components/Promotion/PromotedPosts";
+import CategoryList from "../components/Categories/categoryList";
+import CategoryDisplay from "../components/Categories/categoryDisplay";
 
 export default function Body() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isLoggedIn = !!user.username;
   const [location, setLocation] = useState(JSON.parse(localStorage.getItem("userLocation") || "null"));
   const [posts, setPosts] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -25,13 +28,17 @@ export default function Body() {
     fetchPosts();
   }, []);
 
-  const filteredPosts = location
-    ? posts.filter(
-        (post) =>
-          post.city?.toLowerCase() === location.city?.toLowerCase() ||
-          post.state?.toLowerCase() === location.state?.toLowerCase()
-      )
-    : posts;
+  const filteredPosts = posts.filter((post) => {
+    const matchesLocation =
+      !location ||
+      post.city?.toLowerCase() === location.city?.toLowerCase() ||
+      post.state?.toLowerCase() === location.state?.toLowerCase();
+
+    const matchesCategory =
+      !selectedCategory || post.category?.toLowerCase() === selectedCategory.toLowerCase();
+
+    return matchesLocation && matchesCategory;
+  });
 
   return (
     <section className="bg-white min-h-screen p-5 scroll-smooth">
@@ -73,6 +80,16 @@ export default function Body() {
         ) : (
           <p className="text-gray-500 text-center col-span-full">No posts available.</p>
         )}
+      </div>
+
+      {/* ✅ Category Selection */}
+      <div>
+        <CategoryList onSelect={setSelectedCategory} />
+      </div>
+
+      {/* ✅ Category Display */}
+      <div>
+        <CategoryDisplay selectedCategory={selectedCategory} />
       </div>
     </section>
   );

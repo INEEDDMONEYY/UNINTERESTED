@@ -29,7 +29,7 @@ export default function PromotionFAQ() {
   return (
     <section className="px-6 py-10 max-w-5xl mx-auto">
       {/* 🖤 Title */}
-      <h2 className="text-3xl font-bold text-center text-black mb-8">
+      <h2 className="text-3xl font-bold text-center text-white mb-8">
         FAQ's are where all questions about the promotion system are answered
       </h2>
 
