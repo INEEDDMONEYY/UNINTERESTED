@@ -15,12 +15,16 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics.jsx";
 import UserDashboard from "./pages/users/dashboard.jsx";
 import UserProfileSettings from "./pages/users/UserProfileSettings.jsx";
 import PromoteAccount from "./pages/promoteAccount.jsx";
-import TermsOfUsePage from './pages/policies/TermsOfUsePage.jsx'
+import TermsOfUsePage from './pages/policies/TermsOfUsePage.jsx';
 import PrivacyPolicy from './pages/policies/PrivacyPolicyPage.jsx';
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 // ✅ Import UserProvider
 import { UserProvider } from "./context/UserContext.jsx";
+
+// ✅ Import new post-related views
+import PostDetail from "./pages/users/PostDetail.jsx";
+import UserProfileView from "./pages/users/UserProfileView.jsx";
 
 const router = createBrowserRouter([
   {
@@ -52,6 +56,10 @@ const router = createBrowserRouter([
     element: <UserProfileSettings />,
   },
   {
+    path: "user/:userId",
+    element: <UserProfileView />,
+  },
+  {
     path: "signin",
     element: <SignIn />,
   },
@@ -66,6 +74,10 @@ const router = createBrowserRouter([
   {
     path: "post",
     element: <Post />,
+  },
+  {
+    path: "posts/:postId",
+    element: <PostDetail />,
   },
   {
     path: "promote",

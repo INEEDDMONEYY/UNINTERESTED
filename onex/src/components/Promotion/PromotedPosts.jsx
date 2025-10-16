@@ -4,14 +4,14 @@ export default function PromotedPosts() {
       {/* 🏷️ Title + Description */}
       <div className="text-center mb-6">
         <h2 className="text-3xl font-bold text-white">Promoted Posts</h2>
-        <p className="text-sm text-black mt-2 underline">
-          All Promoted Post have a duration, entertainer vary!
+        <p className="text-sm text-black mt-2 underline"> 
+          All promoted accounts have a duration, entertainer's vary at the end of 'users' promotion period!
         </p>
       </div>
 
       {/* 🧭 Scrollable Grid */}
       <div
-        className="flex gap-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-pink-400 scrollbar-track-transparent"
+        className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-pink-300 scrollbar-track-transparent"
         style={{
           scrollbarWidth: "thin",
           WebkitOverflowScrolling: "touch",
@@ -20,11 +20,11 @@ export default function PromotedPosts() {
         {Array.from({ length: 18 }).map((_, index) => (
           <div
             key={index}
-            className="min-w-[250px] bg-white/80 backdrop-blur-md border border-pink-200 rounded-xl shadow-md p-6 text-center flex-shrink-0 animate-pulse hover:animate-none hover:shadow-pink-500 hover:shadow-lg transition-all duration-300"
+            className="w-[100px] h-[100px] bg-white/80 backdrop-blur-md border border-pink-100 rounded-lg shadow-sm p-2 text-center flex-shrink-0 animate-pulse hover:animate-none hover:shadow-pink-300 hover:shadow-md transition-all duration-200"
           >
-            <h3 className="text-lg font-semibold text-pink-700 mb-2">Post #{index + 1}</h3>
-            <p className="text-sm text-gray-600">
-              This is a placeholder for a promoted post. Future content will be dynamically loaded from the backend.
+            <h3 className="text-xs font-semibold text-pink-600 mb-1">Post #{index + 1}</h3>
+            <p className="text-[10px] text-gray-500">
+              Placeholder content. Dynamic data will be loaded soon.
             </p>
           </div>
         ))}
@@ -32,5 +32,3 @@ export default function PromotedPosts() {
     </section>
   );
 }
-
-
