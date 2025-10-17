@@ -8,7 +8,7 @@ exports.createPost = async (req, res) => {
     // If you add file uploads later (e.g., Multer), handle it here:
     // const picture = req.file ? `/uploads/${req.file.filename}` : req.body.picture;
 
-    const { username, description, city, state, picture } = req.body;
+    const { username, description, city, state, picture, category } = req.body;
 
     if (!username || !description) {
       return res.status(400).json({ error: "Username and description are required." });
@@ -20,6 +20,7 @@ exports.createPost = async (req, res) => {
       city,
       state,
       picture, // currently string-based (URL or base64)
+      category, 
     });
 
     const saved = await newPost.save();

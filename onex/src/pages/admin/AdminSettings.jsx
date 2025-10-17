@@ -23,37 +23,36 @@ export default function AdminSettings() {
   const [preview, setPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  // ✅ PUT handler for admin settings
+  // PUT handler for admin settings
   const updateSetting = async (field, value, clearField) => {
     try {
-      const res = await fetch("https://uninterested.onrender.com/api/admin/settings", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({ field, value }),
-        credentials: "include",
-      });
-
+      const res = await fetch(
+        "https://uninterested.onrender.com/api/admin/settings",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ field, value }),
+          credentials: "include",
+        }
+      );
       if (!res.ok) throw new Error("Failed to update setting");
       const data = await res.json();
       alert(`${field} updated successfully!`);
-      console.log("✅ Updated:", data);
-
-      if (clearField) clearField(""); // 👈 Clear the input field
-
+      if (clearField) clearField("");
       if (field === "devMessage") {
         localStorage.setItem("devMessage", value);
         window.dispatchEvent(new Event("storage"));
       }
     } catch (err) {
-      console.error("❌ Error updating setting:", err);
+      console.error("Error updating setting:", err);
       alert("Failed to update setting.");
     }
   };
 
-  // ✅ Handle admin credentials update
+  // Admin credentials update
   const saveCredentials = async (clearUsername, clearPassword) => {
     try {
       const res = await fetch(
@@ -71,27 +70,22 @@ export default function AdminSettings() {
           credentials: "include",
         }
       );
-
       if (!res.ok) throw new Error("Failed to update admin credentials");
       const data = await res.json();
-      alert("✅ Admin credentials updated!");
-      console.log("Updated credentials:", data);
-
+      alert("Admin credentials updated!");
       if (clearUsername) clearUsername("");
       if (clearPassword) clearPassword("");
     } catch (err) {
-      console.error("❌ Error updating credentials:", err);
+      console.error("Error updating credentials:", err);
       alert("Failed to update credentials.");
     }
   };
 
-  // ✅ Handle profile picture upload
+  // Profile picture upload
   const handleProfileUpload = async () => {
     if (!profilePic) return alert("Please select a file first!");
-
     const formData = new FormData();
     formData.append("profilePic", profilePic);
-
     setUploading(true);
     try {
       const res = await fetch(
@@ -105,41 +99,44 @@ export default function AdminSettings() {
           credentials: "include",
         }
       );
-
       if (!res.ok) throw new Error("Failed to upload profile picture");
       const data = await res.json();
       setPreview(data.url);
-      alert("✅ Profile picture updated!");
+      alert("Profile picture updated!");
     } catch (err) {
-      console.error("❌ Upload error:", err);
+      console.error("Upload error:", err);
       alert("Failed to upload profile picture.");
     } finally {
       setUploading(false);
     }
   };
 
-  // ✅ Fetch all users
+  // Fetch all users
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await fetch("https://uninterested.onrender.com/api/admin/users", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        const res = await fetch(
+          "https://uninterested.onrender.com/api/admin/users",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
         if (!res.ok) throw new Error("Failed to fetch users");
         const data = await res.json();
         setUsers(data.users || data);
       } catch (err) {
-        console.error("❌ Error fetching users:", err);
+        console.error("Error fetching users:", err);
       }
     };
     fetchUsers();
   }, []);
 
-  // ✅ Delete user
+  // Delete user
   const deleteUser = async () => {
     if (!selectedUserId) return alert("Please select a user to delete.");
     if (!window.confirm("Are you sure?")) return;
-
     try {
       const res = await fetch(
         `https://uninterested.onrender.com/api/admin/user/${selectedUserId}`,
@@ -152,32 +149,39 @@ export default function AdminSettings() {
       alert("User deleted successfully!");
       setUsers(users.filter((u) => u._id !== selectedUserId));
     } catch (err) {
-      console.error("❌ Error deleting user:", err);
+      console.error("Error deleting user:", err);
     }
   };
 
   return (
-    <div className="p-4 w-full max-w-2xl space-y-6">
+    <div className="p-4 w-full max-w-4xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold text-pink-700 mb-4">Admin Settings</h1>
 
+      {/* Role Restriction */}
       <SettingCard
         icon={<ShieldCheck size={18} />}
         title="Restrict Role Access"
         value={roleRestriction}
         onChange={(e) => setRoleRestriction(e.target.value)}
-        onSave={() => updateSetting("roleRestriction", roleRestriction, setRoleRestriction)}
+        onSave={() =>
+          updateSetting("roleRestriction", roleRestriction, setRoleRestriction)
+        }
         placeholder="e.g. restrict 'user' from posting"
       />
 
+      {/* Suspend User */}
       <SettingCard
         icon={<Ban size={18} />}
         title="Suspend User Account"
         value={suspendUserId}
         onChange={(e) => setSuspendUserId(e.target.value)}
-        onSave={() => updateSetting("suspendUserId", suspendUserId, setSuspendUserId)}
+        onSave={() =>
+          updateSetting("suspendUserId", suspendUserId, setSuspendUserId)
+        }
         placeholder="Enter user ID to suspend"
       />
 
+      {/* Homepage Developer Message */}
       <SettingTextArea
         icon={<MessageSquare size={18} />}
         title="Homepage Developer Message"
@@ -187,26 +191,27 @@ export default function AdminSettings() {
         placeholder="Update the homepage message"
       />
 
-      {/* ✅ Admin Credentials */}
-      <SettingCard
-        icon={<User size={18} />}
-        title="Update Admin Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        onSave={() => saveCredentials(setUsername, null)}
-        placeholder="Enter new username"
-      />
+      {/* Admin Credentials */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <SettingCard
+          icon={<User size={18} />}
+          title="Update Admin Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          onSave={() => saveCredentials(setUsername, null)}
+          placeholder="Enter new username"
+        />
+        <SettingCard
+          icon={<Lock size={18} />}
+          title="Reset Admin Password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          onSave={() => saveCredentials(null, setNewPassword)}
+          placeholder="Enter new password"
+        />
+      </div>
 
-      <SettingCard
-        icon={<Lock size={18} />}
-        title="Reset Admin Password"
-        value={newPassword}
-        onChange={(e) => setNewPassword(e.target.value)}
-        onSave={() => saveCredentials(null, setNewPassword)}
-        placeholder="Enter new password"
-      />
-
-      {/* ✅ Profile Picture Upload with Button */}
+      {/* Profile Picture */}
       <div className="bg-white border border-pink-200 rounded-lg p-4 shadow-sm">
         <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
           <Image size={18} /> Update Profile Picture
@@ -231,7 +236,7 @@ export default function AdminSettings() {
         <button
           onClick={handleProfileUpload}
           disabled={uploading}
-          className={`mt-3 flex items-center gap-2 ${
+          className={`mt-3 flex items-center gap-2 w-full sm:w-auto justify-center ${
             uploading ? "bg-gray-400" : "bg-pink-600 hover:bg-pink-700"
           } text-white px-4 py-2 rounded transition`}
         >
@@ -239,12 +244,12 @@ export default function AdminSettings() {
         </button>
       </div>
 
-      {/* ✅ Delete User */}
+      {/* Delete User */}
       <div className="bg-white border border-pink-200 rounded-lg p-4 shadow-sm">
         <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
           <Trash2 size={18} /> Delete User Account
         </label>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <select
             className="flex-1 border border-gray-300 rounded px-3 py-2"
             value={selectedUserId}
@@ -269,13 +274,13 @@ export default function AdminSettings() {
   );
 }
 
-/* ✅ Shared Reusable Components */
+/* Shared Components */
 const SettingCard = ({ icon, title, value, onChange, onSave, placeholder }) => (
   <div className="bg-white border border-pink-200 rounded-lg p-4 shadow-sm">
     <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
       {icon} {title}
     </label>
-    <div className="flex items-center gap-3">
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
       <input
         type="text"
         value={value}

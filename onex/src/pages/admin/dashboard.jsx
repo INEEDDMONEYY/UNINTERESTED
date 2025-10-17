@@ -11,13 +11,12 @@ import {
 } from "lucide-react";
 import AdminAnalytics from "./AdminAnalytics";
 import AdminSettings from "./AdminSettings";
-import AdminMessages from "./AdminMessages"; // ✅ Import your Messages page
+import AdminMessages from "./AdminMessages";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-
   const [activeView, setActiveView] = useState("dashboard");
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user") || "{}"));
   const [stats, setStats] = useState({ totalUsers: 0, totalAdmins: 0 });
   const [restrictedAccounts, setRestrictedAccounts] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -25,9 +24,16 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ✅ Fetch dashboard data
+  // Track profile picture updates
+  const [profilePicture, setProfilePicture] = useState(
+    localStorage.getItem("profilePicture") ||
+    "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"
+  );
+
   useEffect(() => {
     const token = localStorage.getItem("token");
+    if (!token) return navigate("/home");
+
     const headers = {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
@@ -68,6 +74,12 @@ export default function AdminDashboard() {
         if (!settingsRes.ok) throw new Error("Failed to fetch admin settings");
         const settingsData = await settingsRes.json();
         setSettings(settingsData);
+
+        // Update profile picture from settings if exists
+        if (settingsData?.profilePicture) {
+          localStorage.setItem("profilePicture", settingsData.profilePicture);
+          setProfilePicture(settingsData.profilePicture);
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -78,9 +90,20 @@ export default function AdminDashboard() {
     fetchData();
   }, []);
 
+  // Listen for storage updates (profile picture updated in AdminSettings)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const pic = localStorage.getItem("profilePicture");
+      if (pic) setProfilePicture(pic);
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("profilePicture");
     navigate("/home");
   };
 
@@ -108,10 +131,7 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-pink-700">Admin Panel</h2>
             <img
-              src={
-                localStorage.getItem("profilePicture") ||
-                "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"
-              }
+              src={profilePicture}
               alt="Admin Profile"
               className="w-10 h-10 rounded-full object-cover border border-pink-300 shadow-sm"
             />
@@ -121,11 +141,7 @@ export default function AdminDashboard() {
             <SidebarButton icon={Home} label="Dashboard" view="dashboard" />
             <SidebarButton icon={Users} label="User Management" view="users" />
             <SidebarButton icon={Settings} label="Settings" view="settings" />
-            <SidebarButton
-              icon={BarChart2}
-              label="Site Analytics"
-              view="analytics"
-            />
+            <SidebarButton icon={BarChart2} label="Site Analytics" view="analytics" />
             <SidebarButton icon={Mail} label="Messages" view="messages" />
           </nav>
         </div>
@@ -162,15 +178,12 @@ export default function AdminDashboard() {
             {activeView !== "dashboard" && (
               <>
                 <li>/</li>
-                <li className="text-white font-medium capitalize">
-                  {activeView}
-                </li>
+                <li className="text-white font-medium capitalize">{activeView}</li>
               </>
             )}
           </ol>
         </nav>
 
-        {/* Dashboard View */}
         {activeView === "dashboard" && (
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">
@@ -187,15 +200,11 @@ export default function AdminDashboard() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div className="bg-white border border-pink-300 rounded-lg p-4 shadow-sm">
-                  <h3 className="text-pink-700 font-semibold text-lg">
-                    Total Users
-                  </h3>
+                  <h3 className="text-pink-700 font-semibold text-lg">Total Users</h3>
                   <p className="text-black text-xl">{stats.totalUsers}</p>
                 </div>
                 <div className="bg-white border border-pink-300 rounded-lg p-4 shadow-sm">
-                  <h3 className="text-pink-700 font-semibold text-lg">
-                    Total Admins
-                  </h3>
+                  <h3 className="text-pink-700 font-semibold text-lg">Total Admins</h3>
                   <p className="text-black text-xl">{stats.totalAdmins}</p>
                 </div>
               </div>
@@ -203,13 +212,15 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Settings View */}
-        {activeView === "settings" && <AdminSettings />}
+        {activeView === "settings" && (
+          <AdminSettings
+            onProfileUpdate={(url) => setProfilePicture(url)}
+            settingsData={settings}
+          />
+        )}
 
-        {/* Analytics View */}
         {activeView === "analytics" && <AdminAnalytics />}
 
-        {/* ✅ New Messages View */}
         {activeView === "messages" && (
           <div className="bg-gradient-to-br from-black via-gray-900 to-pink-800 min-h-[80vh] rounded-lg p-6 shadow-lg border border-pink-400">
             <AdminMessages messages={messages} />

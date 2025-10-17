@@ -1,178 +1,190 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
-import axios from "axios";
+import { useNavigate } from "react-router";
+import { Loader2, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
+import CategoryList from "../components/Categories/categoryList";
+import api from "../utils/api";
 
-export default function PostForm() {
+export default function PostForm({ onSuccess, embedded = false }) {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
 
-  // 🧩 Local state hooks
   const [formData, setFormData] = useState({
-    picture: null,
     username: "",
     description: "",
     city: "",
     state: "",
+    category: "",
+    picture: null,
   });
-  const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState(null); // { type: 'success'|'error', msg: string }
 
-  // 🧠 Controlled form inputs
+  // 🧠 Handle input changes
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: files ? files[0] : value,
-    }));
+    if (files) {
+      setFormData((prev) => ({ ...prev, picture: files[0] }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  function CheckboxMessage() {
-    return `Checking this box acknowledges that each post will cost $10. 
-    Please review our post policy before submitting.`;
-  }
+  // 🏷️ Handle category selection
+  const handleCategorySelect = (category) => {
+    setFormData((prev) => ({ ...prev, category }));
+  };
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  // 🚀 Handle submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
     setToast(null);
 
-    const { username, description } = formData;
-    if (!username.trim() || !description.trim()) {
-      setToast({ type: "error", msg: "Title and description are required." });
-      return;
-    }
-
-    setLoading(true);
     try {
-      const data = new FormData();
+      const fd = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (value) data.append(key, value);
+        fd.append(key, value);
       });
 
-      // Map client field names to backend equivalents
-      data.append("title", username);
-      data.append("content", description);
-
-      // ✅ API URL fallback logic
-      const API_BASE =
-        import.meta.env.VITE_API_URL ||
-        (window.location.hostname === "localhost"
-          ? "http://localhost:5020"
-          : "https://uninterested.onrender.com");
-
-      await axios.post(`${API_BASE}/api/posts`, data, {
+      await api.post("/api/posts", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      setToast({
-        type: "success",
-        msg: "Post submitted successfully! Redirecting...",
-      });
+      setToast({ type: "success", msg: "Post created successfully!" });
 
-      // Reset form
+      // Allow parent to handle refresh if used in another component
+      if (onSuccess) onSuccess();
+
+      // Reset fields
       setFormData({
-        picture: null,
         username: "",
         description: "",
         city: "",
         state: "",
+        category: "",
+        picture: null,
       });
 
-      // Redirect after success
-      setTimeout(() => navigate("/home"), 900);
+      // Navigate only if not embedded (standalone page)
+      if (!embedded) {
+        setTimeout(() => navigate("/home"), 1200);
+      }
     } catch (err) {
-      console.error("❌ Upload failed:", err);
-      setToast({
-        type: "error",
-        msg: "Failed to post — check console for details.",
-      });
+      console.error(err);
+      setToast({ type: "error", msg: "Error creating post. Please try again." });
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="relative">
-      <form id="post-form" className="flex flex-col w-96" onSubmit={handleSubmit}>
-        <input
-          type="file"
-          name="picture"
-          id="post-picture"
-          onChange={handleChange}
-          className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg"
-        />
+    <div
+      className={`w-full ${
+        embedded ? "bg-transparent shadow-none" : "bg-white shadow-md"
+      } rounded-2xl p-4 sm:p-6 max-w-xl mx-auto`}
+    >
+      {/* Header */}
+      {!embedded && (
+        <h1 className="text-xl sm:text-2xl font-bold mb-4 text-center">
+          Create New Post
+        </h1>
+      )}
+
+      {/* Category Selector */}
+      <div className="mb-4">
+        <label className="block mb-2 font-semibold text-sm sm:text-base">
+          Choose Category:
+        </label>
+        <div className="overflow-x-auto">
+          <CategoryList onSelect={handleCategorySelect} />
+        </div>
+        {formData.category && (
+          <p className="text-xs sm:text-sm text-gray-600 mt-1 text-center sm:text-left">
+            Selected:{" "}
+            <span className="font-medium text-gray-800">
+              {formData.category}
+            </span>
+          </p>
+        )}
+      </div>
+
+      {/* Form Fields */}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:gap-4">
         <input
           type="text"
           name="username"
-          id="post-username"
+          placeholder="Your name"
           value={formData.username}
           onChange={handleChange}
-          className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg"
-          placeholder="Enter Title"
           required
+          className="w-full border border-gray-300 p-2 sm:p-3 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base"
         />
         <textarea
           name="description"
-          id="post-description"
+          placeholder="What's on your mind?"
           value={formData.description}
           onChange={handleChange}
-          className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg"
-          placeholder="Enter text"
           required
+          rows={4}
+          className="w-full border border-gray-300 p-2 sm:p-3 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base resize-none"
         />
-
-        {/* Optional city/state for filtering */}
-        <input
-          type="text"
-          name="city"
-          value={formData.city}
-          onChange={handleChange}
-          placeholder="City (optional)"
-          className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg"
-        />
-        <input
-          type="text"
-          name="state"
-          value={formData.state}
-          onChange={handleChange}
-          placeholder="State (optional)"
-          className="border-2 border-black m-2 px-1 text-[1rem] text-black rounded-lg"
-        />
-
-        <div className="p-1 text-[0.7rem]">
-          <input type="checkbox" id="payment-checkbox" />
-          <label htmlFor="payment-checkbox" className="mx-1">
-            {CheckboxMessage()}
-          </label>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <input
+            type="text"
+            name="city"
+            placeholder="City"
+            value={formData.city}
+            onChange={handleChange}
+            className="flex-1 border border-gray-300 p-2 sm:p-3 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base"
+          />
+          <input
+            type="text"
+            name="state"
+            placeholder="State"
+            value={formData.state}
+            onChange={handleChange}
+            className="flex-1 border border-gray-300 p-2 sm:p-3 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base"
+          />
         </div>
 
+        <input
+          type="file"
+          name="picture"
+          accept="image/*"
+          onChange={handleChange}
+          className="w-full border border-gray-300 p-2 sm:p-3 rounded-lg text-sm sm:text-base"
+        />
+
+        {/* Post Button */}
         <button
           type="submit"
-          className="border-2 border-white m-1 px-1 text-black text-[1.3rem] rounded-md"
           disabled={loading}
+          className="w-full bg-gradient-to-r from-pink-500 to-yellow-400 text-white py-2 sm:py-3 rounded-lg text-sm sm:text-base font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition"
         >
-          {loading ? "Posting..." : "Post"}
+          {loading ? <Loader2 className="animate-spin" /> : "Post"}
         </button>
 
-        <Link to="/home">
-          <p className="underline text-black">Return home</p>
-        </Link>
+        {/* 🔙 Return Button */}
+        <button
+          type="button"
+          onClick={() => navigate("/home")}
+          className="w-full flex items-center justify-center gap-2 py-2 sm:py-3 mt-2 rounded-lg border border-pink-400 text-pink-600 hover:bg-pink-50 transition text-sm sm:text-base font-medium"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Return Home
+        </button>
       </form>
 
-      {/* Toasts */}
+      {/* Toast */}
       {toast && (
         <div
-          className={`fixed bottom-5 right-5 px-4 py-2 rounded-lg shadow-lg ${
+          className={`mt-4 flex items-center gap-2 p-3 rounded-lg text-sm sm:text-base ${
             toast.type === "success"
-              ? "bg-green-600 text-white"
-              : "bg-red-600 text-white"
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
           }`}
         >
-          {toast.msg}
-          <button
-            onClick={() => setToast(null)}
-            className="ml-3 underline text-sm opacity-90"
-          >
-            Close
-          </button>
+          {toast.type === "success" ? <CheckCircle /> : <XCircle />}
+          <span>{toast.msg}</span>
         </div>
       )}
     </div>

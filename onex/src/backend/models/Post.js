@@ -1,12 +1,14 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const PostSchema = new mongoose.Schema({
   username: { type: String, required: true },
   description: { type: String, required: true },
-  picture: { type: String }, // optional — store image URL or base64
+  picture: { type: String },
   city: { type: String },
   state: { type: String },
+  category: { type: String, default: "" }, // ✅ NEW FIELD
   createdAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model("Post", PostSchema);
+const Post = mongoose.model("Post", PostSchema);
+export default Post;

@@ -21,20 +21,29 @@ export default function UserDashboard() {
       {/* 🌸 Sidebar */}
       <aside className="w-full md:w-64 bg-white shadow-xl p-6 flex flex-col justify-between">
         {/* User Info */}
-        <div className="flex flex-col items-center">
-          <div className="w-24 h-24 mb-4">
+        <div className="flex flex-col items-center text-center">
+          {/* Profile Picture */}
+          <div className="w-24 h-24 mb-3">
             <img
               src={user?.profilePic || "https://via.placeholder.com/96"}
               alt={`${user?.username || "User"}'s profile`}
               className="w-full h-full rounded-full object-cover border-2 border-pink-400 shadow-md"
             />
           </div>
-          <h2 className="text-xl font-bold text-pink-700 mb-1 text-center">
+
+          {/* Greeting */}
+          <h2 className="text-xl font-bold text-pink-700 mb-1">
             {user?.username ? `Welcome, ${user.username}!` : "Welcome!"}
           </h2>
-          {user?.bio && (
-            <p className="text-sm text-gray-600 text-center px-2 mb-4 italic">
-              {user.bio}
+
+          {/* ✅ User Bio */}
+          {user?.bio ? (
+            <p className="text-sm text-gray-600 italic px-2 mb-4">
+              “{user.bio}”
+            </p>
+          ) : (
+            <p className="text-sm text-gray-500 italic mb-4">
+              No bio yet. Update your profile!
             </p>
           )}
 
@@ -141,9 +150,7 @@ export default function UserDashboard() {
           </div>
         ) : activeView === "messages" ? (
           <div>
-            <h1 className="text-2xl font-bold text-pink-700 mb-2">
-              Messages
-            </h1>
+            <h1 className="text-2xl font-bold text-pink-700 mb-2">Messages</h1>
             <p className="text-gray-700">
               View and send messages to administrators here.
             </p>
