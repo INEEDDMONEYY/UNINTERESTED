@@ -29,19 +29,30 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5020',
   'https://uninterested.onrender.com',
+  'https://glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev',
 ];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error('Not allowed by CORS'));
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  })
-);
+// ✅ CORS middleware
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+    );
+    res.setHeader(
+      'Access-Control-Allow-Methods',
+      'GET, POST, PUT, DELETE, OPTIONS'
+    );
+  } else {
+    return res.status(403).json({ error: 'Not allowed by CORS' });
+  }
+
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 
 /* --------------------------- 🌍 Global Middleware -------------------------- */
 app.use(express.json({ limit: '10mb' }));
