@@ -15,10 +15,10 @@ const User = require('./models/User');
 const adminSettingsRoutes = require('./routes/adminSettings');
 const adminUserRoutes = require('./routes/adminUsers');
 const adminProfileRoutes = require('./routes/adminProfile');
-const messageRoutes = require('./routes/messageRoutes'); // ✅ Messages
-const conversationRoutes = require('./routes/conversationRoutes'); // ✅ Conversations
+const messageRoutes = require('./routes/messageRoutes');
+const conversationRoutes = require('./routes/conversationRoutes');
 const postRoutes = require('./routes/postRoutes');
-const userRoutes = require('./routes/userRoutes'); // ✅ Users
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 const port = process.env.PORT || 5020;
@@ -28,14 +28,12 @@ const allowedOrigins = [
   'https://uninterested.vercel.app',
   'http://localhost:5173',
   'http://localhost:5020',
-  'https://glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev',
 ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-      console.warn('CORS blocked origin:', origin);
       return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
@@ -76,42 +74,34 @@ const authenticateToken = (req, res, next) => {
       token = req.cookies.token;
     }
 
-    if (!token) {
-      console.warn('No token supplied - request blocked:', req.method, req.originalUrl);
-      return res.status(401).json({ error: 'Unauthorized - no token provided' });
-    }
+    if (!token) return res.status(401).json({ error: 'Unauthorized - no token provided' });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
-    console.log('✅ Token verified for user:', decoded.id, 'role:', decoded.role);
     next();
   } catch (err) {
-    console.warn('Token verification failed:', err.message);
     return res.status(403).json({ error: 'Invalid or expired token' });
   }
 };
 
 const verifyAdmin = (req, res, next) => {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
-  if (req.user.role !== 'admin') {
-    console.warn('Access denied - non-admin user attempted admin route:', req.user.id);
-    return res.status(403).json({ error: 'Admins only' });
-  }
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admins only' });
   next();
 };
 
-/* -------------------------- 🧩 Protected Admin Routes ---------------------- */
+/* -------------------------- 🧩 Admin Routes ---------------------- */
 app.use('/api/admin/settings', authenticateToken, verifyAdmin, adminSettingsRoutes);
 app.use('/api/admin/users', authenticateToken, verifyAdmin, adminUserRoutes);
 app.use('/api/admin/profile', authenticateToken, verifyAdmin, adminProfileRoutes);
 
-/* -------------------------- 💬 Message Routes (Step 2) --------------------- */
+/* -------------------------- 💬 Message Routes --------------------- */
 app.use('/api/messages', authenticateToken, messageRoutes);
 
-/* -------------------------- 🗨️ Conversation Routes (Step 2) --------------- */
+/* -------------------------- 🗨️ Conversation Routes --------------- */
 app.use('/api/conversations', authenticateToken, conversationRoutes);
 
-/* -------------------------- 📝 Post Routes (NEW) --------------------------- */
+/* -------------------------- 📝 Post Routes --------------------------- */
 app.use('/api/posts', postRoutes);
 
 /* -------------------------- 👤 User Routes ------------------------------- */
@@ -143,7 +133,6 @@ app.post('/signin', async (req, res) => {
       token,
     });
   } catch (err) {
-    console.error('❌ Signin error:', err);
     return res.status(500).json({ error: 'Signin failed' });
   }
 });
@@ -173,7 +162,6 @@ app.post('/signup', async (req, res) => {
       token,
     });
   } catch (err) {
-    console.error('❌ Signup error:', err);
     return res.status(500).json({ error: 'Signup failed' });
   }
 });
@@ -190,7 +178,6 @@ app.get('/admin/stats', authenticateToken, verifyAdmin, async (req, res) => {
     const totalAdmins = await User.countDocuments({ role: 'admin' });
     return res.json({ totalUsers, totalAdmins });
   } catch (err) {
-    console.error('Stats error:', err);
     return res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
