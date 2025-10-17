@@ -28,6 +28,7 @@ const allowedOrigins = [
   'https://uninterested.vercel.app',
   'http://localhost:5173',
   'http://localhost:5020',
+  'https://uninterested.onrender.com',
 ];
 
 app.use(
