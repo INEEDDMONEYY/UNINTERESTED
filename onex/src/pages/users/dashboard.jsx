@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { User, BarChart3, LogOut, Home, MessageSquare } from "lucide-react";
-import UserProfile from "./UserProfileSettings.jsx";
+import UserProfileSettings from "./UserProfileSettings.jsx";
 import UserMessages from "./UserMessages.jsx";
 import { UserContext } from "../../context/UserContext";
 
@@ -16,38 +16,38 @@ export default function UserDashboard() {
     navigate("/home");
   };
 
+  // ✅ Sync local UI state with context
+  const [profilePic, setProfilePic] = useState(user?.profilePic || "");
+  useEffect(() => {
+    setProfilePic(user?.profilePic || "");
+  }, [user]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 to-pink-300 flex flex-col md:flex-row">
-      {/* 🌸 Sidebar */}
+      {/* Sidebar */}
       <aside className="w-full md:w-64 bg-white shadow-xl p-6 flex flex-col justify-between">
-        {/* User Info */}
         <div className="flex flex-col items-center text-center">
-          {/* Profile Picture */}
           <div className="w-24 h-24 mb-3">
             <img
-              src={user?.profilePic || "https://via.placeholder.com/96"}
+              src={profilePic || "https://via.placeholder.com/96"}
               alt={`${user?.username || "User"}'s profile`}
               className="w-full h-full rounded-full object-cover border-2 border-pink-400 shadow-md"
             />
           </div>
 
-          {/* Greeting */}
           <h2 className="text-xl font-bold text-pink-700 mb-1">
             {user?.username ? `Welcome, ${user.username}!` : "Welcome!"}
           </h2>
 
-          {/* ✅ User Bio */}
           {user?.bio ? (
-            <p className="text-sm text-gray-600 italic px-2 mb-4">
-              “{user.bio}”
-            </p>
+            <p className="text-sm text-gray-600 italic px-2 mb-4">“{user.bio}”</p>
           ) : (
             <p className="text-sm text-gray-500 italic mb-4">
               No bio yet. Update your profile!
             </p>
           )}
 
-          {/* Nav Menu */}
+          {/* Navigation */}
           <nav className="mt-2 w-full space-y-2 text-sm">
             <button
               onClick={() => setActiveView("profile")}
@@ -104,9 +104,8 @@ export default function UserDashboard() {
         </div>
       </aside>
 
-      {/* 🌈 Main Content */}
+      {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">
-        {/* Breadcrumbs */}
         <nav className="text-sm text-gray-600 mb-4">
           <ol className="list-reset flex items-center gap-2">
             <li>
@@ -120,35 +119,30 @@ export default function UserDashboard() {
             {activeView !== "dashboard" && (
               <>
                 <li>/</li>
-                <li className="text-gray-800 font-medium capitalize">
-                  {activeView}
-                </li>
+                <li className="text-gray-800 font-medium capitalize">{activeView}</li>
               </>
             )}
           </ol>
         </nav>
 
-        {/* Dynamic Content */}
-        {activeView === "profile" ? (
+        {activeView === "profile" && (
           <div>
-            <h1 className="text-2xl font-bold text-pink-700 mb-2">
-              Edit Your Profile
-            </h1>
-            <p className="text-gray-700 mb-4">
-              Update your profile information below.
-            </p>
-            <UserProfile />
+            <h1 className="text-2xl font-bold text-pink-700 mb-2">Edit Your Profile</h1>
+            <p className="text-gray-700 mb-4">Update your profile information below.</p>
+            <UserProfileSettings />
           </div>
-        ) : activeView === "activity" ? (
+        )}
+
+        {activeView === "activity" && (
           <div>
-            <h1 className="text-2xl font-bold text-pink-700 mb-2">
-              Your Activity
-            </h1>
+            <h1 className="text-2xl font-bold text-pink-700 mb-2">Your Activity</h1>
             <p className="text-gray-700">
               This is where your activity data will be displayed.
             </p>
           </div>
-        ) : activeView === "messages" ? (
+        )}
+
+        {activeView === "messages" && (
           <div>
             <h1 className="text-2xl font-bold text-pink-700 mb-2">Messages</h1>
             <p className="text-gray-700">
@@ -158,14 +152,13 @@ export default function UserDashboard() {
               <UserMessages />
             </div>
           </div>
-        ) : (
+        )}
+
+        {activeView === "dashboard" && (
           <div>
-            <h1 className="text-3xl font-bold text-pink-700 mb-4">
-              Your Dashboard
-            </h1>
+            <h1 className="text-3xl font-bold text-pink-700 mb-4">Your Dashboard</h1>
             <p className="text-gray-700">
-              Manage your profile, check your activity, and stay connected with
-              the platform.
+              Manage your profile, check your activity, and stay connected with the platform.
             </p>
           </div>
         )}

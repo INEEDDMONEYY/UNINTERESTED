@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import env from '../config/env'; // ✅ central env
 
 export default function SigninForm() {
   const [error, setError] = useState('');
@@ -7,13 +8,11 @@ export default function SigninForm() {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  // ✅ Use environment variable for backend
-  const API_BASE = import.meta.env.VITE_API_BASE || 'https://uninterested.onrender.com';
+  const API_BASE = env.API_BASE;
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    // ✅ Password validation (optional)
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
@@ -28,17 +27,15 @@ export default function SigninForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
-        credentials: 'include', // ✅ needed for cookies
+        credentials: 'include',
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // ✅ Store token & user locally
         if (data.token) localStorage.setItem('token', data.token);
         if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
 
-        // ✅ Redirect based on role
         if (data.user?.role === 'admin') {
           navigate('/admin');
         } else {

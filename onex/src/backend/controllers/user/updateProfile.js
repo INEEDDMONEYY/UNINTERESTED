@@ -1,8 +1,8 @@
-import { useState, useContext, useEffect } from "react";
-import { User, Key, Image, FileText, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { useState, useContext } from "react";
 import { UserContext } from "../../context/UserContext";
+import { Loader2, CheckCircle, XCircle, User, Key, Image, FileText } from "lucide-react";
 
-export default function UserProfileSettings() {
+export default function UpdateProfile() {
   const { user, updateProfile } = useContext(UserContext);
 
   const [username, setUsername] = useState(user?.username || "");
@@ -12,16 +12,6 @@ export default function UserProfileSettings() {
   const [loadingField, setLoadingField] = useState(null);
   const [toast, setToast] = useState(null);
 
-  /* ----------------- Sync state when user context changes ---------------- */
-  useEffect(() => {
-    if (user) {
-      setUsername(user.username || "");
-      setBio(user.bio || "");
-      setProfilePic(null);
-    }
-  }, [user]);
-
-  /* -------------------------- Handle Updates ---------------------------- */
   const handleUpdate = async (field) => {
     if (!field) return;
 
@@ -33,25 +23,20 @@ export default function UserProfileSettings() {
 
     try {
       setLoadingField(field);
-
-      // Update profile and get the new user data
-      const updatedUser = await updateProfile(formData);
+      await updateProfile(formData);
 
       setToast({
         type: "success",
         message: `${field.charAt(0).toUpperCase() + field.slice(1)} updated successfully!`,
       });
 
-      // Auto-update local component state for immediate UI refresh
       if (field === "password") setPassword("");
       if (field === "profilePic") setProfilePic(null);
-      if (field === "username") setUsername(updatedUser.username || "");
-      if (field === "bio") setBio(updatedUser.bio || "");
     } catch (err) {
-      console.error("Error updating profile:", err.message || err);
+      console.error(err);
       setToast({
         type: "error",
-        message: err.message || "Failed to update profile.",
+        message: err.response?.data?.error || "Failed to update profile",
       });
     } finally {
       setLoadingField(null);
@@ -61,10 +46,9 @@ export default function UserProfileSettings() {
 
   return (
     <div className="relative bg-white/80 backdrop-blur-md rounded-xl shadow-xl p-6 w-full max-w-2xl mx-auto space-y-8 border border-white">
-      {/* ------------------------- Toast Notification ------------------------ */}
       {toast && (
         <div
-          className={`absolute top-4 right-4 flex items-center gap-2 px-4 py-2 rounded-lg shadow-lg text-white text-sm transition-all ${
+          className={`absolute top-4 right-4 flex items-center gap-2 px-4 py-2 rounded-lg shadow-lg text-white text-sm ${
             toast.type === "success" ? "bg-green-500" : "bg-red-500"
           }`}
         >
@@ -73,9 +57,7 @@ export default function UserProfileSettings() {
         </div>
       )}
 
-      <h1 className="text-2xl font-bold text-pink-700 text-center mb-4">Profile Settings</h1>
-
-      {/* ------------------------- Profile Picture ------------------------- */}
+      {/* Profile Picture */}
       <section className="flex flex-col sm:flex-row items-center gap-4 border-b border-pink-100 pb-6">
         <div className="flex-shrink-0 w-20 h-20 rounded-full overflow-hidden border-2 border-pink-400 shadow">
           <img
@@ -88,12 +70,7 @@ export default function UserProfileSettings() {
           <label className="flex items-center gap-2 font-medium text-gray-700">
             <Image size={18} className="text-pink-600" /> Update Profile Picture
           </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setProfilePic(e.target.files[0])}
-            className="w-full border border-pink-200 rounded px-3 py-2 bg-white"
-          />
+          <input type="file" accept="image/*" onChange={(e) => setProfilePic(e.target.files[0])} className="w-full border border-pink-200 rounded px-3 py-2 bg-white" />
           <button
             type="button"
             disabled={loadingField === "profilePic"}
@@ -107,17 +84,12 @@ export default function UserProfileSettings() {
         </div>
       </section>
 
-      {/* ---------------------------- Username ---------------------------- */}
+      {/* Username */}
       <section className="space-y-3 border-b border-pink-100 pb-6">
         <label className="flex items-center gap-2 font-medium text-gray-700">
           <User size={18} className="text-pink-600" /> Update Username
         </label>
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="w-full border border-pink-200 rounded px-3 py-2 bg-white"
-        />
+        <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full border border-pink-200 rounded px-3 py-2 bg-white" />
         <button
           type="button"
           disabled={loadingField === "username"}
@@ -130,18 +102,12 @@ export default function UserProfileSettings() {
         </button>
       </section>
 
-      {/* ---------------------------- Password ---------------------------- */}
+      {/* Password */}
       <section className="space-y-3 border-b border-pink-100 pb-6">
         <label className="flex items-center gap-2 font-medium text-gray-700">
           <Key size={18} className="text-pink-600" /> Update Password
         </label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border border-pink-200 rounded px-3 py-2 bg-white"
-          placeholder="Enter new password"
-        />
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border border-pink-200 rounded px-3 py-2 bg-white" placeholder="Enter new password" />
         <button
           type="button"
           disabled={loadingField === "password"}
@@ -154,18 +120,12 @@ export default function UserProfileSettings() {
         </button>
       </section>
 
-      {/* ------------------------------- Bio ------------------------------- */}
+      {/* Bio */}
       <section className="space-y-3">
         <label className="flex items-center gap-2 font-medium text-gray-700">
           <FileText size={18} className="text-pink-600" /> Update Profile Bio
         </label>
-        <textarea
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-          rows={4}
-          className="w-full border border-pink-200 rounded px-3 py-2 bg-white resize-none"
-          placeholder="Tell us a bit about yourself..."
-        />
+        <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4} className="w-full border border-pink-200 rounded px-3 py-2 bg-white resize-none" placeholder="Tell us a bit about yourself..." />
         <button
           type="button"
           disabled={loadingField === "bio"}

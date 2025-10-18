@@ -1,9 +1,11 @@
-const ROLES_LIST = {
-    //Keys & codes
-    "Admin": 8989,
-    "Editor": 6832,
-    "User": 3212
-}
+// backend/config/rolesList.js
 
-//Export module
+// ✅ Define roles consistently as lowercase strings
+const ROLES_LIST = Object.freeze({
+  Admin: "admin",
+  Editor: "editor",
+  User: "user",
+});
+
+// Export module
 module.exports = ROLES_LIST;

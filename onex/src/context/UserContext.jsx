@@ -1,13 +1,18 @@
 import { createContext, useState, useEffect } from "react";
 import api, { setAuthToken, clearAuthData, getAuthToken } from "../utils/api";
+import env from "../config/env"; // ✅ Use centralized env
 
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem("user");
+    return saved ? JSON.parse(saved) : null;
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  /* --------------------- Fetch current user on load --------------------- */
   useEffect(() => {
     const token = getAuthToken();
     if (!token) {
@@ -17,10 +22,13 @@ export const UserProvider = ({ children }) => {
 
     const fetchUser = async () => {
       try {
-        const res = await api.get("/user/profile");
+        const res = await api.get(`${env.API_BASE}/user/profile`, { withCredentials: true });
         setUser(res.data);
+        localStorage.setItem("user", JSON.stringify(res.data));
       } catch (err) {
         clearAuthData();
+        setUser(null);
+        setError(err.response?.data?.error || err.message);
       } finally {
         setLoading(false);
       }
@@ -29,58 +37,73 @@ export const UserProvider = ({ children }) => {
     fetchUser();
   }, []);
 
+  /* --------------------------- Login --------------------------- */
   const login = async (username, password) => {
-    const res = await api.post("/signin", { username, password });
-    const { token, user } = res.data;
-    setAuthToken(token);
-    localStorage.setItem("user", JSON.stringify(user));
-    setUser(user);
+    try {
+      const res = await api.post(`${env.API_BASE}/signin`, { username, password }, { withCredentials: true });
+      const { token, user } = res.data;
+      setAuthToken(token);
+      localStorage.setItem("user", JSON.stringify(user));
+      setUser(user);
+    } catch (err) {
+      throw new Error(err.response?.data?.error || "Login failed");
+    }
   };
 
+  /* --------------------------- Logout -------------------------- */
   const logout = async () => {
     try {
-      await api.post("/logout");
-    } catch {}
+      await api.post(`${env.API_BASE}/logout`, {}, { withCredentials: true });
+    } catch (err) {
+      console.warn("Logout error:", err.message || err);
+    }
     clearAuthData();
     setUser(null);
   };
 
+  /* ------------------------ Update Profile --------------------- */
   const updateProfile = async (updatedData) => {
-    const res = await api.put("/user/update-profile", updatedData); // ✅ correct route
-    const updatedUser = res.data.updatedUser || res.data.user || res.data;
+    try {
+      const res = await api.put(`${env.API_BASE}/user/update-profile`, updatedData, { withCredentials: true });
+      const updatedUser = res.data.updatedUser || res.data.user || res.data;
 
-    setUser((prev) => ({ ...prev, ...updatedUser }));
-    localStorage.setItem("user", JSON.stringify(updatedUser));
-    return updatedUser;
+      // Merge previous user with updated fields
+      setUser((prev) => ({ ...prev, ...updatedUser }));
+      localStorage.setItem("user", JSON.stringify({ ...user, ...updatedUser }));
+
+      return updatedUser;
+    } catch (err) {
+      throw new Error(err.response?.data?.error || "Profile update failed");
+    }
   };
 
-  // ✅ Step 4: Modular logic hook (can be renamed or expanded)
-  const stepFour = async () => {
+  /* ------------------------ Refresh User ----------------------- */
+  const refreshUser = async () => {
     try {
-      const res = await api.get("/user/profile");
-      const refreshedUser = res.data;
-      setUser(refreshedUser);
-      localStorage.setItem("user", JSON.stringify(refreshedUser));
-      return refreshedUser;
+      const res = await api.get(`${env.API_BASE}/user/profile`, { withCredentials: true });
+      setUser(res.data);
+      localStorage.setItem("user", JSON.stringify(res.data));
+      return res.data;
     } catch (err) {
-      console.error("Step 4 failed:", err.response?.data || err.message);
+      console.error("Refresh user failed:", err.response?.data || err.message);
       throw err;
     }
   };
 
-  const value = {
-    user,
-    setUser,
-    login,
-    logout,
-    updateProfile,
-    stepFour, // ✅ exposed for use in other components
-    loading,
-    error,
-  };
-
+  /* -------------------------- Context -------------------------- */
   return (
-    <UserContext.Provider value={value}>
+    <UserContext.Provider
+      value={{
+        user,
+        setUser,
+        login,
+        logout,
+        updateProfile,
+        refreshUser,
+        loading,
+        error,
+      }}
+    >
       {!loading ? children : <p className="text-center mt-10">Loading...</p>}
     </UserContext.Provider>
   );

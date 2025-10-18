@@ -5,18 +5,19 @@ const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const path = require('path');
 const fs = require('fs');
+const env = require('../config/env');
+
+// Ensure profile-pics folder exists
+if (!fs.existsSync(env.PROFILE_PICS_PATH)) {
+  fs.mkdirSync(env.PROFILE_PICS_PATH, { recursive: true });
+}
 
 // ------------------------ Multer Setup ------------------------
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../uploads/profile-pics');
-    if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, { recursive: true });
-    cb(null, uploadPath);
-  },
+  destination: (req, file, cb) => cb(null, env.PROFILE_PICS_PATH),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    const filename = `${req.user.id}-${Date.now()}${ext}`;
-    cb(null, filename);
+    cb(null, `${req.user.id}-${Date.now()}${ext}`);
   },
 });
 const upload = multer({ storage });
@@ -33,7 +34,7 @@ router.put('/update-profile', upload.single('profilePic'), async (req, res) => {
     if (bio) updateData.bio = bio;
     if (req.file) updateData.profilePic = `/uploads/profile-pics/${req.file.filename}`;
 
-    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true }).select('-password');
 
     res.status(200).json({
       message: 'Profile updated successfully',
@@ -52,12 +53,12 @@ router.put('/update-profile', upload.single('profilePic'), async (req, res) => {
 });
 
 // ------------------------ Get Current User ------------------------
-router.get('/me', async (req, res) => {
+router.get('/profile', async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     res.status(200).json(user);
   } catch (err) {
-    console.error('❌ Get user error:', err);
+    console.error('❌ Get user profile error:', err);
     res.status(500).json({ error: 'Failed to fetch user info' });
   }
 });
