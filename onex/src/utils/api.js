@@ -1,18 +1,24 @@
 import axios from "axios";
 
-// ---------------------- Environment ----------------------
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5020"; // fallback to local
+/* ---------------------- Environment Setup ---------------------- */
+// Ensure base URL has no trailing slash and defaults correctly
+let API_BASE = import.meta.env.VITE_API_BASE?.trim() || "http://localhost:5020";
 
-// ---------------------- Axios Instance -------------------
+// Remove accidental trailing "/api" if user included it in .env
+if (API_BASE.endsWith("/api")) {
+  API_BASE = API_BASE.replace(/\/api$/, "");
+}
+
+/* ---------------------- Axios Instance ------------------------- */
 const api = axios.create({
-  baseURL: `${API_BASE}/api`, // backend API base
-  withCredentials: true,      // send cookies for auth
+  baseURL: `${API_BASE}/api`, // unified endpoint
+  withCredentials: true,      // include cookies (if backend supports)
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// ---------------------- Request Interceptor -------------
+/* ---------------------- Request Interceptor -------------------- */
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -28,21 +34,21 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ---------------------- Response Interceptor ------------
+/* ---------------------- Response Interceptor ------------------- */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
 
     if (status === 401) {
-      console.warn("⚠️ Unauthorized! Clearing token & user...");
+      console.warn("⚠️ Unauthorized — clearing token & user data...");
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      // Optional: redirect to login if desired
+      // Optional redirect:
       // window.location.href = "/signin";
     }
 
-    if (status === 403) console.warn("🚫 Forbidden — admin or permission issue");
+    if (status === 403) console.warn("🚫 Forbidden — insufficient permissions");
 
     if (!status) console.error("❌ Network/server error:", error.message);
 
@@ -50,9 +56,11 @@ api.interceptors.response.use(
   }
 );
 
-// ---------------------- Helper Methods ------------------
-export const setAuthToken = (token) =>
-  token ? localStorage.setItem("token", token) : localStorage.removeItem("token");
+/* ---------------------- Helper Methods ------------------------- */
+export const setAuthToken = (token) => {
+  if (token) localStorage.setItem("token", token);
+  else localStorage.removeItem("token");
+};
 
 export const getAuthToken = () => localStorage.getItem("token");
 
