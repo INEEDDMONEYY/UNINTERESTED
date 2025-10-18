@@ -66,4 +66,21 @@ router.post("/logout", (req, res) => {
   res.json({ message: "Logged out successfully" });
 });
 
+/* -------------------- ✅ Get Current User (Step 2) -------------------- */
+router.get("/me", async (req, res) => {
+  try {
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ error: "Unauthorized: No token provided" });
+
+    const decoded = jwt.verify(token, env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json(user);
+  } catch (err) {
+    console.error("Fetch current user error:", err.message);
+    res.status(403).json({ error: "Invalid or expired token" });
+  }
+});
+
 module.exports = router;
