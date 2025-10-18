@@ -11,7 +11,7 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  /* --------------------- Fetch current user --------------------- */
+  /* ---------------- Fetch current user on load ---------------- */
   useEffect(() => {
     const token = getAuthToken();
     if (!token) {
@@ -21,7 +21,7 @@ export const UserProvider = ({ children }) => {
 
     const fetchUser = async () => {
       try {
-        const res = await api.get("/user/profile", { withCredentials: true });
+        const res = await api.get("/user/profile"); // uses baseURL from api.js
         setUser(res.data);
         localStorage.setItem("user", JSON.stringify(res.data));
       } catch (err) {
@@ -36,10 +36,10 @@ export const UserProvider = ({ children }) => {
     fetchUser();
   }, []);
 
-  /* --------------------------- Login --------------------------- */
+  /* ---------------- Login ---------------- */
   const login = async (username, password) => {
     try {
-      const res = await api.post("/signin", { username, password }, { withCredentials: true });
+      const res = await api.post("/signin", { username, password });
       const { token, user } = res.data;
       setAuthToken(token);
       localStorage.setItem("user", JSON.stringify(user));
@@ -49,10 +49,10 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  /* --------------------------- Logout -------------------------- */
+  /* ---------------- Logout ---------------- */
   const logout = async () => {
     try {
-      await api.post("/logout", {}, { withCredentials: true });
+      await api.post("/logout");
     } catch (err) {
       console.warn("Logout error:", err.message || err);
     }
@@ -60,25 +60,24 @@ export const UserProvider = ({ children }) => {
     setUser(null);
   };
 
-  /* ------------------------ Update Profile --------------------- */
+  /* ---------------- Update Profile ---------------- */
   const updateProfile = async (updatedData) => {
     try {
-      const res = await api.put("/user/update-profile", updatedData, { withCredentials: true });
+      const res = await api.put("/user/update-profile", updatedData);
       const updatedUser = res.data.updatedUser || res.data.user || res.data;
 
       setUser((prev) => ({ ...prev, ...updatedUser }));
       localStorage.setItem("user", JSON.stringify({ ...user, ...updatedUser }));
-
       return updatedUser;
     } catch (err) {
       throw new Error(err.response?.data?.error || "Profile update failed");
     }
   };
 
-  /* ------------------------ Refresh User ----------------------- */
+  /* ---------------- Refresh User ---------------- */
   const refreshUser = async () => {
     try {
-      const res = await api.get("/user/profile", { withCredentials: true });
+      const res = await api.get("/user/profile");
       setUser(res.data);
       localStorage.setItem("user", JSON.stringify(res.data));
       return res.data;

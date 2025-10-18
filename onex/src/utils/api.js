@@ -1,19 +1,18 @@
 import axios from "axios";
 
-const apiBase = import.meta.env.VITE_API_BASE; // Use Vite env variable
+// Use Vite environment variable
+const API_BASE = import.meta.env.VITE_API_BASE;
 
 // ✅ Axios instance
 const api = axios.create({
-  baseURL: `${apiBase}/api`, // backend API base
-  withCredentials: true, // cookies for auth
+  baseURL: `${API_BASE}/api`, // backend API base
+  withCredentials: true, // send cookies
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-/* -------------------------- Interceptors -------------------------- */
-
-// Attach token automatically
+/* ---------------- Request Interceptor ---------------- */
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -29,7 +28,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Global response handling
+/* ---------------- Response Interceptor ---------------- */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -39,6 +38,8 @@ api.interceptors.response.use(
       console.warn("⚠️ Unauthorized! Clearing token & user...");
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      // Optional: redirect to login
+      // window.location.href = "/signin";
     }
 
     if (status === 403) console.warn("🚫 Forbidden — admin or permission issue");
@@ -49,10 +50,12 @@ api.interceptors.response.use(
   }
 );
 
-/* -------------------------- Helpers -------------------------- */
+/* ---------------- Helper Methods ---------------- */
 export const setAuthToken = (token) =>
   token ? localStorage.setItem("token", token) : localStorage.removeItem("token");
+
 export const getAuthToken = () => localStorage.getItem("token");
+
 export const clearAuthData = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
