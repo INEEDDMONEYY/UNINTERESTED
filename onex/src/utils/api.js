@@ -1,24 +1,24 @@
 import axios from "axios";
 
-// Use Vite environment variable
-const API_BASE = import.meta.env.VITE_API_BASE;
+// ---------------------- Environment ----------------------
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5020"; // fallback to local
 
-// ✅ Axios instance
+// ---------------------- Axios Instance -------------------
 const api = axios.create({
   baseURL: `${API_BASE}/api`, // backend API base
-  withCredentials: true, // send cookies
+  withCredentials: true,      // send cookies for auth
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-/* ---------------- Request Interceptor ---------------- */
+// ---------------------- Request Interceptor -------------
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) config.headers["Authorization"] = `Bearer ${token}`;
 
-    // Correct headers for FormData uploads
+    // Ensure FormData uploads get correct headers
     if (config.data instanceof FormData) {
       config.headers["Content-Type"] = "multipart/form-data";
     }
@@ -28,7 +28,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-/* ---------------- Response Interceptor ---------------- */
+// ---------------------- Response Interceptor ------------
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -38,7 +38,7 @@ api.interceptors.response.use(
       console.warn("⚠️ Unauthorized! Clearing token & user...");
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      // Optional: redirect to login
+      // Optional: redirect to login if desired
       // window.location.href = "/signin";
     }
 
@@ -50,7 +50,7 @@ api.interceptors.response.use(
   }
 );
 
-/* ---------------- Helper Methods ---------------- */
+// ---------------------- Helper Methods ------------------
 export const setAuthToken = (token) =>
   token ? localStorage.setItem("token", token) : localStorage.removeItem("token");
 

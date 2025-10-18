@@ -8,12 +8,11 @@ export default function SignupForm() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const API_BASE = import.meta.env.VITE_API_BASE || 'https://uninterested.onrender.com';
+  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5020/api';
 
   const handleSignup = async (e) => {
     e.preventDefault();
 
-    // ✅ Password validation
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
@@ -28,19 +27,18 @@ export default function SignupForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, role }),
-        credentials: 'include',
+        credentials: 'include', // ✅ Important for cookie auth
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // ✅ Auto-redirect after signup
         navigate('/home');
       } else {
         setError(data.error || 'Signup failed');
       }
     } catch (err) {
-      setError('Server error: ' + err.message);
+      setError('Server error: ' + (err?.message || ''));
     }
   };
 
@@ -48,7 +46,6 @@ export default function SignupForm() {
     <form onSubmit={handleSignup} className="flex flex-col w-96">
       <input
         type="text"
-        name="username"
         placeholder="Create a username"
         className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg"
         value={username}
@@ -57,7 +54,6 @@ export default function SignupForm() {
       />
       <input
         type="password"
-        name="password"
         placeholder="Enter your password"
         className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg"
         value={password}
@@ -66,7 +62,6 @@ export default function SignupForm() {
       />
 
       <select
-        name="role"
         className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg"
         value={role}
         onChange={(e) => setRole(e.target.value)}
@@ -75,20 +70,18 @@ export default function SignupForm() {
         <option value="admin">Admin</option>
       </select>
 
-      <div>
-        <button
-          type="submit"
-          className="border-2 border-white m-1 px-1 text-black text-[1.3rem] rounded-md"
-        >
-          Sign Up
-        </button>
-      </div>
+      <button
+        type="submit"
+        className="border-2 border-white m-1 px-1 text-black text-[1.3rem] rounded-md"
+      >
+        Sign Up
+      </button>
 
       {error && <div className="text-red-600 text-sm m-2">{error}</div>}
 
       <div>
         <h3 className="text-black text-[1rem] underline">
-          Have an account already?{' '}
+          Already have an account?{' '}
           <Link to="/signin" className="text-pink-700">
             Sign In
           </Link>

@@ -21,7 +21,7 @@ export const UserProvider = ({ children }) => {
 
     const fetchUser = async () => {
       try {
-        const res = await api.get("/user/profile"); // uses baseURL from api.js
+        const res = await api.get("/user/profile"); // baseURL is handled in api.js
         setUser(res.data);
         localStorage.setItem("user", JSON.stringify(res.data));
       } catch (err) {
@@ -68,6 +68,7 @@ export const UserProvider = ({ children }) => {
 
       setUser((prev) => ({ ...prev, ...updatedUser }));
       localStorage.setItem("user", JSON.stringify({ ...user, ...updatedUser }));
+
       return updatedUser;
     } catch (err) {
       throw new Error(err.response?.data?.error || "Profile update failed");

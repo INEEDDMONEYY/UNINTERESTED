@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import env from '../config/env'; // ✅ central env
 
 export default function SigninForm() {
   const [error, setError] = useState('');
@@ -8,7 +7,8 @@ export default function SigninForm() {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const API_BASE = env.API_BASE;
+  // ✅ Use env variable with fallback
+  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5020/api';
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -27,7 +27,7 @@ export default function SigninForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
-        credentials: 'include',
+        credentials: 'include', // ✅ Important for cookie auth
       });
 
       const data = await response.json();
@@ -36,11 +36,8 @@ export default function SigninForm() {
         if (data.token) localStorage.setItem('token', data.token);
         if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
 
-        if (data.user?.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/home');
-        }
+        if (data.user?.role === 'admin') navigate('/admin');
+        else navigate('/home');
       } else {
         setError(data.error || 'Sign in failed');
       }
@@ -56,7 +53,6 @@ export default function SigninForm() {
     <form onSubmit={handleSubmit} className="flex flex-col w-96">
       <input
         type="text"
-        name="username"
         placeholder="Enter your username"
         className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg"
         value={username}
@@ -65,7 +61,6 @@ export default function SigninForm() {
       />
       <input
         type="password"
-        name="password"
         placeholder="Enter your password"
         className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg"
         value={password}
@@ -73,20 +68,18 @@ export default function SigninForm() {
         required
       />
 
-      <div>
-        <button
-          type="submit"
-          className="border-2 border-white m-1 px-1 text-black text-[1.3rem] rounded-md"
-        >
-          Sign In
-        </button>
-      </div>
+      <button
+        type="submit"
+        className="border-2 border-white m-1 px-1 text-black text-[1.3rem] rounded-md"
+      >
+        Sign In
+      </button>
 
       {error && <div className="text-red-600 text-sm m-2">{error}</div>}
 
       <div>
         <h3 className="text-black text-[1rem] underline">
-          Don't have an account yet?{' '}
+          Don't have an account?{' '}
           <Link to="/signup" className="text-pink-700">
             Sign Up
           </Link>
