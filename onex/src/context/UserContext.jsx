@@ -1,6 +1,5 @@
 import { createContext, useState, useEffect } from "react";
 import api, { setAuthToken, clearAuthData, getAuthToken } from "../utils/api";
-import env from "../config/env"; // ✅ Use centralized env
 
 export const UserContext = createContext();
 
@@ -12,7 +11,7 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  /* --------------------- Fetch current user on load --------------------- */
+  /* --------------------- Fetch current user --------------------- */
   useEffect(() => {
     const token = getAuthToken();
     if (!token) {
@@ -22,7 +21,7 @@ export const UserProvider = ({ children }) => {
 
     const fetchUser = async () => {
       try {
-        const res = await api.get(`${env.API_BASE}/user/profile`, { withCredentials: true });
+        const res = await api.get("/user/profile", { withCredentials: true });
         setUser(res.data);
         localStorage.setItem("user", JSON.stringify(res.data));
       } catch (err) {
@@ -40,7 +39,7 @@ export const UserProvider = ({ children }) => {
   /* --------------------------- Login --------------------------- */
   const login = async (username, password) => {
     try {
-      const res = await api.post(`${env.API_BASE}/signin`, { username, password }, { withCredentials: true });
+      const res = await api.post("/signin", { username, password }, { withCredentials: true });
       const { token, user } = res.data;
       setAuthToken(token);
       localStorage.setItem("user", JSON.stringify(user));
@@ -53,7 +52,7 @@ export const UserProvider = ({ children }) => {
   /* --------------------------- Logout -------------------------- */
   const logout = async () => {
     try {
-      await api.post(`${env.API_BASE}/logout`, {}, { withCredentials: true });
+      await api.post("/logout", {}, { withCredentials: true });
     } catch (err) {
       console.warn("Logout error:", err.message || err);
     }
@@ -64,10 +63,9 @@ export const UserProvider = ({ children }) => {
   /* ------------------------ Update Profile --------------------- */
   const updateProfile = async (updatedData) => {
     try {
-      const res = await api.put(`${env.API_BASE}/user/update-profile`, updatedData, { withCredentials: true });
+      const res = await api.put("/user/update-profile", updatedData, { withCredentials: true });
       const updatedUser = res.data.updatedUser || res.data.user || res.data;
 
-      // Merge previous user with updated fields
       setUser((prev) => ({ ...prev, ...updatedUser }));
       localStorage.setItem("user", JSON.stringify({ ...user, ...updatedUser }));
 
@@ -80,7 +78,7 @@ export const UserProvider = ({ children }) => {
   /* ------------------------ Refresh User ----------------------- */
   const refreshUser = async () => {
     try {
-      const res = await api.get(`${env.API_BASE}/user/profile`, { withCredentials: true });
+      const res = await api.get("/user/profile", { withCredentials: true });
       setUser(res.data);
       localStorage.setItem("user", JSON.stringify(res.data));
       return res.data;
@@ -90,7 +88,6 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  /* -------------------------- Context -------------------------- */
   return (
     <UserContext.Provider
       value={{

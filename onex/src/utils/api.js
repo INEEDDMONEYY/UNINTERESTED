@@ -1,26 +1,25 @@
 import axios from "axios";
-import env from "../config/env"; // ✅ Centralized env
+
+const apiBase = import.meta.env.VITE_API_BASE; // Use Vite env variable
 
 // ✅ Axios instance
 const api = axios.create({
-  baseURL: `${env.API_BASE}/api`, // backend API base
-  withCredentials: true,
+  baseURL: `${apiBase}/api`, // backend API base
+  withCredentials: true, // cookies for auth
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-/* -------------------------------------------------------------------------- */
-/* 🧠 Request & Response Interceptors                                         */
-/* -------------------------------------------------------------------------- */
+/* -------------------------- Interceptors -------------------------- */
 
-// Automatically attach token
+// Attach token automatically
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) config.headers["Authorization"] = `Bearer ${token}`;
 
-    // Correct headers for FormData
+    // Correct headers for FormData uploads
     if (config.data instanceof FormData) {
       config.headers["Content-Type"] = "multipart/form-data";
     }
@@ -50,10 +49,9 @@ api.interceptors.response.use(
   }
 );
 
-/* -------------------------------------------------------------------------- */
-/* 🧩 Helper Methods (used by UserContext)                                     */
-/* -------------------------------------------------------------------------- */
-export const setAuthToken = (token) => token ? localStorage.setItem("token", token) : localStorage.removeItem("token");
+/* -------------------------- Helpers -------------------------- */
+export const setAuthToken = (token) =>
+  token ? localStorage.setItem("token", token) : localStorage.removeItem("token");
 export const getAuthToken = () => localStorage.getItem("token");
 export const clearAuthData = () => {
   localStorage.removeItem("token");
