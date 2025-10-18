@@ -20,6 +20,9 @@ const conversationRoutes = require('./routes/conversationRoutes');
 const postRoutes = require('./routes/postRoutes');
 const userRoutes = require('./routes/userRoutes');
 
+// ✅ Added Auth Routes
+const authRoutes = require('./routes/authRoutes'); // 👈 NEW
+
 const app = express();
 const port = env.PORT;
 
@@ -113,8 +116,8 @@ app.use('/api/posts', postRoutes);
 /* -------------------------- 👤 User Routes ------------------------------- */
 app.use('/api/user', authenticateToken, userRoutes);
 
-/* ----------------------------- 🔑 Auth Routes ------------------------------ */
-// Signin, Signup, Logout routes remain unchanged and use env.JWT_SECRET
+/* -------------------------- 🔐 Auth Routes -------------------------- */
+app.use('/api', authRoutes); // 👈 ✅ Added here — handles /signin, /signup, /logout
 
 /* ------------------------ ❌ 404 & Global Error Handlers -------------------- */
 app.use((req, res) => {
