@@ -1,3 +1,7 @@
+//import { useEffect, useState } from "react";
+//import { useNavigate } from "react-router";
+//import axios from "axios";
+
 export default function PromotedPosts() {
   return (
     <section className="px-6 py-10 max-w-7xl mx-auto">

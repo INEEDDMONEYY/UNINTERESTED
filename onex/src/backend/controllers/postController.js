@@ -1,17 +1,25 @@
 const Post = require("../models/Post");
+const cloudinary = require("../utils/cloudinary"); // ✅ Cloudinary config
 
 /* -------------------------------------------------------------------------- */
 /* 📝 Create a new post                                                      */
 /* -------------------------------------------------------------------------- */
 exports.createPost = async (req, res) => {
   try {
-    // If you add file uploads later (e.g., Multer), handle it here:
-    // const picture = req.file ? `/uploads/${req.file.filename}` : req.body.picture;
-
-    const { username, description, city, state, picture, category } = req.body;
+    const { username, description, city, state, category } = req.body;
 
     if (!username || !description) {
       return res.status(400).json({ error: "Username and description are required." });
+    }
+
+    let imageUrl = null;
+
+    // ✅ Upload image to Cloudinary if file exists
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "posts",
+      });
+      imageUrl = result.secure_url;
     }
 
     const newPost = new Post({
@@ -19,8 +27,8 @@ exports.createPost = async (req, res) => {
       description,
       city,
       state,
-      picture, // currently string-based (URL or base64)
-      category, 
+      category,
+      picture: imageUrl, // ✅ Cloudinary URL or null
     });
 
     const saved = await newPost.save();

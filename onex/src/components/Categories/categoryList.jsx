@@ -3,6 +3,7 @@ export default function CategoryList({ onSelect }) {
     'Restrictions 🚫',
     'Only AA 🔥',
     'MM Baddies 💝',
+    'MM Latinas 🏳️',
     'MM BBW ⛱️',
     'MM Asians 🌏',
     'MM LGBQT+ 🌈',

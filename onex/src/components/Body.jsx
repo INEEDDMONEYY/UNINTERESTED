@@ -6,26 +6,39 @@ import Heading from "../components/Header";
 import PromotionPosts from "../components/Promotion/PromotedPosts";
 import CategoryList from "../components/Categories/categoryList";
 import CategoryDisplay from "../components/Categories/categoryDisplay";
+import UserSearch from "../components//Searchbar/UserSearch"; // ✅ Added import
 
 export default function Body() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isLoggedIn = !!user.username;
   const [location, setLocation] = useState(JSON.parse(localStorage.getItem("userLocation") || "null"));
   const [posts, setPosts] = useState([]);
+  const [users, setUsers] = useState([]); // ✅ Added users state
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/posts`);
-        if (Array.isArray(data)) setPosts(data);
-        else setPosts([]);
+        setPosts(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch posts:", err);
         setPosts([]);
       }
     };
+
+    const fetchUsers = async () => {
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/users`);
+        setUsers(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+        setUsers([]);
+      }
+    };
+
     fetchPosts();
+    fetchUsers();
   }, []);
 
   const filteredPosts = posts.filter((post) => {
@@ -63,8 +76,13 @@ export default function Body() {
       {/* ✅ Promoted Entertainer Section */}
       <PromotionPosts />
 
+      {/* ✅ User Search */}
+      <div className="mt-6 mb-4">
+        <UserSearch users={users} />
+      </div>
+
       {/* ✅ Filtered Posts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredPosts.length > 0 ? (
           filteredPosts.map((post, i) => (
             <div key={i} className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm">
@@ -89,7 +107,7 @@ export default function Body() {
 
       {/* ✅ Category Display */}
       <div>
-        <CategoryDisplay selectedCategory={selectedCategory} />
+        <CategoryDisplay selectedCategory={selectedCategory} users={users} />
       </div>
     </section>
   );
