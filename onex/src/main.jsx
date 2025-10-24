@@ -17,6 +17,8 @@ import UserProfileSettings from "./pages/users/UserProfileSettings.jsx";
 import PromoteAccount from "./pages/promoteAccount.jsx";
 import TermsOfUsePage from './pages/policies/TermsOfUsePage.jsx';
 import PrivacyPolicy from './pages/policies/PrivacyPolicyPage.jsx';
+import ProfilePage from './pages/profiles/ProfilePage.jsx'; // ✅ Uncommented
+
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 // ✅ Import UserProvider
@@ -54,6 +56,14 @@ const router = createBrowserRouter([
   {
     path: "user/profile",
     element: <UserProfileSettings />,
+  },
+  {
+    path: "user/profilepage",
+    element: (
+      <ProtectedRoute role="user">
+        <ProfilePage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "user/:userId",

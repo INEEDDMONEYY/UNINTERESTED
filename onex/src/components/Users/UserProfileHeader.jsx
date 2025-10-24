@@ -44,14 +44,6 @@ export default function UserProfileHeader() {
       {/* 🧑 Name + Bio */}
       <h2 className="text-xl font-bold text-pink-600">{user.name}</h2>
       <p className="text-sm text-gray-600 mt-2 max-w-md">{user.bio || 'No bio available.'}</p>
-
-      {/* 💬 Comment Button */}
-      <button
-        onClick={() => window.location.href = `/profile/${userId}/comment`}
-        className="mt-6 px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600 transition"
-      >
-        Leave a Comment
-      </button>
     </div>
   );
 }

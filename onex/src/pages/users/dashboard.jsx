@@ -1,9 +1,18 @@
 import { useNavigate } from "react-router";
 import { useState, useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { User, BarChart3, LogOut, Home, MessageSquare } from "lucide-react";
+import {
+  User,
+  BarChart3,
+  LogOut,
+  Home,
+  MessageSquare,
+  UserRound, // ✅ New icon
+} from "lucide-react";
+
 import UserProfileSettings from "./UserProfileSettings.jsx";
 import UserMessages from "./UserMessages.jsx";
+import ProfilePage from "../profiles/ProfilePage.jsx"; // ✅ Made import viewable
 import { UserContext } from "../../context/UserContext";
 
 export default function UserDashboard() {
@@ -85,6 +94,19 @@ export default function UserDashboard() {
               Messages
             </button>
 
+            {/* ✅ New Profile View Button */}
+            <button
+              onClick={() => setActiveView("publicProfile")}
+              className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                activeView === "publicProfile"
+                  ? "bg-pink-100 text-pink-800 font-semibold"
+                  : "hover:bg-pink-100 text-pink-800"
+              }`}
+            >
+              <UserRound size={18} />
+              Profile
+            </button>
+
             <button
               onClick={handleSignOut}
               className="w-full flex items-center gap-3 px-4 py-2 rounded-lg bg-pink-200 hover:bg-pink-300 text-pink-800 font-medium mt-4 transition"
@@ -151,6 +173,12 @@ export default function UserDashboard() {
             <div className="mt-6 p-6 bg-white/60 border border-white rounded-lg shadow">
               <UserMessages />
             </div>
+          </div>
+        )}
+
+        {activeView === "publicProfile" && (
+          <div>
+            <ProfilePage />
           </div>
         )}
 

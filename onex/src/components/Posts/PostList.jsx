@@ -33,16 +33,25 @@ export default function PostList() {
   }, []);
 
   if (loading) {
-    return <div className="text-center py-10 text-gray-500">Loading posts...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-[40vh] text-gray-500 text-lg">
+        Loading posts...
+      </div>
+    );
   }
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 px-6 py-10">
-        {posts.map((post) => (
-          <PostCard key={post.id} {...post} />
-        ))}
-      </div>
+      <section className="px-4 sm:px-6 lg:px-12 py-10">
+        <h2 className="text-2xl font-bold text-pink-700 mb-6 text-center sm:text-left">
+          Recent Posts
+        </h2>
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {posts.map((post) => (
+            <PostCard key={post.id} {...post} />
+          ))}
+        </div>
+      </section>
     </>
   );
 }
