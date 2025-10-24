@@ -19,9 +19,7 @@ const messageRoutes = require('./routes/messageRoutes');
 const conversationRoutes = require('./routes/conversationRoutes');
 const postRoutes = require('./routes/postRoutes');
 const userRoutes = require('./routes/userRoutes');
-
-// ✅ Added Auth Routes
-const authRoutes = require('./routes/authRoutes'); // 👈 NEW
+const authRoutes = require('./routes/authRoutes'); // ✅ Auth routes
 
 const app = express();
 const port = env.PORT;
@@ -34,26 +32,18 @@ const allowedOrigins = [
   'https://glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev',
 ];
 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (!origin || allowedOrigins.includes(origin) || env.NODE_ENV !== 'production') {
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader(
-      'Access-Control-Allow-Headers',
-      'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-    );
-    res.setHeader(
-      'Access-Control-Allow-Methods',
-      'GET, POST, PUT, DELETE, OPTIONS'
-    );
-  } else {
-    return res.status(403).json({ error: 'Not allowed by CORS' });
-  }
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
 
-  if (req.method === 'OPTIONS') return res.sendStatus(204);
-  next();
-});
+app.options('*', cors()); // ✅ Handle preflight requests
 
 /* --------------------------- 🌍 Global Middleware -------------------------- */
 app.use(express.json({ limit: '10mb' }));
@@ -117,7 +107,7 @@ app.use('/api/posts', postRoutes);
 app.use('/api/user', authenticateToken, userRoutes);
 
 /* -------------------------- 🔐 Auth Routes -------------------------- */
-app.use('/api', authRoutes); // 👈 ✅ Added here — handles /signin, /signup, /logout
+app.use('/api', authRoutes); // 👈 Handles /signin, /signup, /logout
 
 /* ------------------------ ❌ 404 & Global Error Handlers -------------------- */
 app.use((req, res) => {
