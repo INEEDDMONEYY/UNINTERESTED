@@ -110,12 +110,19 @@ app.use('/api/user', authenticateToken, userRoutes);
 /* -------------------------- 🔐 Auth Routes -------------------------- */
 app.use('/api', authRoutes); // 👈 Handles /signin, /signup, /logout
 
-/* -------------------------- 🧭 Serve Frontend ----------------------------- */
-const frontendPath = path.join(__dirname, 'client', 'dist'); // adjust if using CRA or different folder
+/* -------------------------- 🧭 Serve Frontend Build ------------------------ */
+const frontendPath = path.join(__dirname, 'client', 'build'); // ✅ Adjust for CRA or Vite
+
 if (fs.existsSync(frontendPath)) {
   app.use(express.static(frontendPath));
+
   app.get('*', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
+    const indexPath = path.join(frontendPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(500).send('❌ index.html not found in build folder');
+    }
   });
 }
 

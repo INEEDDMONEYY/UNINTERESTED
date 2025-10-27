@@ -23,7 +23,7 @@ export default function SigninForm() {
     }
 
     try {
-      const response = await fetch(`${API_BASE}/signin`, {
+      const response = await fetch(`${API_BASE}/api/signin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
