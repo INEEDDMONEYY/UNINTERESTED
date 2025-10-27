@@ -1,5 +1,6 @@
 const Post = require("../models/Post");
 const cloudinary = require("../utils/cloudinary"); // ✅ Cloudinary config
+const streamifier = require("streamifier");
 
 /* -------------------------------------------------------------------------- */
 /* 📝 Create a new post                                                      */
@@ -16,9 +17,19 @@ exports.createPost = async (req, res) => {
 
     // ✅ Upload image to Cloudinary if file exists
     if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "posts",
-      });
+      const streamUpload = () =>
+        new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: "posts" },
+            (error, result) => {
+              if (result) resolve(result);
+              else reject(error);
+            }
+          );
+          streamifier.createReadStream(req.file.buffer).pipe(stream);
+        });
+
+      const result = await streamUpload();
       imageUrl = result.secure_url;
     }
 

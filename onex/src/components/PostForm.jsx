@@ -45,7 +45,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
         fd.append(key, value);
       });
 
-      await api.post("/api/posts", fd, {
+      await api.post("/posts", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

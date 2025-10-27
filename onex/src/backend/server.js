@@ -43,7 +43,7 @@ app.use(cors({
   credentials: true,
 }));
 
-app.options('*', cors()); // ✅ Handle preflight requests
+app.options('', cors()); // ✅ Handle preflight requests
 
 /* --------------------------- 🌍 Global Middleware -------------------------- */
 app.use(express.json({ limit: '10mb' }));
@@ -57,7 +57,7 @@ app.use((req, res, next) => {
 
 /* ---------------------------- ⚙️ MongoDB Setup ----------------------------- */
 mongoose
-  .connect(env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(env.MONGO_URI) // ✅ Removed deprecated options
   .then(() => console.log('✅ MongoDB connected successfully'))
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 

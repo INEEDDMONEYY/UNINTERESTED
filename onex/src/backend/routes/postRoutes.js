@@ -11,7 +11,7 @@ const storage = multer.diskStorage({
     cb(null, uniqueSuffix + "-" + file.originalname);
   },
 });
-const upload = multer({ storage });
+const upload = multer({ storage: multer.memoryStorage() });
 
 // ✅ Create post with image support
 router.post("/", upload.single("picture"), postController.createPost);

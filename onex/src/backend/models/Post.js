@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const PostSchema = new mongoose.Schema({
   username: { type: String, required: true },
@@ -6,9 +6,8 @@ const PostSchema = new mongoose.Schema({
   picture: { type: String },
   city: { type: String },
   state: { type: String },
-  category: { type: String, default: "" }, // ✅ NEW FIELD
+  category: { type: String, default: "" },
   createdAt: { type: Date, default: Date.now },
 });
 
-const Post = mongoose.model("Post", PostSchema);
-export default Post;
+module.exports = mongoose.model("Post", PostSchema);
