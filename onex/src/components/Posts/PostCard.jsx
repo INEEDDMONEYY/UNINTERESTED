@@ -1,22 +1,44 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 export default function PostCard() {
-  // 🧠 Local state for post data
   const [picture, setPicture] = useState(null);
   const [username, setUsername] = useState('');
   const [description, setDescription] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  // 🧪 Simulate fetching post data (static test data)
   useEffect(() => {
-    // Replace this with actual backend fetch logic later
-    const testPicture = 'https://via.placeholder.com/150'; // Placeholder image URL
-    const testUsername = 'TestUser123';
-    const testDescription = 'This is a sample post description for testing purposes.';
+    const fetchPost = async () => {
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/posts`);
+        const sortedPosts = Array.isArray(data)
+          ? data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          : [];
 
-    setPicture(testPicture);
-    setUsername(testUsername);
-    setDescription(testDescription);
+        const latestPost = sortedPosts.length > 0 ? sortedPosts[0] : null;
+
+        if (latestPost) {
+          setPicture(latestPost.picture || null);
+          setUsername(latestPost.username || 'Unknown');
+          setDescription(latestPost.description || '');
+        }
+      } catch (err) {
+        console.error("Failed to fetch post:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPost();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[40vh] text-gray-500 text-lg">
+        Loading post...
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-sm bg-white rounded-lg shadow-md p-4 mx-auto sm:mx-0">

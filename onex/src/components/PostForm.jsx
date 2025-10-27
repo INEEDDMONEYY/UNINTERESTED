@@ -51,11 +51,10 @@ export default function PostForm({ onSuccess, embedded = false }) {
 
       setToast({ type: "success", msg: "Post created successfully!" });
 
-      // Allow parent to handle refresh if used in another component
       if (onSuccess) onSuccess();
 
-      // Reset fields
       setFormData({
+        title: "",
         username: "",
         description: "",
         city: "",
@@ -64,9 +63,15 @@ export default function PostForm({ onSuccess, embedded = false }) {
         picture: null,
       });
 
-      // Navigate only if not embedded (standalone page)
+      // 🔁 Navigate based on category selection
       if (!embedded) {
-        setTimeout(() => navigate("/home"), 1200);
+        setTimeout(() => {
+          if (formData.category) {
+            navigate(`/category/${formData.category}`);
+          } else {
+            navigate("/home");
+          }
+        }, 1200);
       }
     } catch (err) {
       console.error(err);
@@ -82,7 +87,6 @@ export default function PostForm({ onSuccess, embedded = false }) {
         embedded ? "bg-transparent shadow-none" : "bg-white shadow-md"
       } rounded-2xl p-4 sm:p-6 max-w-xl mx-auto`}
     >
-      {/* Header */}
       {!embedded && (
         <h1 className="text-xl sm:text-2xl font-bold mb-4 text-center">
           Create New Post
@@ -114,6 +118,15 @@ export default function PostForm({ onSuccess, embedded = false }) {
           name="username"
           placeholder="Your name"
           value={formData.username}
+          onChange={handleChange}
+          required
+          className="w-full border border-gray-300 p-2 sm:p-3 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base"
+        />
+        <input
+          type="text"
+          name="title"
+          placeholder="Title"
+          value={formData.title}
           onChange={handleChange}
           required
           className="w-full border border-gray-300 p-2 sm:p-3 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base"

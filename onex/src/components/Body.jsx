@@ -13,7 +13,7 @@ export default function Body() {
   const isLoggedIn = !!user.username;
   const [location, setLocation] = useState(JSON.parse(localStorage.getItem("userLocation") || "null"));
   const [posts, setPosts] = useState([]);
-  const [users, setUsers] = useState([]); // ✅ Added users state
+  const [users, setUsers] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   useEffect(() => {
@@ -41,29 +41,27 @@ export default function Body() {
     fetchUsers();
   }, []);
 
-  const filteredPosts = posts.filter((post) => {
+  const emptyCategoryPosts = posts.filter((post) => {
+    const hasNoCategory = !post.category || post.category.trim() === "";
     const matchesLocation =
       !location ||
       post.city?.toLowerCase() === location.city?.toLowerCase() ||
       post.state?.toLowerCase() === location.state?.toLowerCase();
 
-    const matchesCategory =
-      !selectedCategory || post.category?.toLowerCase() === selectedCategory.toLowerCase();
-
-    return matchesLocation && matchesCategory;
+    return hasNoCategory && matchesLocation;
   });
 
   return (
-    <section className="bg-white min-h-screen p-5 scroll-smooth">
+    <section className="bg-white min-h-screen px-4 sm:px-6 md:px-10 lg:px-20 py-6 scroll-smooth">
       <Heading />
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 p-3">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
         <h3 className="text-lg font-semibold text-gray-700">Ads</h3>
         <LocationSet onLocationChange={setLocation} />
         {isLoggedIn && (
           <div className="post-btn-div">
             <Link to="/post">
               <button
-                className="border border-pink-400 px-3 py-1 rounded bg-pink-200 hover:bg-pink-300 text-sm font-medium"
+                className="border border-pink-400 px-4 py-2 rounded bg-pink-200 hover:bg-pink-300 text-sm font-medium"
                 id="post-btn"
               >
                 Post
@@ -81,32 +79,46 @@ export default function Body() {
         <UserSearch users={users} />
       </div>
 
-      {/* ✅ Filtered Posts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredPosts.length > 0 ? (
-          filteredPosts.map((post, i) => (
+      {/* ✅ Empty Category Posts */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {emptyCategoryPosts.length > 0 ? (
+          emptyCategoryPosts.map((post, i) => (
             <div key={i} className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm">
+              {/* ✅ Display image if available */}
+              {post.picture && (
+                <img
+                  src={post.picture}
+                  alt="Post visual"
+                  className="w-full h-48 object-cover rounded-md mb-3"
+                />
+              )}
+              <h3 className="text-black font-semibold text-md mb-1">{post.username}</h3>
               <h3 className="text-black font-semibold text-md mb-1">{post.title}</h3>
-              <p className="text-gray-700 text-sm">{post.content}</p>
+              <p className="text-gray-700 text-sm">{post.description}</p>
               {(post.city || post.state) && (
                 <p className="text-gray-500 text-xs mt-1">
                   {post.city}, {post.state}
                 </p>
               )}
+              {post.createdAt && (
+                <p className="text-gray-400 text-xs mt-1">
+                  Posted on {new Date(post.createdAt).toLocaleString()}
+                </p>
+              )}
             </div>
           ))
         ) : (
-          <p className="text-gray-500 text-center col-span-full">No posts available.</p>
+          <p className="text-gray-500 text-center col-span-full">No uncategorized posts available.</p>
         )}
       </div>
 
       {/* ✅ Category Selection */}
-      <div>
+      <div className="mt-8">
         <CategoryList onSelect={setSelectedCategory} />
       </div>
 
       {/* ✅ Category Display */}
-      <div>
+      <div className="mt-6">
         <CategoryDisplay selectedCategory={selectedCategory} users={users} />
       </div>
     </section>
