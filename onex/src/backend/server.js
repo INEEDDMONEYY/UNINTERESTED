@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 const multer = require('multer');
+const fs = require('fs');
 
 // 🧩 Models
 const User = require('./models/User');
@@ -57,7 +58,7 @@ app.use((req, res, next) => {
 
 /* ---------------------------- ⚙️ MongoDB Setup ----------------------------- */
 mongoose
-  .connect(env.MONGO_URI) // ✅ Removed deprecated options
+  .connect(env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected successfully'))
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 
@@ -108,6 +109,15 @@ app.use('/api/user', authenticateToken, userRoutes);
 
 /* -------------------------- 🔐 Auth Routes -------------------------- */
 app.use('/api', authRoutes); // 👈 Handles /signin, /signup, /logout
+
+/* -------------------------- 🧭 Serve Frontend ----------------------------- */
+const frontendPath = path.join(__dirname, 'client', 'dist'); // adjust if using CRA or different folder
+if (fs.existsSync(frontendPath)) {
+  app.use(express.static(frontendPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
+}
 
 /* ------------------------ ❌ 404 & Global Error Handlers -------------------- */
 app.use((req, res) => {
