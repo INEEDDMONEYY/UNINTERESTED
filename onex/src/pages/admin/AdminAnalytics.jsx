@@ -25,33 +25,47 @@ ChartJS.register(
   Legend
 );
 
-export default function AdminAnalytics() {
+export default function AdminAnalytics({ embed = false }) {
   const navigate = useNavigate();
   const [analytics, setAnalytics] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [dateRange, setDateRange] = useState('7d');
   const [userType, setUserType] = useState('all');
   const [activityType, setActivityType] = useState('all');
 
   useEffect(() => {
     const fetchAnalytics = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const res = await fetch(`https://uninterested.onrender.com/admin/analytics?range=${dateRange}&userType=${userType}&activityType=${activityType}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include'
-        });
+        const res = await fetch(
+          `https://uninterested.onrender.com/admin/analytics?range=${dateRange}&userType=${userType}&activityType=${activityType}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+          }
+        );
+
+        if (!res.ok) throw new Error('Failed to fetch analytics');
+
         const data = await res.json();
         setAnalytics(data);
       } catch (err) {
-        console.error('Failed to fetch analytics:', err);
+        console.error(err);
+        setError(err.message || 'Unknown error');
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchAnalytics();
   }, [dateRange, userType, activityType]);
 
+  // Line chart for traffic
   const lineData = {
     labels: analytics?.traffic?.map(item => format(new Date(item.date), 'MMM d')) || [],
     datasets: [
@@ -65,6 +79,7 @@ export default function AdminAnalytics() {
     ]
   };
 
+  // Bar chart for posts
   const barData = {
     labels: analytics?.posts?.map(item => item.category) || [],
     datasets: [
@@ -76,44 +91,63 @@ export default function AdminAnalytics() {
     ]
   };
 
+  if (loading) return <div className="text-center py-10 text-gray-500">Loading analytics...</div>;
+  if (error) return <div className="text-center py-10 text-red-500">Error: {error}</div>;
+
   return (
     <div className="min-h-screen bg-white p-6">
-      {/* Breadcrumbs + Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-        <nav className="text-sm text-gray-600 mb-2 md:mb-0">
-          <ol className="list-reset flex items-center gap-2">
-            <li>
-              <button onClick={() => navigate('/admin')} className="text-pink-700 hover:underline">
-                Admin Dashboard
-              </button>
-            </li>
-            <li>/</li>
-            <li className="text-gray-800 font-medium">Site Analytics</li>
-          </ol>
-        </nav>
-        <button
-          onClick={() => navigate('/admin')}
-          className="bg-pink-200 text-pink-800 px-3 py-1 rounded hover:bg-pink-300 text-sm font-medium"
-        >
-          ← Back to Dashboard
-        </button>
-      </div>
+      {/* Optional breadcrumbs/header */}
+      {!embed && (
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+          <nav className="text-sm text-gray-600 mb-2 md:mb-0">
+            <ol className="list-reset flex items-center gap-2">
+              <li>
+                <button onClick={() => navigate('/admin')} className="text-pink-700 hover:underline">
+                  Admin Dashboard
+                </button>
+              </li>
+              <li>/</li>
+              <li className="text-gray-800 font-medium">Site Analytics</li>
+            </ol>
+          </nav>
+          <button
+            onClick={() => navigate('/admin')}
+            className="bg-pink-200 text-pink-800 px-3 py-1 rounded hover:bg-pink-300 text-sm font-medium"
+          >
+            ← Back to Dashboard
+          </button>
+        </div>
+      )}
 
       <h1 className="text-3xl font-bold text-pink-700 mb-4">Site Analytics</h1>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-6">
-        <select value={dateRange} onChange={e => setDateRange(e.target.value)} className="border rounded px-3 py-1">
+        <select
+          value={dateRange}
+          onChange={e => setDateRange(e.target.value)}
+          className="border rounded px-3 py-1"
+        >
           <option value="7d">Last 7 Days</option>
           <option value="30d">Last 30 Days</option>
           <option value="90d">Last 90 Days</option>
         </select>
-        <select value={userType} onChange={e => setUserType(e.target.value)} className="border rounded px-3 py-1">
+
+        <select
+          value={userType}
+          onChange={e => setUserType(e.target.value)}
+          className="border rounded px-3 py-1"
+        >
           <option value="all">All Users</option>
           <option value="admin">Admins</option>
           <option value="user">Regular Users</option>
         </select>
-        <select value={activityType} onChange={e => setActivityType(e.target.value)} className="border rounded px-3 py-1">
+
+        <select
+          value={activityType}
+          onChange={e => setActivityType(e.target.value)}
+          className="border rounded px-3 py-1"
+        >
           <option value="all">All Activity</option>
           <option value="posts">Posts</option>
           <option value="logins">Logins</option>
@@ -123,13 +157,14 @@ export default function AdminAnalytics() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-pink-50 p-4 rounded shadow">
+        <div className="bg-pink-50 p-4 rounded shadow w-full">
           <h2 className="text-lg font-semibold text-pink-700 mb-2">Traffic Over Time</h2>
-          <Line data={lineData} />
+          {lineData.labels.length ? <Line data={lineData} /> : <div className="text-gray-500">No traffic data available</div>}
         </div>
-        <div className="bg-pink-50 p-4 rounded shadow">
+
+        <div className="bg-pink-50 p-4 rounded shadow w-full">
           <h2 className="text-lg font-semibold text-pink-700 mb-2">Post Distribution</h2>
-          <Bar data={barData} />
+          {barData.labels.length ? <Bar data={barData} /> : <div className="text-gray-500">No post data available</div>}
         </div>
       </div>
     </div>

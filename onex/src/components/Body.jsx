@@ -54,7 +54,7 @@ export default function Body() {
   return (
     <section className="bg-white min-h-screen px-4 sm:px-6 md:px-10 lg:px-20 py-6 scroll-smooth">
       <Heading />
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 mt-4">
         <h3 className="text-lg font-semibold text-gray-700">Ads</h3>
         <LocationSet onLocationChange={setLocation} />
         {isLoggedIn && (

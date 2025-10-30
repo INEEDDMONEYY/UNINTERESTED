@@ -8,26 +8,31 @@ import {
   Home,
   Mail,
   ArrowLeftCircle,
+  ImageIcon,
 } from "lucide-react";
 import AdminAnalytics from "./AdminAnalytics";
 import AdminSettings from "./AdminSettings";
 import AdminMessages from "./AdminMessages";
+import AdminUserManagement from "./AdminUserManagement";
+import { useUser } from "../../context/useUser"; // ✅ global user context
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const { user, setUser } = useUser();
+
   const [activeView, setActiveView] = useState("dashboard");
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user") || "{}"));
   const [stats, setStats] = useState({ totalUsers: 0, totalAdmins: 0 });
   const [restrictedAccounts, setRestrictedAccounts] = useState([]);
   const [messages, setMessages] = useState([]);
   const [settings, setSettings] = useState(null);
+  const [posts, setPosts] = useState([]); // ✅ all posts
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Track profile picture updates
   const [profilePicture, setProfilePicture] = useState(
-    localStorage.getItem("profilePicture") ||
-    "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"
+    user?.profilePic ||
+      localStorage.getItem("profilePicture") ||
+      "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"
   );
 
   useEffect(() => {
@@ -41,44 +46,62 @@ export default function AdminDashboard() {
 
     const fetchData = async () => {
       try {
-        // Stats
+        // ✅ Fetch platform stats
         const statsRes = await fetch(
-          "https://uninterested.onrender.com/admin/stats",
+          "https://uninterested.onrender.com/api/admin/settings/stats",
           { headers, credentials: "include" }
         );
         if (!statsRes.ok) throw new Error("Failed to fetch stats");
         const statsData = await statsRes.json();
         setStats(statsData);
 
-        // Restricted accounts
+        // ✅ Fetch all posts
+        const postsRes = await fetch(
+          "https://uninterested.onrender.com/api/posts",
+          { headers, credentials: "include" }
+        );
+        if (postsRes.ok) {
+          const postsData = await postsRes.json();
+          setPosts(Array.isArray(postsData) ? postsData : []);
+        }
+
+        // ✅ Restricted accounts
         const restrictedRes = await fetch(
-          "https://uninterested.onrender.com/admin/restricted",
+          "https://uninterested.onrender.com/api/admin/users/restricted",
           { headers, credentials: "include" }
         );
-        const restrictedData = await restrictedRes.json();
-        setRestrictedAccounts(restrictedData);
+        if (restrictedRes.ok) {
+          const restrictedData = await restrictedRes.json();
+          setRestrictedAccounts(restrictedData);
+        }
 
-        // Messages
+        // ✅ Messages
         const messagesRes = await fetch(
-          "https://uninterested.onrender.com/admin/messages",
+          "https://uninterested.onrender.com/api/admin/messages",
           { headers, credentials: "include" }
         );
-        const messagesData = await messagesRes.json();
-        setMessages(messagesData);
+        if (messagesRes.ok) {
+          const messagesData = await messagesRes.json();
+          setMessages(messagesData);
+        }
 
-        // Admin settings
+        // ✅ Admin settings (for profile picture)
         const settingsRes = await fetch(
           "https://uninterested.onrender.com/api/admin/settings",
           { headers, credentials: "include" }
         );
-        if (!settingsRes.ok) throw new Error("Failed to fetch admin settings");
-        const settingsData = await settingsRes.json();
-        setSettings(settingsData);
+        if (settingsRes.ok) {
+          const settingsData = await settingsRes.json();
+          setSettings(settingsData);
 
-        // Update profile picture from settings if exists
-        if (settingsData?.profilePicture) {
-          localStorage.setItem("profilePicture", settingsData.profilePicture);
-          setProfilePicture(settingsData.profilePicture);
+          if (settingsData?.profilePicture) {
+            localStorage.setItem("profilePicture", settingsData.profilePicture);
+            setProfilePicture(settingsData.profilePicture);
+            setUser((prev) => ({
+              ...prev,
+              profilePic: settingsData.profilePicture,
+            }));
+          }
         }
       } catch (err) {
         setError(err.message);
@@ -88,17 +111,14 @@ export default function AdminDashboard() {
     };
 
     fetchData();
-  }, []);
+  }, [navigate, setUser]);
 
-  // Listen for storage updates (profile picture updated in AdminSettings)
+  // ✅ Update profile picture when user context changes
   useEffect(() => {
-    const handleStorageChange = () => {
-      const pic = localStorage.getItem("profilePicture");
-      if (pic) setProfilePicture(pic);
-    };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+    if (user?.profilePic) {
+      setProfilePicture(user.profilePic);
+    }
+  }, [user]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -187,34 +207,87 @@ export default function AdminDashboard() {
         {activeView === "dashboard" && (
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">
-              Welcome, {user.username}
+              Welcome, {user?.username || "Admin"}
             </h1>
             <p className="text-gray-300 mb-6">
-              Here’s a quick overview of your platform stats.
+              Here’s a quick overview of your platform stats and posts.
             </p>
 
             {loading ? (
-              <p className="text-gray-400">Loading site analytics...</p>
+              <p className="text-gray-400">Loading platform data...</p>
             ) : error ? (
               <p className="text-red-400">Error: {error}</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div className="bg-white border border-pink-300 rounded-lg p-4 shadow-sm">
-                  <h3 className="text-pink-700 font-semibold text-lg">Total Users</h3>
-                  <p className="text-black text-xl">{stats.totalUsers}</p>
+              <>
+                {/* ✅ Stats Section */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                  <div className="bg-white border border-pink-300 rounded-lg p-4 shadow-sm">
+                    <h3 className="text-pink-700 font-semibold text-lg">Total Users</h3>
+                    <p className="text-black text-xl">{stats.totalUsers}</p>
+                  </div>
+                  <div className="bg-white border border-pink-300 rounded-lg p-4 shadow-sm">
+                    <h3 className="text-pink-700 font-semibold text-lg">Total Admins</h3>
+                    <p className="text-black text-xl">{stats.totalAdmins}</p>
+                  </div>
+                  <div className="bg-white border border-pink-300 rounded-lg p-4 shadow-sm">
+                    <h3 className="text-pink-700 font-semibold text-lg">Restricted Users</h3>
+                    <p className="text-black text-xl">{restrictedAccounts.length}</p>
+                  </div>
                 </div>
-                <div className="bg-white border border-pink-300 rounded-lg p-4 shadow-sm">
-                  <h3 className="text-pink-700 font-semibold text-lg">Total Admins</h3>
-                  <p className="text-black text-xl">{stats.totalAdmins}</p>
+
+                {/* 🧩 Posts Grid */}
+                <div>
+                  <h2 className="text-2xl font-bold text-pink-200 mb-4">All Posts</h2>
+                  {posts.length === 0 ? (
+                    <p className="text-gray-400">No posts found.</p>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {posts.map((post) => (
+                        <div
+                          key={post._id}
+                          className="bg-white rounded-lg shadow-md border border-pink-200 overflow-hidden hover:shadow-lg transition"
+                        >
+                          {post.imageUrl ? (
+                            <img
+                              src={post.imageUrl}
+                              alt={post.caption || "Post image"}
+                              className="w-full h-40 object-cover"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-40 bg-pink-50 text-pink-400">
+                              <ImageIcon size={36} />
+                            </div>
+                          )}
+                          <div className="p-4">
+                            <p className="text-gray-800 font-medium mb-1">
+                              {post.caption || "No caption"}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              By {post.user?.username || "Unknown"}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
+              </>
             )}
+          </div>
+        )}
+
+        {activeView === "users" && (
+          <div className="bg-white rounded-lg p-6 shadow-md border border-pink-200">
+            <AdminUserManagement />
           </div>
         )}
 
         {activeView === "settings" && (
           <AdminSettings
-            onProfileUpdate={(url) => setProfilePicture(url)}
+            onProfileUpdate={(url) => {
+              setProfilePicture(url);
+              setUser((prev) => ({ ...prev, profilePic: url }));
+            }}
             settingsData={settings}
           />
         )}
