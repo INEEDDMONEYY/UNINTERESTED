@@ -49,7 +49,15 @@ export default function PostList() {
         </h2>
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {posts.length > 0 ? (
-            posts.map((post) => <PostCard key={post._id || post.id} {...post} />)
+            posts.map((post) => (
+              <PostCard
+                key={post._id || post.id}
+                postId={post._id}
+                picture={post.picture}
+                username={post.username}
+                description={post.description}
+              />
+            ))
           ) : (
             <p className="text-gray-500 text-center col-span-full">No posts found.</p>
           )}

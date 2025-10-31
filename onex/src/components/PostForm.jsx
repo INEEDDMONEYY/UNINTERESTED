@@ -11,12 +11,16 @@ export default function PostForm({ onSuccess, embedded = false }) {
 
   const [formData, setFormData] = useState({
     username: "",
+    title: "",
     description: "",
     city: "",
     state: "",
     category: "",
     picture: null,
+    visibility: "", // 🆕 "See's Only" dropdown field
   });
+
+  const [acknowledged, setAcknowledged] = useState(false); // 🆕 checkbox state
 
   // 🧠 Handle input changes
   const handleChange = (e) => {
@@ -36,8 +40,18 @@ export default function PostForm({ onSuccess, embedded = false }) {
   // 🚀 Handle submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setToast(null);
+
+    // Require checkbox confirmation
+    if (!acknowledged) {
+      setToast({
+        type: "error",
+        msg: "Please acknowledge the cost before submitting.",
+      });
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const fd = new FormData();
@@ -61,9 +75,10 @@ export default function PostForm({ onSuccess, embedded = false }) {
         state: "",
         category: "",
         picture: null,
+        visibility: "",
       });
+      setAcknowledged(false);
 
-      // 🔁 Navigate based on category selection
       if (!embedded) {
         setTimeout(() => {
           if (formData.category) {
@@ -75,7 +90,10 @@ export default function PostForm({ onSuccess, embedded = false }) {
       }
     } catch (err) {
       console.error(err);
-      setToast({ type: "error", msg: "Error creating post. Please try again." });
+      setToast({
+        type: "error",
+        msg: "Error creating post. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -159,6 +177,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
           />
         </div>
 
+        {/* File Input */}
         <input
           type="file"
           name="picture"
@@ -166,6 +185,38 @@ export default function PostForm({ onSuccess, embedded = false }) {
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 sm:p-3 rounded-lg text-sm sm:text-base"
         />
+
+        {/* 🆕 "See's Only" Dropdown */}
+        <select
+          name="visibility"
+          value={formData.visibility}
+          onChange={handleChange}
+          required
+          className="w-full border border-gray-300 p-2 sm:p-3 rounded-lg text-gray-700 focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base"
+        >
+          <option value="" disabled>
+            See's Only
+          </option>
+          <option value="Men">Men</option>
+          <option value="Women">Women</option>
+          <option value="Both">Both</option>
+        </select>
+
+        {/* 🆕 Acknowledgment Checkbox */}
+        <label className="flex items-start gap-2 mt-1 text-xs sm:text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={acknowledged}
+            onChange={(e) => setAcknowledged(e.target.checked)}
+            className="mt-1 w-4 h-4 text-pink-500 border-gray-300 rounded focus:ring-pink-400"
+          />
+          <span>
+            By acknowledging this checkbox, you are acknowledging that each post
+            will cost <strong>$13</strong>. If you have any questions, please
+            look at our <a href="/terms-policy" className="text-pink-600 underline">policies page</a> for
+            further information.
+          </span>
+        </label>
 
         {/* Post Button */}
         <button

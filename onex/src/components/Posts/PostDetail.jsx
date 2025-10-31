@@ -1,22 +1,27 @@
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
 
 export default function PostDetail() {
+  const { postId } = useParams();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Simulate fetching post detail (replace with actual API call)
   useEffect(() => {
-    const mockPost = {
-      imageUrl: 'https://via.placeholder.com/600x300',
-      username: 'TestUser123',
-      title: 'Sample Post Title',
-      description: 'This is a detailed description of the post. It includes more context and background.',
-      createdAt: '2025-10-17T14:30:00Z',
+    const fetchPost = async () => {
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts/${postId}`);
+        setPost(data);
+      } catch (err) {
+        console.error("Failed to fetch post:", err);
+        setPost(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setPost(mockPost);
-    setLoading(false);
-  }, []);
+    fetchPost();
+  }, [postId]);
 
   if (loading) {
     return <div className="text-center py-10 text-gray-500">Loading post...</div>;
@@ -28,29 +33,37 @@ export default function PostDetail() {
 
   return (
     <>
-      <div className="max-w-3xl mx-auto px-6 py-10 bg-white rounded-xl shadow-md">
+      <div className="max-w-3xl mx-auto px-6 py-10 bg-white rounded-xl shadow-md m-5">
         {/* 🖼️ Post Image */}
         <div className="mb-6">
-          <img
-            src={post.imageUrl}
-            alt="Post"
-            className="w-full h-auto rounded-md object-cover"
-          />
+          {post.picture ? (
+            <img
+              src={post.picture}
+              alt="Post"
+              className="w-full h-auto rounded-md object-cover"
+            />
+          ) : (
+            <div className="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-sm rounded-md">
+              No Image Available
+            </div>
+          )}
         </div>
 
         {/* 🧑 Username + Title */}
         <div className="mb-4">
-          <h2 className="text-2xl font-bold text-pink-600">{post.title}</h2>
-          <p className="text-sm text-gray-500 mt-1">by {post.username}</p>
+          <h2 className="text-2xl font-bold text-pink-600">{post.title || "Untitled Post"}</h2>
+          <p className="text-sm text-gray-500 mt-1">by {post.username || "Anonymous"}</p>
         </div>
 
         {/* 📝 Description */}
-        <p className="text-gray-700 text-base mb-6">{post.description}</p>
+        <p className="text-gray-700 text-base mb-6">{post.description || "No description provided."}</p>
 
         {/* 📅 Timestamp */}
-        <p className="text-xs text-gray-400">
-          Posted on {new Date(post.createdAt).toLocaleString()}
-        </p>
+        {post.createdAt && (
+          <p className="text-xs text-gray-400">
+            Posted on {new Date(post.createdAt).toLocaleString()}
+          </p>
+        )}
 
         {/* 💬 Comment Section Placeholder */}
         <div className="mt-8 border-t pt-6">

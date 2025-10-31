@@ -19,13 +19,14 @@ import TermsOfUsePage from './pages/policies/TermsOfUsePage.jsx';
 import PrivacyPolicy from './pages/policies/PrivacyPolicyPage.jsx';
 import ProfilePage from './pages/profiles/ProfilePage.jsx'; // ✅ Uncommented
 
+
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 // ✅ Import UserProvider
 import { UserProvider } from "./context/UserContext.jsx";
 
 // ✅ Import new post-related views
-import PostDetail from "./pages/users/PostDetail.jsx";
+import PostDetail from "./components/Posts/PostDetail.jsx";
 import UserProfileView from "./pages/users/UserProfileView.jsx";
 
 const router = createBrowserRouter([
@@ -100,6 +101,10 @@ const router = createBrowserRouter([
   {
     path: "privacy-policy",
     element: <PrivacyPolicy />,
+  },
+  {
+    path: "/post/:postId",
+    element: <PostDetail />,
   },
 ]);
 

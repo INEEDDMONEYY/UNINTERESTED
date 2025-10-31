@@ -6,7 +6,9 @@ import Heading from "../components/Header";
 import PromotionPosts from "../components/Promotion/PromotedPosts";
 import CategoryList from "../components/Categories/categoryList";
 import CategoryDisplay from "../components/Categories/categoryDisplay";
-import UserSearch from "../components//Searchbar/UserSearch"; // ✅ Added import
+import UserSearch from "../components/Searchbar/UserSearch";
+import EmptyCategoryLoader from "./Loaders/EmptyCategoryLoader";
+import PostCard from "../components/Posts/PostCard"; // ✅ Added import
 
 export default function Body() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -83,32 +85,10 @@ export default function Body() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {emptyCategoryPosts.length > 0 ? (
           emptyCategoryPosts.map((post, i) => (
-            <div key={i} className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm">
-              {/* ✅ Display image if available */}
-              {post.picture && (
-                <img
-                  src={post.picture}
-                  alt="Post visual"
-                  className="w-full h-48 object-cover rounded-md mb-3"
-                />
-              )}
-              <h3 className="text-black font-semibold text-md mb-1">{post.username}</h3>
-              <h3 className="text-black font-semibold text-md mb-1">{post.title}</h3>
-              <p className="text-gray-700 text-sm">{post.description}</p>
-              {(post.city || post.state) && (
-                <p className="text-gray-500 text-xs mt-1">
-                  {post.city}, {post.state}
-                </p>
-              )}
-              {post.createdAt && (
-                <p className="text-gray-400 text-xs mt-1">
-                  Posted on {new Date(post.createdAt).toLocaleString()}
-                </p>
-              )}
-            </div>
+            <PostCard key={post._id || i} post={post} /> // ✅ Using PostCard for clickable posts
           ))
         ) : (
-          <p className="text-gray-500 text-center col-span-full">No uncategorized posts available.</p>
+          <EmptyCategoryLoader />
         )}
       </div>
 

@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import UserSearch from "../../components/Searchbar/UserSearch";
+import CategoryPostsLoader from "../Loaders/CategoryPostsLoader";
 
 export default function CategoryDisplay({ selectedCategory, users = [] }) {
   const { categoryName } = useParams();
@@ -76,7 +77,7 @@ export default function CategoryDisplay({ selectedCategory, users = [] }) {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 italic">No posts found for this category and location.</p>
+            <CategoryPostsLoader />
           )
         ) : (
           <p className="text-gray-500 italic">No category selected.</p>

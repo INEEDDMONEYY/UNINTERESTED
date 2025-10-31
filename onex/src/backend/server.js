@@ -15,12 +15,12 @@ const User = require('./models/User');
 // 🧭 Routes
 const adminSettingsRoutes = require('./routes/adminSettings');
 const adminUserRoutes = require('./routes/adminUsers');
-const adminProfileRoutes = require('./routes/adminProfile');
+const adminProfileRoutes = require('./routes/adminProfile'); // ✅ handles /api/admin/profile/picture
 const messageRoutes = require('./routes/messageRoutes');
 const conversationRoutes = require('./routes/conversationRoutes');
-const postRoutes = require('./routes/postRoutes');
+const postRoutes = require('./routes/postRoutes'); // ✅ handles /api/posts and /api/posts/:postId
 const userRoutes = require('./routes/userRoutes');
-const authRoutes = require('./routes/authRoutes'); // ✅ Auth routes
+const authRoutes = require('./routes/authRoutes'); // ✅ handles /signin, /signup, /logout
 
 const app = express();
 const port = env.PORT;
@@ -93,7 +93,7 @@ const verifyAdmin = (req, res, next) => {
 /* -------------------------- 🧩 Admin Routes ---------------------- */
 app.use('/api/admin/settings', authenticateToken, verifyAdmin, adminSettingsRoutes);
 app.use('/api/admin/users', authenticateToken, verifyAdmin, adminUserRoutes);
-app.use('/api/admin/profile', authenticateToken, verifyAdmin, adminProfileRoutes);
+app.use('/api/admin/profile', authenticateToken, verifyAdmin, adminProfileRoutes); // ✅ includes /picture
 
 /* -------------------------- 💬 Message Routes --------------------- */
 app.use('/api/messages', authenticateToken, messageRoutes);
@@ -102,13 +102,13 @@ app.use('/api/messages', authenticateToken, messageRoutes);
 app.use('/api/conversations', authenticateToken, conversationRoutes);
 
 /* -------------------------- 📝 Post Routes --------------------------- */
-app.use('/api/posts', postRoutes);
+app.use('/api/posts', postRoutes); // ✅ includes /:postId for detail view
 
 /* -------------------------- 👤 User Routes ------------------------------- */
 app.use('/api/user', authenticateToken, userRoutes);
 
 /* -------------------------- 🔐 Auth Routes -------------------------- */
-app.use('/api', authRoutes); // 👈 Handles /signin, /signup, /logout
+app.use('/api', authRoutes); // ✅ handles /signin, /signup, /logout
 
 /* -------------------------- 🧭 Serve Frontend Build ------------------------ */
 const frontendPath = path.join(__dirname, 'client', 'build'); // ✅ Adjust for CRA or Vite
