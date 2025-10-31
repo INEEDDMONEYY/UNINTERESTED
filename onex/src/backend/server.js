@@ -102,7 +102,7 @@ app.use('/api/messages', authenticateToken, messageRoutes);
 app.use('/api/conversations', authenticateToken, conversationRoutes);
 
 /* -------------------------- 📝 Post Routes --------------------------- */
-app.use('/api/posts', postRoutes); // ✅ includes /:postId for detail view
+app.use('/api/posts', postRoutes); // ✅ includes GET /api/posts?username=...&state=...&city=...
 
 /* -------------------------- 👤 User Routes ------------------------------- */
 app.use('/api/user', authenticateToken, userRoutes);

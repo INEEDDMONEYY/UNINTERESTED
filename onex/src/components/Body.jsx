@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import LocationSet from "../components/LocationSet";
 import Heading from "../components/Header";
 import PromotionPosts from "../components/Promotion/PromotedPosts";
@@ -8,7 +8,7 @@ import CategoryList from "../components/Categories/categoryList";
 import CategoryDisplay from "../components/Categories/categoryDisplay";
 import UserSearch from "../components/Searchbar/UserSearch";
 import EmptyCategoryLoader from "./Loaders/EmptyCategoryLoader";
-import PostCard from "../components/Posts/PostCard"; // ✅ Added import
+import PostCard from "../components/Posts/PostCard";
 
 export default function Body() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -17,12 +17,17 @@ export default function Body() {
   const [posts, setPosts] = useState([]);
   const [users, setUsers] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [searchResults, setSearchResults] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [visibleCount, setVisibleCount] = useState(15);
+  const MAX_POSTS = 100;
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/posts`);
-        setPosts(Array.isArray(data) ? data : []);
+        setPosts(Array.isArray(data) ? data.slice(0, MAX_POSTS) : []);
       } catch (err) {
         console.error("Failed to fetch posts:", err);
         setPosts([]);
@@ -43,19 +48,25 @@ export default function Body() {
     fetchUsers();
   }, []);
 
-  const emptyCategoryPosts = posts.filter((post) => {
-    const hasNoCategory = !post.category || post.category.trim() === "";
-    const matchesLocation =
-      !location ||
-      post.city?.toLowerCase() === location.city?.toLowerCase() ||
-      post.state?.toLowerCase() === location.state?.toLowerCase();
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => Math.min(prev + 15, MAX_POSTS));
+  };
 
-    return hasNoCategory && matchesLocation;
-  });
+  const filteredUncategorizedPosts = (searchResults ?? posts)
+    .filter((post) => {
+      const hasNoCategory = !post.category || post.category.trim() === "";
+      const matchesLocation =
+        !location ||
+        post.city?.toLowerCase() === location.city?.toLowerCase() ||
+        post.state?.toLowerCase() === location.state?.toLowerCase();
+      return hasNoCategory && matchesLocation;
+    })
+    .slice(0, visibleCount);
 
   return (
     <section className="bg-white min-h-screen px-4 sm:px-6 md:px-10 lg:px-20 py-6 scroll-smooth">
       <Heading />
+
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 mt-4">
         <h3 className="text-lg font-semibold text-gray-700">Ads</h3>
         <LocationSet onLocationChange={setLocation} />
@@ -73,31 +84,45 @@ export default function Body() {
         )}
       </div>
 
-      {/* ✅ Promoted Entertainer Section */}
       <PromotionPosts />
 
       {/* ✅ User Search */}
       <div className="mt-6 mb-4">
-        <UserSearch users={users} />
+        <UserSearch
+          users={users}
+          onResults={setSearchResults}
+          query={searchQuery}
+          onQueryChange={setSearchQuery}
+        />
       </div>
 
       {/* ✅ Empty Category Posts */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {emptyCategoryPosts.length > 0 ? (
-          emptyCategoryPosts.map((post, i) => (
-            <PostCard key={post._id || i} post={post} /> // ✅ Using PostCard for clickable posts
+        {filteredUncategorizedPosts.length > 0 ? (
+          filteredUncategorizedPosts.map((post, i) => (
+            <PostCard key={post._id || i} post={post} />
           ))
         ) : (
           <EmptyCategoryLoader />
         )}
       </div>
 
-      {/* ✅ Category Selection */}
+      {/* ✅ Load More Button */}
+      {filteredUncategorizedPosts.length >= 15 && filteredUncategorizedPosts.length < MAX_POSTS && (
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={handleLoadMore}
+            className="px-6 py-2 bg-gradient-to-r from-pink-500 via-black to-yellow-400 text-white rounded-lg shadow-md hover:opacity-90 transition-all text-sm sm:text-base"
+          >
+            Load More
+          </button>
+        </div>
+      )}
+
       <div className="mt-8">
         <CategoryList onSelect={setSelectedCategory} />
       </div>
 
-      {/* ✅ Category Display */}
       <div className="mt-6">
         <CategoryDisplay selectedCategory={selectedCategory} users={users} />
       </div>

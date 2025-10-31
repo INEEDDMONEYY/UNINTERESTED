@@ -54,12 +54,14 @@ exports.createPost = async (req, res) => {
 };
 
 /* -------------------------------------------------------------------------- */
-/* 📜 Get all posts (optional filters: state/city)                            */
+/* 📜 Get all posts (optional filters: username/state/city)                   */
 /* -------------------------------------------------------------------------- */
 exports.getPosts = async (req, res) => {
   try {
-    const { state, city } = req.query;
+    const { username, state, city } = req.query;
     const filter = {};
+
+    if (username) filter.username = username;
     if (state) filter.state = state;
     if (city) filter.city = city;
 
