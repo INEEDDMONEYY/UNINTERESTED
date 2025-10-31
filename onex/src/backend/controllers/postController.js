@@ -7,7 +7,7 @@ const streamifier = require("streamifier");
 /* -------------------------------------------------------------------------- */
 exports.createPost = async (req, res) => {
   try {
-    const { username, description, city, state, category } = req.body;
+    const { username, description, city, state, category, visibility, title } = req.body;
 
     if (!username || !description) {
       return res.status(400).json({ error: "Username and description are required." });
@@ -35,10 +35,12 @@ exports.createPost = async (req, res) => {
 
     const newPost = new Post({
       username,
+      title,
       description,
       city,
       state,
       category,
+      visibility,
       picture: imageUrl, // ✅ Cloudinary URL or null
     });
 
