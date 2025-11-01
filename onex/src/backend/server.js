@@ -15,12 +15,12 @@ const User = require('./models/User');
 // 🧭 Routes
 const adminSettingsRoutes = require('./routes/adminSettings');
 const adminUserRoutes = require('./routes/adminUsers');
-const adminProfileRoutes = require('./routes/adminProfile'); // ✅ handles /api/admin/profile/picture
+const adminProfileRoutes = require('./routes/adminProfile');
 const messageRoutes = require('./routes/messageRoutes');
 const conversationRoutes = require('./routes/conversationRoutes');
-const postRoutes = require('./routes/postRoutes'); // ✅ handles /api/posts and /api/posts/:postId
+const postRoutes = require('./routes/postRoutes');
 const userRoutes = require('./routes/userRoutes');
-const authRoutes = require('./routes/authRoutes'); // ✅ handles /signin, /signup, /logout
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 const port = env.PORT;
@@ -44,7 +44,7 @@ app.use(cors({
   credentials: true,
 }));
 
-app.options('', cors()); // ✅ Handle preflight requests
+app.options('', cors());
 
 /* --------------------------- 🌍 Global Middleware -------------------------- */
 app.use(express.json({ limit: '10mb' }));
@@ -93,7 +93,7 @@ const verifyAdmin = (req, res, next) => {
 /* -------------------------- 🧩 Admin Routes ---------------------- */
 app.use('/api/admin/settings', authenticateToken, verifyAdmin, adminSettingsRoutes);
 app.use('/api/admin/users', authenticateToken, verifyAdmin, adminUserRoutes);
-app.use('/api/admin/profile', authenticateToken, verifyAdmin, adminProfileRoutes); // ✅ includes /picture
+app.use('/api/admin/profile', authenticateToken, verifyAdmin, adminProfileRoutes);
 
 /* -------------------------- 💬 Message Routes --------------------- */
 app.use('/api/messages', authenticateToken, messageRoutes);
@@ -102,16 +102,28 @@ app.use('/api/messages', authenticateToken, messageRoutes);
 app.use('/api/conversations', authenticateToken, conversationRoutes);
 
 /* -------------------------- 📝 Post Routes --------------------------- */
-app.use('/api/posts', postRoutes); // ✅ includes GET /api/posts?username=...&state=...&city=...
+app.use('/api/posts', postRoutes);
 
 /* -------------------------- 👤 User Routes ------------------------------- */
-app.use('/api/user', authenticateToken, userRoutes);
+app.use('/api/users', authenticateToken, userRoutes);
+
+/* -------------------------- 🌍 Public User List Route ---------------------- */
+// ✅ This is the new public route for fetching all users
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await User.find().select('-password');
+    res.status(200).json(users);
+  } catch (err) {
+    console.error('❌ Get all users error:', err);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
 
 /* -------------------------- 🔐 Auth Routes -------------------------- */
-app.use('/api', authRoutes); // ✅ handles /signin, /signup, /logout
+app.use('/api', authRoutes);
 
 /* -------------------------- 🧭 Serve Frontend Build ------------------------ */
-const frontendPath = path.join(__dirname, 'client', 'build'); // ✅ Adjust for CRA or Vite
+const frontendPath = path.join(__dirname, 'client', 'build');
 
 if (fs.existsSync(frontendPath)) {
   app.use(express.static(frontendPath));

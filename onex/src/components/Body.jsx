@@ -13,7 +13,10 @@ import PostCard from "../components/Posts/PostCard";
 export default function Body() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isLoggedIn = !!user.username;
-  const [location, setLocation] = useState(JSON.parse(localStorage.getItem("userLocation") || "null"));
+
+  const [location, setLocation] = useState(
+    JSON.parse(localStorage.getItem("userLocation") || "null")
+  );
   const [posts, setPosts] = useState([]);
   const [users, setUsers] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -23,10 +26,13 @@ export default function Body() {
   const [visibleCount, setVisibleCount] = useState(15);
   const MAX_POSTS = 100;
 
+  // --------------------------- Fetch Posts & Users ---------------------------
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/posts`);
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_API_URL || ""}/api/posts`
+        );
         setPosts(Array.isArray(data) ? data.slice(0, MAX_POSTS) : []);
       } catch (err) {
         console.error("Failed to fetch posts:", err);
@@ -36,7 +42,10 @@ export default function Body() {
 
     const fetchUsers = async () => {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/users`);
+        // ✅ Use public route to avoid 401
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_API_URL || ""}/api/users`
+        );
         setUsers(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch users:", err);
@@ -48,10 +57,12 @@ export default function Body() {
     fetchUsers();
   }, []);
 
+  // --------------------------- Load More -----------------------------
   const handleLoadMore = () => {
     setVisibleCount((prev) => Math.min(prev + 15, MAX_POSTS));
   };
 
+  // --------------------------- Filter Posts --------------------------
   const filteredUncategorizedPosts = (searchResults ?? posts)
     .filter((post) => {
       const hasNoCategory = !post.category || post.category.trim() === "";
@@ -86,7 +97,6 @@ export default function Body() {
 
       <PromotionPosts />
 
-      {/* ✅ User Search */}
       <div className="mt-6 mb-4">
         <UserSearch
           users={users}
@@ -96,7 +106,6 @@ export default function Body() {
         />
       </div>
 
-      {/* ✅ Empty Category Posts */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredUncategorizedPosts.length > 0 ? (
           filteredUncategorizedPosts.map((post, i) => (
@@ -107,17 +116,17 @@ export default function Body() {
         )}
       </div>
 
-      {/* ✅ Load More Button */}
-      {filteredUncategorizedPosts.length >= 15 && filteredUncategorizedPosts.length < MAX_POSTS && (
-        <div className="flex justify-center mt-8">
-          <button
-            onClick={handleLoadMore}
-            className="px-6 py-2 bg-gradient-to-r from-pink-500 via-black to-yellow-400 text-white rounded-lg shadow-md hover:opacity-90 transition-all text-sm sm:text-base"
-          >
-            Load More
-          </button>
-        </div>
-      )}
+      {filteredUncategorizedPosts.length >= 15 &&
+        filteredUncategorizedPosts.length < MAX_POSTS && (
+          <div className="flex justify-center mt-8">
+            <button
+              onClick={handleLoadMore}
+              className="px-6 py-2 bg-gradient-to-r from-pink-500 via-black to-yellow-400 text-white rounded-lg shadow-md hover:opacity-90 transition-all text-sm sm:text-base"
+            >
+              Load More
+            </button>
+          </div>
+        )}
 
       <div className="mt-8">
         <CategoryList onSelect={setSelectedCategory} />

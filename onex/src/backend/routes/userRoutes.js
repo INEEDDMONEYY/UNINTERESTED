@@ -63,4 +63,16 @@ router.get('/profile', async (req, res) => {
   }
 });
 
+// ------------------------ Get All Users ------------------------
+router.get('/', async (req, res) => {
+  try {
+    const users = await User.find().select('-password'); // exclude passwords
+    res.status(200).json(users);
+  } catch (err) {
+    console.error('❌ Error fetching users:', err);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+
 module.exports = router;

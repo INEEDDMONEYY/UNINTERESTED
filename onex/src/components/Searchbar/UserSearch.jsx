@@ -1,31 +1,36 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { X } from 'lucide-react'; // ✅ Lucide X icon
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { X } from "lucide-react"; // Lucide X icon
 
 export default function UserSearch({ users = [], onResults, query, onQueryChange }) {
   const [filteredUsers, setFilteredUsers] = useState([]);
 
   useEffect(() => {
-    const results = users.filter(user =>
-      user.username?.toLowerCase().includes(query.toLowerCase())
-    );
+    // ✅ Guard against empty, undefined, or non-string queries
+    if (!query || typeof query !== "string" || query.trim() === "") {
+      setFilteredUsers([]);
+      if (onResults) onResults([]);
+      return;
+    }
+
+    // ✅ Filter users safely
+    const results = users.filter((user) => {
+      const username = user?.username;
+      return typeof username === "string" && username.toLowerCase().includes(query.toLowerCase());
+    });
+
     setFilteredUsers(results);
 
-    const fetchPostsByUsername = async () => {
-      if (!query.trim()) {
+    const fetchPostsByUsername = async (username) => {
+      const cleanName = typeof username === "string" ? username.trim() : null;
+      if (!cleanName) {
         if (onResults) onResults([]);
         return;
       }
 
-      if (results.length === 0) {
-        if (onResults) onResults([]);
-        return;
-      }
-
-      const username = results[0].username;
       try {
         const { data } = await axios.get(
-          `${import.meta.env.VITE_API_URL || ""}/api/posts?username=${username}`
+          `${import.meta.env.VITE_API_URL || ""}/api/posts?username=${encodeURIComponent(cleanName)}`
         );
         if (onResults) onResults(Array.isArray(data) ? data : []);
       } catch (err) {
@@ -34,11 +39,16 @@ export default function UserSearch({ users = [], onResults, query, onQueryChange
       }
     };
 
-    fetchPostsByUsername();
+    // ✅ Fetch posts only if we have at least one valid username
+    if (results.length > 0) {
+      fetchPostsByUsername(results[0].username);
+    } else {
+      if (onResults) onResults([]);
+    }
   }, [query, users]);
 
   const handleClear = () => {
-    onQueryChange('');
+    onQueryChange("");
     if (onResults) onResults([]);
   };
 

@@ -1,51 +1,7 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 
-export default function PostCard() {
-  const [post, setPost] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_API_URL || ""}/api/posts`
-        );
-        const sortedPosts = Array.isArray(data)
-          ? data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          : [];
-
-        const latestPost = sortedPosts.length > 0 ? sortedPosts[0] : null;
-
-        if (latestPost) {
-          setPost(latestPost);
-        }
-      } catch (err) {
-        console.error("Failed to fetch post:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPost();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[40vh] text-gray-500 text-lg">
-        Loading post...
-      </div>
-    );
-  }
-
-  if (!post) {
-    return (
-      <div className="text-center text-red-500 py-10">
-        No post found.
-      </div>
-    );
-  }
+export default function PostCard({ post }) {
+  if (!post) return null;
 
   return (
     <div className="relative bg-gradient-to-r from-pink-500 via-black to-yellow-500 p-[2px] rounded-lg shadow-lg max-w-sm sm:max-w-md md:max-w-lg lg:max-w-sm mx-auto sm:mx-0 transition-transform hover:scale-[1.02]">
