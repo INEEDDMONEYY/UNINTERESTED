@@ -1,39 +1,24 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useState } from "react";
 import UserSearch from "../../components/Searchbar/UserSearch";
 import CategoryPostsLoader from "../Loaders/CategoryPostsLoader";
 
-export default function CategoryDisplay({ selectedCategory, users = [] }) {
+export default function CategoryDisplay({ selectedCategory, users = [], posts = [], location = null }) {
   const { categoryName } = useParams();
   const category = selectedCategory || categoryName;
-  const [posts, setPosts] = useState([]);
-  const [location, setLocation] = useState(() => {
-    return JSON.parse(localStorage.getItem("userLocation") || "null");
-  });
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/posts`);
-        setPosts(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Failed to fetch category posts:", err);
-        setPosts([]);
-      }
-    };
-
-    if (category) fetchPosts();
-  }, [category]);
+  const [query, setQuery] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const categoryPosts = posts.filter((post) => {
-    const matchesCategory = post.category?.toLowerCase() === category?.toLowerCase();
+    const matchesCategory = post.category?.trim().toLowerCase() === category?.trim().toLowerCase();
     const matchesLocation =
       !location ||
       post.city?.toLowerCase() === location.city?.toLowerCase() ||
       post.state?.toLowerCase() === location.state?.toLowerCase();
+    const matchesUser = selectedUser ? post.username === selectedUser : true;
 
-    return matchesCategory && matchesLocation;
+    return matchesCategory && matchesLocation && matchesUser;
   });
 
   return (
@@ -44,7 +29,12 @@ export default function CategoryDisplay({ selectedCategory, users = [] }) {
             {category ? `Posts for: ${category}` : "Select a category to view posts"}
           </h2>
           <div className="w-full md:w-1/2 lg:w-1/3">
-            <UserSearch users={users} />
+            <UserSearch
+              users={users}
+              query={query}
+              onQueryChange={setQuery}
+              onSelectUser={setSelectedUser}
+            />
           </div>
         </div>
 
@@ -52,7 +42,7 @@ export default function CategoryDisplay({ selectedCategory, users = [] }) {
           categoryPosts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {categoryPosts.map((post, i) => (
-                <div key={i} className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm">
+                <div key={post._id || i} className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm">
                   {post.picture && (
                     <img
                       src={post.picture}

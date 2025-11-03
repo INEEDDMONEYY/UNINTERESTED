@@ -135,7 +135,12 @@ export default function Body() {
       </div>
 
       <div className="mt-6">
-        <CategoryDisplay selectedCategory={selectedCategory} users={users} />
+        <CategoryDisplay
+          selectedCategory={selectedCategory}
+          users={users}
+          posts={posts}
+          location={location}
+        />
       </div>
     </section>
   );
