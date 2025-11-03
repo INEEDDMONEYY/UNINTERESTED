@@ -17,12 +17,11 @@ export default function PostForm({ onSuccess, embedded = false }) {
     state: "",
     category: "",
     picture: null,
-    visibility: "", // 🆕 "See's Only" dropdown field
+    visibility: "",
   });
 
-  const [acknowledged, setAcknowledged] = useState(false); // 🆕 checkbox state
+  const [acknowledged, setAcknowledged] = useState(false);
 
-  // 🧠 Handle input changes
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files) {
@@ -32,17 +31,14 @@ export default function PostForm({ onSuccess, embedded = false }) {
     }
   };
 
-  // 🏷️ Handle category selection
   const handleCategorySelect = (category) => {
     setFormData((prev) => ({ ...prev, category }));
   };
 
-  // 🚀 Handle submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setToast(null);
 
-    // Require checkbox confirmation
     if (!acknowledged) {
       setToast({
         type: "error",
@@ -65,11 +61,14 @@ export default function PostForm({ onSuccess, embedded = false }) {
 
       setToast({ type: "success", msg: "Post created successfully!" });
 
-      if (onSuccess) onSuccess();
+      // ✅ Trigger post refresh in parent
+      if (onSuccess) {
+        onSuccess(); // e.g. fetchPosts()
+      }
 
       setFormData({
-        title: "",
         username: "",
+        title: "",
         description: "",
         city: "",
         state: "",
@@ -111,7 +110,6 @@ export default function PostForm({ onSuccess, embedded = false }) {
         </h1>
       )}
 
-      {/* Category Selector */}
       <div className="mb-4">
         <label className="block mb-2 font-semibold text-sm sm:text-base">
           Choose Category:
@@ -129,7 +127,6 @@ export default function PostForm({ onSuccess, embedded = false }) {
         )}
       </div>
 
-      {/* Form Fields */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:gap-4">
         <input
           type="text"
@@ -177,7 +174,6 @@ export default function PostForm({ onSuccess, embedded = false }) {
           />
         </div>
 
-        {/* File Input */}
         <input
           type="file"
           name="picture"
@@ -186,7 +182,6 @@ export default function PostForm({ onSuccess, embedded = false }) {
           className="w-full border border-gray-300 p-2 sm:p-3 rounded-lg text-sm sm:text-base"
         />
 
-        {/* 🆕 "See's Only" Dropdown */}
         <select
           name="visibility"
           value={formData.visibility}
@@ -202,7 +197,6 @@ export default function PostForm({ onSuccess, embedded = false }) {
           <option value="Both">Both</option>
         </select>
 
-        {/* 🆕 Acknowledgment Checkbox */}
         <label className="flex items-start gap-2 mt-1 text-xs sm:text-sm text-gray-700">
           <input
             type="checkbox"
@@ -218,7 +212,6 @@ export default function PostForm({ onSuccess, embedded = false }) {
           </span>
         </label>
 
-        {/* Post Button */}
         <button
           type="submit"
           disabled={loading}
@@ -227,7 +220,6 @@ export default function PostForm({ onSuccess, embedded = false }) {
           {loading ? <Loader2 className="animate-spin" /> : "Post"}
         </button>
 
-        {/* 🔙 Return Button */}
         <button
           type="button"
           onClick={() => navigate("/home")}
@@ -238,7 +230,6 @@ export default function PostForm({ onSuccess, embedded = false }) {
         </button>
       </form>
 
-      {/* Toast */}
       {toast && (
         <div
           className={`mt-4 flex items-center gap-2 p-3 rounded-lg text-sm sm:text-base ${

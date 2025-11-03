@@ -26,33 +26,33 @@ export default function Body() {
   const [visibleCount, setVisibleCount] = useState(15);
   const MAX_POSTS = 100;
 
-  // --------------------------- Fetch Posts & Users ---------------------------
+  // --------------------------- Fetch Posts ---------------------------
+  const fetchPosts = async () => {
+    try {
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_URL || ""}/api/posts`
+      );
+      setPosts(Array.isArray(data) ? data.slice(0, MAX_POSTS) : []);
+    } catch (err) {
+      console.error("Failed to fetch posts:", err);
+      setPosts([]);
+    }
+  };
+
+  // --------------------------- Fetch Users ---------------------------
+  const fetchUsers = async () => {
+    try {
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_URL || ""}/api/users`
+      );
+      setUsers(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
+      setUsers([]);
+    }
+  };
+
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_API_URL || ""}/api/posts`
-        );
-        setPosts(Array.isArray(data) ? data.slice(0, MAX_POSTS) : []);
-      } catch (err) {
-        console.error("Failed to fetch posts:", err);
-        setPosts([]);
-      }
-    };
-
-    const fetchUsers = async () => {
-      try {
-        // ✅ Use public route to avoid 401
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_API_URL || ""}/api/users`
-        );
-        setUsers(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Failed to fetch users:", err);
-        setUsers([]);
-      }
-    };
-
     fetchPosts();
     fetchUsers();
   }, []);
@@ -63,7 +63,9 @@ export default function Body() {
   };
 
   // --------------------------- Filter Posts --------------------------
-  const filteredUncategorizedPosts = (searchResults ?? posts)
+  const filteredUncategorizedPosts = (
+    searchResults && searchResults.length > 0 ? searchResults : posts
+  )
     .filter((post) => {
       const hasNoCategory = !post.category || post.category.trim() === "";
       const matchesLocation =
