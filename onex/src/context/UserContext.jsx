@@ -21,7 +21,7 @@ export const UserProvider = ({ children }) => {
 
     const fetchUser = async () => {
       try {
-        const res = await api.get("/user/profile"); // baseURL is handled in api.js
+        const res = await api.get("/user/profile");
         setUser(res.data);
         localStorage.setItem("user", JSON.stringify(res.data));
       } catch (err) {
@@ -63,11 +63,12 @@ export const UserProvider = ({ children }) => {
   /* ---------------- Update Profile ---------------- */
   const updateProfile = async (updatedData) => {
     try {
-      const res = await api.put("/user/update-profile", updatedData);
+      const res = await api.put("/users/update-profile", updatedData); // ✅ Corrected route
       const updatedUser = res.data.updatedUser || res.data.user || res.data;
 
-      setUser((prev) => ({ ...prev, ...updatedUser }));
-      localStorage.setItem("user", JSON.stringify({ ...user, ...updatedUser }));
+      const mergedUser = { ...user, ...updatedUser };
+      setUser(mergedUser);
+      localStorage.setItem("user", JSON.stringify(mergedUser));
 
       return updatedUser;
     } catch (err) {

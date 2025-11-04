@@ -38,7 +38,7 @@ export default function UserDashboard() {
         <div className="flex flex-col items-center text-center">
           <div className="w-24 h-24 mb-3">
             <img
-              src={profilePic || "https://via.placeholder.com/96"}
+              src={user?.profilePic || "https://via.placeholder.com/96"}
               alt={`${user?.username || "User"}'s profile`}
               className="w-full h-full rounded-full object-cover border-2 border-pink-400 shadow-md"
             />

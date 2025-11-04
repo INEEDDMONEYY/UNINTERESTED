@@ -14,7 +14,7 @@ export default function PostCard({ post }) {
           {post.visibility && (
             <div className="absolute top-2 right-2 bg-pink-600 text-white text-xs sm:text-sm font-semibold px-2 py-1 rounded-full shadow-md">
               {post.visibility === "Both"
-                ? "See's for All"
+                ? "See's:"
                 : `See's Only: ${post.visibility}`}
             </div>
           )}
@@ -25,7 +25,7 @@ export default function PostCard({ post }) {
               <img
                 src={post.picture}
                 alt="Post"
-                className="w-full h-48 sm:h-40 md:h-52 lg:h-48 rounded-md object-cover"
+                className="w-auto h-48 sm:h-20 md:h-28 lg:h-28 rounded-md object-cover border border-pink-300"
               />
             ) : (
               <div className="w-full h-48 sm:h-40 md:h-52 lg:h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-sm rounded-md">
@@ -39,14 +39,16 @@ export default function PostCard({ post }) {
             <h2 className="text-xl sm:text-2xl font-bold text-pink-600 break-words">
               {post.username || "Unknown"}
             </h2>
-            <p className="text-sm sm:text-base text-gray-700 mt-2 break-words">
+            <h4 className="text-sm sm:text-base text-black mt-2 break-words font-semibold">
               {post.title || "No title provided."}
-            </p>
+            </h4>
+            <div className="overflow-hidden">
+              <p className="text-sm sm:text-base text-gray-700 mt-2 break-words">
+                {post.description || "No description provided."}
+              </p>
+            </div>
             <p className="text-sm sm:text-base text-gray-700 mt-2 break-words">
-              {post.description || "No description provided."}
-            </p>
-            <p className="text-sm sm:text-base text-gray-700 mt-2 break-words">
-              {post.city || "No city provided."}
+              {post.city && post.state ? `${post.city}, ${post.state}` : "Location not specified."}
             </p>
           </div>
         </Link>

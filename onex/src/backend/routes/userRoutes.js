@@ -32,7 +32,11 @@ router.put('/update-profile', upload.single('profilePic'), async (req, res) => {
     if (username) updateData.username = username;
     if (password) updateData.password = await bcrypt.hash(password, 10);
     if (bio) updateData.bio = bio;
-    if (req.file) updateData.profilePic = `/uploads/profile-pics/${req.file.filename}`;
+
+    if (req.file) {
+      const imagePath = `/uploads/profile-pics/${req.file.filename}`;
+      updateData.profilePic = `${env.SERVER_URL}${imagePath}`;
+    }
 
     const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true }).select('-password');
 
@@ -66,13 +70,12 @@ router.get('/profile', async (req, res) => {
 // ------------------------ Get All Users ------------------------
 router.get('/', async (req, res) => {
   try {
-    const users = await User.find().select('-password'); // exclude passwords
+    const users = await User.find().select('-password');
     res.status(200).json(users);
   } catch (err) {
     console.error('❌ Error fetching users:', err);
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
-
 
 module.exports = router;

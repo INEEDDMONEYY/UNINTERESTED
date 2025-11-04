@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 export default function PostDetail() {
   const { postId } = useParams();
+  const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +34,7 @@ export default function PostDetail() {
 
   return (
     <>
-      <div className="max-w-3xl mx-auto px-6 py-10 bg-white rounded-xl shadow-md m-5">
+      <div className="max-w-3xl mx-auto px-6 py-10 bg-white rounded-xl shadow-md m-5 relative">
         {/* 🖼️ Post Image */}
         <div className="mb-6">
           {post.picture ? (
@@ -69,6 +70,16 @@ export default function PostDetail() {
         <div className="mt-8 border-t pt-6">
           <h3 className="text-lg font-semibold text-pink-500 mb-2">Comments</h3>
           <p className="text-sm text-gray-500">Comment functionality coming soon...</p>
+        </div>
+
+        {/* 🔙 Return to Posts Button */}
+        <div className="absolute bottom-6 right-6">
+          <button
+            onClick={() => navigate('/home')}
+            className="px-5 py-2 text-white text-sm font-medium rounded-lg shadow-md transition-all hover:opacity-90 bg-gradient-to-r from-yellow-400 via-black to-pink-500"
+          >
+            Return to posts
+          </button>
         </div>
       </div>
     </>
