@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-export default function SigninForm() {
+export default function SigninForm({ setLoading }) {
   const [error, setError] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  // ✅ Use env variable with fallback
   const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5020/api';
 
   const handleSubmit = async (event) => {
@@ -22,12 +21,14 @@ export default function SigninForm() {
       return;
     }
 
+    setLoading(true); // 🔥 Trigger loader in parent
+
     try {
       const response = await fetch(`${API_BASE}/api/signin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
-        credentials: 'include', // ✅ Important for cookie auth
+        credentials: 'include',
       });
 
       const data = await response.json();
@@ -40,9 +41,11 @@ export default function SigninForm() {
         else navigate('/home');
       } else {
         setError(data.error || 'Sign in failed');
+        setLoading(false); // ❌ Stop loader on failure
       }
     } catch (err) {
       setError('Error connecting to server: ' + (err?.message || ''));
+      setLoading(false); // ❌ Stop loader on error
     }
 
     setUsername('');

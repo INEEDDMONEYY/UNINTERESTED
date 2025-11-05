@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function CategoryPostsLoader() {
+export default function SigninLoader() {
   const [timeoutReached, setTimeoutReached] = useState(false);
 
   useEffect(() => {
@@ -15,7 +15,7 @@ export default function CategoryPostsLoader() {
     return (
       <div className="col-span-full flex flex-col items-center justify-center py-10 text-center text-gray-500">
         <div className="text-sm sm:text-base text-red-400">
-          There aren't any posts in this category yet.
+          Sign-in is taking longer than expected. Please try again.
         </div>
       </div>
     );
@@ -29,7 +29,7 @@ export default function CategoryPostsLoader() {
         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-20 animate-bubble-pop delay-600" />
       </div>
       <div className="mt-4 text-sm sm:text-base animate-pulse">
-        Loading category posts...
+        Signing you in...
       </div>
     </div>
   );

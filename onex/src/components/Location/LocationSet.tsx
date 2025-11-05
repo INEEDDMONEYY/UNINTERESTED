@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Select from "react-select";
 import { MapPin, Compass } from "lucide-react";
+import { getGroupedCountryOptions } from "./CountrySelector"; // 🌍 Country options grouped by region
 
 export default function LocationSet({ onLocationChange }) {
   const [location, setLocation] = useState(null);
@@ -8,7 +9,6 @@ export default function LocationSet({ onLocationChange }) {
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🗺️ U.S. state options (can be expanded)
   const STATE_OPTIONS = [
     "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
     "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana",
@@ -20,12 +20,11 @@ export default function LocationSet({ onLocationChange }) {
     "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming",
   ];
 
-  // 🌎 Detect user location automatically
   useEffect(() => {
     if (!navigator.geolocation) {
       console.error("Geolocation not supported by this browser.");
       setLoading(false);
-      buildStateOptions();
+      buildLocationOptions();
       return;
     }
 
@@ -55,23 +54,31 @@ export default function LocationSet({ onLocationChange }) {
       },
       (err) => {
         console.error("Geolocation error:", err);
-        buildStateOptions();
+        buildLocationOptions();
         setLoading(false);
       }
     );
   }, [onLocationChange]);
 
-  // 🧭 Build dropdown options (searchable by any state)
-  const buildStateOptions = () => {
-    const formatted = STATE_OPTIONS.map((state) => ({
-      value: { state, city: "" },
+  const buildLocationOptions = () => {
+    const stateOptions = STATE_OPTIONS.map((state) => ({
+      value: { state, city: "", country: "" },
       label: state,
     }));
-    setOptions(formatted);
+
+    const grouped = [
+      {
+        label: "United States",
+        options: stateOptions,
+      },
+      ...getGroupedCountryOptions(),
+    ];
+
+    setOptions(grouped);
   };
 
   useEffect(() => {
-    buildStateOptions();
+    buildLocationOptions();
   }, []);
 
   const handleChange = (selected) => {
@@ -96,7 +103,7 @@ export default function LocationSet({ onLocationChange }) {
               value={manualLocation || location}
               onChange={handleChange}
               className="text-[1rem] flex-1"
-              placeholder="Search or select your state"
+              placeholder="Search or select your location"
               isSearchable
               isClearable
             />

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import PostDetailLoader from '../Loaders/PostDetailLoader'; // 🌀 Custom animated loader
 
 export default function PostDetail() {
   const { postId } = useParams();
@@ -25,15 +26,20 @@ export default function PostDetail() {
   }, [postId]);
 
   if (loading) {
-    return <div className="text-center py-10 text-gray-500">Loading post...</div>;
+    return <PostDetailLoader />; // ⏳ Show animated loader while fetching
   }
 
   if (!post) {
-    return <div className="text-center py-10 text-red-500">Post not found.</div>;
+    return (
+      <div className="text-center py-10 text-red-500">
+        Post not found.
+      </div>
+    );
   }
 
   return (
     <>
+    {/**Make image smaller, add price badge, contact badge, picture badge that show the quanity of pictures the user has attacted to post. */}
       <div className="max-w-3xl mx-auto px-6 py-10 bg-white rounded-xl shadow-md m-5 relative">
         {/* 🖼️ Post Image */}
         <div className="mb-6">

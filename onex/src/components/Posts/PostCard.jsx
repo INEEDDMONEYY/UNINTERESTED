@@ -14,7 +14,7 @@ export default function PostCard({ post }) {
           {post.visibility && (
             <div className="absolute top-2 right-2 bg-pink-600 text-white text-xs sm:text-sm font-semibold px-2 py-1 rounded-full shadow-md">
               {post.visibility === "Both"
-                ? "See's:"
+                ? "See's Both"
                 : `See's Only: ${post.visibility}`}
             </div>
           )}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import LocationSet from "../components/LocationSet";
+import LocationSet from "../components/Location/LocationSet";
 import Heading from "../components/Header";
 import PromotionPosts from "../components/Promotion/PromotedPosts";
 import CategoryList from "../components/Categories/categoryList";
