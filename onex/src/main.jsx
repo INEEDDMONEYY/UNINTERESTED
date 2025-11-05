@@ -6,7 +6,7 @@ import "./index.css";
 
 import App from "./App.jsx";
 import Home from "./pages/homePage.jsx";
-import SignIn from "./pages/signInPage.jsx";
+import SignIn from "./pages/SignInPage.jsx";
 import SignUp from "./pages/signUpPage.jsx";
 import ForgotPass from "./pages/forgotPassPage.jsx";
 import Post from "./pages/postPage";
@@ -18,6 +18,7 @@ import PromoteAccount from "./pages/promoteAccount.jsx";
 import TermsOfUsePage from './pages/policies/TermsOfUsePage.jsx';
 import PrivacyPolicy from './pages/policies/PrivacyPolicyPage.jsx';
 import ProfilePage from './pages/profiles/ProfilePage.jsx'; // ✅ Uncommented
+import Signout from "./pages/SignoutPage.jsx";
 
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import SignInForm from '../components/SignInForm.jsx';
 import SigninLogo from '../assets/Logo.png';
-import SigninLoader from '../components/Loaders/SigninLoader';
+import SigninLoader from '../components/Loaders/SigninLoader.jsx';
 
 export default function SignIn() {
   const [loading, setLoading] = useState(false);
