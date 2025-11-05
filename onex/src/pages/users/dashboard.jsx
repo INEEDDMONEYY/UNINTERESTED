@@ -7,123 +7,100 @@ import {
   LogOut,
   Home,
   MessageSquare,
-  UserRound, // ✅ New icon
+  UserRound,
 } from "lucide-react";
 
 import UserProfileSettings from "./UserProfileSettings.jsx";
 import UserMessages from "./UserMessages.jsx";
-import ProfilePage from "../profiles/ProfilePage.jsx"; // ✅ Made import viewable
+import ProfilePage from "../profiles/ProfilePage.jsx";
+import UserActivity from "./UserActivity.jsx";
 import { UserContext } from "../../context/UserContext";
 
 export default function UserDashboard() {
   const navigate = useNavigate();
   const { user, logout } = useContext(UserContext);
   const [activeView, setActiveView] = useState("dashboard");
-
-  const handleSignOut = async () => {
-    await logout();
-    navigate("/home");
-  };
-
-  // ✅ Sync local UI state with context
   const [profilePic, setProfilePic] = useState(user?.profilePic || "");
+
   useEffect(() => {
     setProfilePic(user?.profilePic || "");
   }, [user]);
 
+  const handleSignOut = async () => {
+    navigate("/signout"); // ✅ Navigate first to show loader
+    await logout();       // ✅ Then perform logout in background
+  };
+
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-100 to-pink-300 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-gradient-to-br from-pink-300 via-yellow-100 via-white via-black to-purple-400 flex flex-col md:flex-row">
       {/* Sidebar */}
       <aside className="w-full md:w-64 bg-white shadow-xl p-6 flex flex-col justify-between">
-        <div className="flex flex-col items-center text-center">
-          <div className="w-24 h-24 mb-3">
-            <img
-              src={user?.profilePic || "https://via.placeholder.com/96"}
-              alt={`${user?.username || "User"}'s profile`}
-              className="w-full h-full rounded-full object-cover border-2 border-pink-400 shadow-md"
-            />
-          </div>
+        <nav className="mt-2 w-full space-y-2 text-sm">
+          <button
+            onClick={() => setActiveView("profile")}
+            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+              activeView === "profile"
+                ? "bg-pink-100 text-pink-800 font-semibold"
+                : "hover:bg-pink-100 text-pink-800"
+            }`}
+          >
+            <User size={18} />
+            Edit Profile
+          </button>
 
-          <h2 className="text-xl font-bold text-pink-700 mb-1">
-            {user?.username ? `Welcome, ${user.username}!` : "Welcome!"}
-          </h2>
+          <button
+            onClick={() => setActiveView("activity")}
+            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+              activeView === "activity"
+                ? "bg-pink-100 text-pink-800 font-semibold"
+                : "hover:bg-pink-100 text-pink-800"
+            }`}
+          >
+            <BarChart3 size={18} />
+            View Activity
+          </button>
 
-          {user?.bio ? (
-            <p className="text-sm text-gray-600 italic px-2 mb-4">“{user.bio}”</p>
-          ) : (
-            <p className="text-sm text-gray-500 italic mb-4">
-              No bio yet. Update your profile!
-            </p>
-          )}
+          <button
+            onClick={() => setActiveView("messages")}
+            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+              activeView === "messages"
+                ? "bg-pink-100 text-pink-800 font-semibold"
+                : "hover:bg-pink-100 text-pink-800"
+            }`}
+          >
+            <MessageSquare size={18} />
+            Messages
+          </button>
 
-          {/* Navigation */}
-          <nav className="mt-2 w-full space-y-2 text-sm">
-            <button
-              onClick={() => setActiveView("profile")}
-              className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-                activeView === "profile"
-                  ? "bg-pink-100 text-pink-800 font-semibold"
-                  : "hover:bg-pink-100 text-pink-800"
-              }`}
-            >
-              <User size={18} />
-              Edit Profile
-            </button>
+          <button
+            onClick={() => setActiveView("publicProfile")}
+            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+              activeView === "publicProfile"
+                ? "bg-pink-100 text-pink-800 font-semibold"
+                : "hover:bg-pink-100 text-pink-800"
+            }`}
+          >
+            <UserRound size={18} />
+            Profile
+          </button>
 
-            <button
-              onClick={() => setActiveView("activity")}
-              className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-                activeView === "activity"
-                  ? "bg-pink-100 text-pink-800 font-semibold"
-                  : "hover:bg-pink-100 text-pink-800"
-              }`}
-            >
-              <BarChart3 size={18} />
-              View Activity
-            </button>
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg bg-pink-200 hover:bg-pink-300 text-pink-800 font-medium mt-4 transition"
+          >
+            <LogOut size={18} />
+            Sign Out
+          </button>
 
-            <button
-              onClick={() => setActiveView("messages")}
-              className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-                activeView === "messages"
-                  ? "bg-pink-100 text-pink-800 font-semibold"
-                  : "hover:bg-pink-100 text-pink-800"
-              }`}
-            >
-              <MessageSquare size={18} />
-              Messages
-            </button>
-
-            {/* ✅ New Profile View Button */}
-            <button
-              onClick={() => setActiveView("publicProfile")}
-              className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-                activeView === "publicProfile"
-                  ? "bg-pink-100 text-pink-800 font-semibold"
-                  : "hover:bg-pink-100 text-pink-800"
-              }`}
-            >
-              <UserRound size={18} />
-              Profile
-            </button>
-
-            <button
-              onClick={handleSignOut}
-              className="w-full flex items-center gap-3 px-4 py-2 rounded-lg bg-pink-200 hover:bg-pink-300 text-pink-800 font-medium mt-4 transition"
-            >
-              <LogOut size={18} />
-              Sign Out
-            </button>
-
-            <Link
-              to="/home"
-              className="flex items-center gap-3 px-4 py-2 text-gray-600 hover:text-pink-700 mt-3 transition"
-            >
-              <Home size={18} />
-              Return Home
-            </Link>
-          </nav>
-        </div>
+          <Link
+            to="/home"
+            className="flex items-center gap-3 px-4 py-2 text-gray-600 hover:text-pink-700 mt-3 transition"
+          >
+            <Home size={18} />
+            Return Home
+          </Link>
+        </nav>
       </aside>
 
       {/* Main Content */}
@@ -141,7 +118,9 @@ export default function UserDashboard() {
             {activeView !== "dashboard" && (
               <>
                 <li>/</li>
-                <li className="text-gray-800 font-medium capitalize">{activeView}</li>
+                <li className="text-gray-800 font-medium capitalize">
+                  {activeView}
+                </li>
               </>
             )}
           </ol>
@@ -158,9 +137,10 @@ export default function UserDashboard() {
         {activeView === "activity" && (
           <div>
             <h1 className="text-2xl font-bold text-pink-700 mb-2">Your Activity</h1>
-            <p className="text-gray-700">
-              This is where your activity data will be displayed.
+            <p className="text-gray-700 mb-4">
+              Browse all posts shared by users across the platform.
             </p>
+            <UserActivity />
           </div>
         )}
 

@@ -19,7 +19,6 @@ import TermsOfUsePage from './pages/policies/TermsOfUsePage.jsx';
 import PrivacyPolicy from './pages/policies/PrivacyPolicyPage.jsx';
 import ProfilePage from './pages/profiles/ProfilePage.jsx'; // ✅ Uncommented
 
-
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 // ✅ Import UserProvider
@@ -106,6 +105,10 @@ const router = createBrowserRouter([
     path: "/post/:postId",
     element: <PostDetail />,
   },
+  {
+  path: "signout",
+  element: <Signout />,
+},
 ]);
 
 createRoot(document.getElementById("root")).render(

@@ -2,22 +2,22 @@ export default function PromotionTiers() {
   const tiers = [
     {
       label: "24 Hours",
-      price: "$2",
+      price: "$4",
       description: "Get instant visibility for 24 hours. Your account will be featured prominently on the homepage.",
     },
     {
       label: "2 Days",
-      price: "$4",
+      price: "$6",
       description: "Double the exposure — your account stays promoted for 48 hours with priority placement.",
     },
     {
       label: "4 Days",
-      price: "$6",
+      price: "$8",
       description: "Extended reach across the platform for four full days. Ideal for weekend traffic.",
     },
     {
       label: "1 Week",
-      price: "$12",
+      price: "$14",
       description: "Maximum exposure for 7 days. Your account remains highlighted all week long.",
     },
   ];

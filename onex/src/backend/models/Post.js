@@ -1,8 +1,6 @@
-const mongoose = require("mongoose");
-
 const PostSchema = new mongoose.Schema({
   username: { type: String, required: true },
-  title: { type: String, required: true }, // 🆕 Added for post title
+  title: { type: String, required: true },
   description: { type: String, required: true },
   picture: { type: String },
   city: { type: String },
@@ -11,13 +9,10 @@ const PostSchema = new mongoose.Schema({
   visibility: {
     type: String,
     enum: ["Men", "Women", "Both"],
-    default: "Both", // 🆕 Added for 'See's Only' feature
+    default: "Both",
   },
   acknowledgedPayment: {
     type: Boolean,
-    default: false, // 🆕 For the $13 post acknowledgment checkbox
+    default: false,
   },
-  createdAt: { type: Date, default: Date.now },
-});
-
-module.exports = mongoose.model("Post", PostSchema);
+}, { timestamps: true }); // ✅ Enables createdAt and updatedAt automatically
