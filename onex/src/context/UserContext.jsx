@@ -11,7 +11,6 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  /* ---------------- Fetch current user on load ---------------- */
   useEffect(() => {
     const token = getAuthToken();
     if (!token) {
@@ -36,7 +35,6 @@ export const UserProvider = ({ children }) => {
     fetchUser();
   }, []);
 
-  /* ---------------- Login ---------------- */
   const login = async (username, password) => {
     try {
       const res = await api.post("/signin", { username, password });
@@ -49,7 +47,6 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  /* ---------------- Logout ---------------- */
   const logout = async () => {
     try {
       await api.post("/logout");
@@ -60,10 +57,10 @@ export const UserProvider = ({ children }) => {
     setUser(null);
   };
 
-  /* ---------------- Update Profile ---------------- */
-  const updateProfile = async (updatedData) => {
+  const updateProfile = async (data, field = null) => {
     try {
-      const res = await api.put("/users/update-profile", updatedData); // ✅ Corrected route
+      const isFormData = data instanceof FormData;
+      const res = await api.put("/users/update-profile", isFormData ? data : { [field]: data });
       const updatedUser = res.data.updatedUser || res.data.user || res.data;
 
       const mergedUser = { ...user, ...updatedUser };
@@ -76,7 +73,6 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  /* ---------------- Refresh User ---------------- */
   const refreshUser = async () => {
     try {
       const res = await api.get("/user/profile");

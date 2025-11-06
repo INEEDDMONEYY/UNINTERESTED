@@ -1,6 +1,7 @@
 import UserProfileHeader from '../../components/Users/UserProfileHeader';
 import PostList from '../../components/Posts/PostList';
 // import PostDetail from './PostDetail'; // Optional: include if showing expanded post view
+import UserAvailabilityDisplay from '../../components/UserDisplay/UserAvailabilityDisplay';
 
 export default function UserProfileViewPage() {
   return (
@@ -10,9 +11,10 @@ export default function UserProfileViewPage() {
         <UserProfileHeader />
       </section>
 
-      {/* 📝 User Posts Section */}
+      {/* 📝 User Availability Section */}
       <section>
         {/**Will add Contact info & availbity */}
+        <UserAvailabilityDisplay />
       </section>
 
       {/* 📌 Optional: Detailed Post View Section */}

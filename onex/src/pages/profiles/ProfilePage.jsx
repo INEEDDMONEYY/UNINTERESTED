@@ -1,4 +1,4 @@
-import UserProfileView from '../users/UserProfileView';
+import UserProfileView from '../users/UserProfileViewPage';
 
 export default function ProfilePage() {
   return (

@@ -1,4 +1,4 @@
-import User from "../models/User.js";
+import User from "../../models/User.js";
 import cloudinary from "../config/cloudinary.js"; // if using image hosting
 
 export const updateProfile = async (req, res) => {

@@ -27,7 +27,7 @@ import { UserProvider } from "./context/UserContext.jsx";
 
 // ✅ Import new post-related views
 import PostDetail from "./components/Posts/PostDetail.jsx";
-import UserProfileView from "./pages/users/UserProfileView.jsx";
+import UserProfileView from "./pages/users/UserProfileViewPage.jsx";
 
 const router = createBrowserRouter([
   {

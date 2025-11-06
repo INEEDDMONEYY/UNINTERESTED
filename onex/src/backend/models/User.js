@@ -1,5 +1,18 @@
 const mongoose = require('mongoose');
 
+const availabilitySchema = new mongoose.Schema(
+  {
+    Monday: { type: String, default: '' },
+    Tuesday: { type: String, default: '' },
+    Wednesday: { type: String, default: '' },
+    Thursday: { type: String, default: '' },
+    Friday: { type: String, default: '' },
+    Saturday: { type: String, default: '' },
+    Sunday: { type: String, default: '' },
+  },
+  { _id: false }
+);
+
 const UserSchema = new mongoose.Schema(
   {
     username: {
@@ -13,7 +26,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       trim: true,
       lowercase: true,
-      default: '', // optional field
+      default: '',
     },
     password: {
       type: String,
@@ -47,23 +60,25 @@ const UserSchema = new mongoose.Schema(
     conversations: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Conversation', // link to conversation model
+        ref: 'Conversation',
       },
     ],
+    availability: {
+      type: availabilitySchema,
+      default: () => ({}),
+    },
   },
   { timestamps: true }
 );
 
-// Virtual property to check if user is admin
 UserSchema.virtual('isAdmin').get(function () {
   return this.role === 'admin';
 });
 
-// Optional: transform output when sending to client
 UserSchema.set('toJSON', {
   virtuals: true,
   transform: (doc, ret) => {
-    delete ret.password; // never send password
+    delete ret.password;
     return ret;
   },
 });

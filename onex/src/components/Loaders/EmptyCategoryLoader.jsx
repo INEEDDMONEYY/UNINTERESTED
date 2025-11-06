@@ -6,7 +6,7 @@ export default function EmptyCategoryLoader() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setTimeoutReached(true);
-    }, 15000); // 15 secs
+    }, 30000); // 30 secs
 
     return () => clearTimeout(timer);
   }, []);

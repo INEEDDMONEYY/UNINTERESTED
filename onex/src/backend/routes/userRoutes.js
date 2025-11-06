@@ -7,7 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const env = require('../config/env');
 
-// Ensure profile-pics folder exists
+// ------------------------ Ensure profile-pics folder exists ------------------------
 if (!fs.existsSync(env.PROFILE_PICS_PATH)) {
   fs.mkdirSync(env.PROFILE_PICS_PATH, { recursive: true });
 }
@@ -26,19 +26,28 @@ const upload = multer({ storage });
 router.put('/update-profile', upload.single('profilePic'), async (req, res) => {
   try {
     const userId = req.user.id;
-    const { username, password, bio } = req.body;
+    const { username, password, bio, availability } = req.body;
     const updateData = {};
 
+    // Handle basic fields
     if (username) updateData.username = username;
     if (password) updateData.password = await bcrypt.hash(password, 10);
     if (bio) updateData.bio = bio;
 
+    // Handle availability update
+    if (availability && typeof availability === 'object') {
+      updateData.availability = availability;
+    }
+
+    // Handle profile picture upload
     if (req.file) {
       const imagePath = `/uploads/profile-pics/${req.file.filename}`;
       updateData.profilePic = `${env.SERVER_URL}${imagePath}`;
     }
 
-    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true }).select('-password');
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    }).select('-password');
 
     res.status(200).json({
       message: 'Profile updated successfully',
@@ -46,6 +55,7 @@ router.put('/update-profile', upload.single('profilePic'), async (req, res) => {
         username: updatedUser.username,
         bio: updatedUser.bio || '',
         profilePic: updatedUser.profilePic || '',
+        availability: updatedUser.availability || {},
         role: updatedUser.role,
         _id: updatedUser._id,
       },
