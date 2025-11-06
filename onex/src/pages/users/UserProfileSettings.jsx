@@ -9,6 +9,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { UserContext } from "../../context/UserContext";
+import AvailabilitySettings from "../../components/Settings/UserDashboardSettings/AvailabilitySettings";
 
 export default function UserProfileSettings({ onProfileUpdate }) {
   const { user, updateProfile } = useContext(UserContext);
@@ -30,10 +31,8 @@ export default function UserProfileSettings({ onProfileUpdate }) {
 
   const handleUpdate = async (field) => {
     if (!field) return;
-
     const formData = new FormData();
-    if (field === "profilePic" && profilePic)
-      formData.append("profilePic", profilePic);
+    if (field === "profilePic" && profilePic) formData.append("profilePic", profilePic);
     if (field === "username") formData.append("username", username);
     if (field === "password") formData.append("password", password);
     if (field === "bio") formData.append("bio", bio);
@@ -41,18 +40,15 @@ export default function UserProfileSettings({ onProfileUpdate }) {
     try {
       setLoadingField(field);
       const updatedUser = await updateProfile(formData);
-
       setToast({
         type: "success",
         message: `${field.charAt(0).toUpperCase() + field.slice(1)} updated successfully!`,
       });
-
       if (field === "password") setPassword("");
       if (field === "profilePic") setProfilePic(null);
       if (field === "username") setUsername(updatedUser.username || "");
       if (field === "bio") setBio(updatedUser.bio || "");
-
-      if (onProfileUpdate) onProfileUpdate(); // ✅ trigger refresh
+      if (onProfileUpdate) onProfileUpdate();
     } catch (err) {
       console.error("Error updating profile:", err.message || err);
       setToast({
@@ -67,6 +63,7 @@ export default function UserProfileSettings({ onProfileUpdate }) {
 
   return (
     <div className="relative w-full max-w-2xl mx-auto space-y-10 p-4 sm:p-6">
+      {/* ✅ Toast Notification */}
       {toast && (
         <div
           className={`absolute top-4 right-4 flex items-center gap-2 px-4 py-2 rounded-lg shadow-lg text-white text-sm transition-all ${
@@ -82,9 +79,11 @@ export default function UserProfileSettings({ onProfileUpdate }) {
         </div>
       )}
 
-      <h1 className="text-2xl font-bold text-pink-700 text-center">Profile Settings</h1>
+      <h1 className="text-2xl font-bold text-pink-700 text-center">
+        Profile Settings
+      </h1>
 
-      {/* Profile Picture */}
+      {/* ✅ Profile Picture Section */}
       <section className="flex flex-col sm:flex-row items-center gap-4 border-b border-pink-100 pb-6">
         <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-pink-400 shadow">
           <img
@@ -97,16 +96,16 @@ export default function UserProfileSettings({ onProfileUpdate }) {
             className="w-full h-full object-cover"
           />
         </div>
+
         <div className="flex-1 space-y-3 w-full">
           <label className="flex items-center gap-2 font-medium text-gray-700">
-            <Image size={18} className="text-pink-600" />
-            Update Profile Picture
+            <Image size={18} className="text-pink-600" /> Update Profile Picture
           </label>
           <input
             type="file"
             accept="image/*"
             onChange={(e) => setProfilePic(e.target.files[0])}
-            className="w-full border border-black rounded px-3 py-2 bg-black text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+            className="w-full border border-gray-300 rounded px-3 py-2 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-500"
           />
           <button
             type="button"
@@ -127,17 +126,16 @@ export default function UserProfileSettings({ onProfileUpdate }) {
         </div>
       </section>
 
-      {/* Username */}
+      {/* ✅ Username */}
       <section className="space-y-3 border-b border-pink-100 pb-6">
         <label className="flex items-center gap-2 font-medium text-gray-700">
-          <User size={18} className="text-pink-600" />
-          Update Username
+          <User size={18} className="text-pink-600" /> Update Username
         </label>
         <input
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="w-full border border-black rounded px-3 py-2 bg-black text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+          className="w-full border border-gray-300 rounded px-3 py-2 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-500"
           placeholder="Update username"
         />
         <button
@@ -158,17 +156,16 @@ export default function UserProfileSettings({ onProfileUpdate }) {
         </button>
       </section>
 
-      {/* Password */}
+      {/* ✅ Password */}
       <section className="space-y-3 border-b border-pink-100 pb-6">
         <label className="flex items-center gap-2 font-medium text-gray-700">
-          <Key size={18} className="text-pink-600" />
-          Update Password
+          <Key size={18} className="text-pink-600" /> Update Password
         </label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full border border-black rounded px-3 py-2 bg-black text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+          className="w-full border border-gray-300 rounded px-3 py-2 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-pink-500"
           placeholder="Enter new password"
         />
         <button
@@ -189,17 +186,16 @@ export default function UserProfileSettings({ onProfileUpdate }) {
         </button>
       </section>
 
-      {/* Bio */}
-      <section className="space-y-3">
+      {/* ✅ Bio */}
+      <section className="space-y-3 border-b border-pink-100 pb-6">
         <label className="flex items-center gap-2 font-medium text-gray-700">
-          <FileText size={18} className="text-pink-600" />
-          Update Profile Bio
+          <FileText size={18} className="text-pink-600" /> Update Profile Bio
         </label>
         <textarea
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           rows={4}
-          className="w-full border border-black rounded px-3 py-2 bg-black text-white resize-none focus:outline-none focus:ring-2 focus:ring-pink-500"
+          className="w-full border border-gray-300 rounded px-3 py-2 bg-white text-gray-800 resize-none focus:outline-none focus:ring-2 focus:ring-pink-500"
           placeholder="Tell us a bit about yourself..."
         />
         <button
@@ -218,6 +214,16 @@ export default function UserProfileSettings({ onProfileUpdate }) {
             "Save Bio"
           )}
         </button>
+      </section>
+
+      {/* ✅ Availability Settings Section */}
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 font-medium text-gray-700">
+          <span className="text-pink-600">📅</span> Availability Settings
+        </h2>
+        <div className="border border-pink-100 rounded-lg p-4 bg-white shadow-sm">
+          <AvailabilitySettings />
+        </div>
       </section>
     </div>
   );

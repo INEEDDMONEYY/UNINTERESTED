@@ -1,5 +1,6 @@
-import SignoutLoader from "../components/Loaders/SignoutLoader";
+// SignoutPage.jsx
+import SignoutFlow from "../components/Flows/SignoutFlow";
 
 export default function Signout() {
-  return <SignoutLoader />;
+  return <SignoutFlow />;
 }
