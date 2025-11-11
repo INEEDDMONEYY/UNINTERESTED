@@ -57,10 +57,12 @@ app.use((req, res, next) => {
 });
 
 /* ---------------------------- ⚙️ MongoDB Setup ----------------------------- */
-mongoose
-  .connect(env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB connected successfully'))
-  .catch((err) => console.error('❌ MongoDB connection error:', err));
+if (process.env.NODE_ENV !== 'test') {
+  mongoose
+    .connect(env.MONGO_URI)
+    .then(() => console.log('✅ MongoDB connected successfully'))
+    .catch((err) => console.error('❌ MongoDB connection error:', err));
+}
 
 /* --------------------------- 🔐 Auth Middleware ---------------------------- */
 const authenticateToken = (req, res, next) => {
@@ -108,7 +110,6 @@ app.use('/api/posts', postRoutes);
 app.use('/api/users', authenticateToken, userRoutes);
 
 /* -------------------------- 🌍 Public User List Route ---------------------- */
-// ✅ This is the new public route for fetching all users
 app.get('/api/users', async (req, res) => {
   try {
     const users = await User.find().select('-password');
@@ -151,4 +152,8 @@ app.use((err, req, res, next) => {
 });
 
 /* ------------------------------ 🚀 Server Init ----------------------------- */
-app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
+}
+
+module.exports = app;

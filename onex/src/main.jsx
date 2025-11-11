@@ -19,6 +19,7 @@ import TermsOfUsePage from './pages/policies/TermsOfUsePage.jsx';
 import PrivacyPolicy from './pages/policies/PrivacyPolicyPage.jsx';
 import ProfilePage from './pages/profiles/ProfilePage.jsx'; // ✅ Uncommented
 import Signout from "./pages/SignoutPage.jsx";
+import UserProfile from "./pages/profiles/ProfilePage.jsx"
 
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
@@ -109,7 +110,11 @@ const router = createBrowserRouter([
   {
   path: "signout",
   element: <Signout />,
-},
+  },
+  {
+    path: "/profile/:username",
+    element: <UserProfile />,
+  },
 ]);
 
 createRoot(document.getElementById("root")).render(
