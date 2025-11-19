@@ -20,7 +20,6 @@ export const UserProvider = ({ children }) => {
 
     const fetchUser = async () => {
       try {
-        // ✅ Fixed path (removed duplicate /api)
         const res = await api.get("/users/profile");
         setUser(res.data);
         localStorage.setItem("user", JSON.stringify(res.data));
@@ -60,23 +59,22 @@ export const UserProvider = ({ children }) => {
 
   const updateProfile = async (data, field = null, isFormData = false) => {
     try {
-      let payload;
+      let res;
 
       if (isFormData) {
-        // ProfilePic upload
-        payload = data;
-      } else if (typeof data === "object" && !Array.isArray(data)) {
-        // JSON object (availability, username, bio, password)
-        payload = data;
+        // ✅ ProfilePic upload → send FormData with proper headers
+        res = await api.put("/users/update-profile", data, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       } else {
-        // Fallback for primitive values
-        payload = { [field]: data };
+        // ✅ JSON payload for other fields
+        res = await api.put("/users/update-profile", data);
       }
 
-      // ✅ Fixed path
-      const res = await api.put("/users/update-profile", payload);
+      // ✅ Backend returns { message, user }
+      const updatedUser = res.data.user;
 
-      const updatedUser = res.data.updatedUser || res.data.user || res.data;
+      // Merge with existing user state
       const mergedUser = { ...user, ...updatedUser };
 
       setUser(mergedUser);
@@ -90,7 +88,6 @@ export const UserProvider = ({ children }) => {
 
   const refreshUser = async () => {
     try {
-      // ✅ Fixed path
       const res = await api.get("/users/profile");
       setUser(res.data);
       localStorage.setItem("user", JSON.stringify(res.data));
