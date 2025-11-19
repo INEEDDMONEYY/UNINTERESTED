@@ -1,18 +1,5 @@
 const mongoose = require('mongoose');
 
-const availabilitySchema = new mongoose.Schema(
-  {
-    Monday: { type: String, default: '' },
-    Tuesday: { type: String, default: '' },
-    Wednesday: { type: String, default: '' },
-    Thursday: { type: String, default: '' },
-    Friday: { type: String, default: '' },
-    Saturday: { type: String, default: '' },
-    Sunday: { type: String, default: '' },
-  },
-  { _id: false }
-);
-
 const UserSchema = new mongoose.Schema(
   {
     username: {
@@ -57,16 +44,21 @@ const UserSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    incallPrice: {
+      type: Number,
+      default: 0,
+    },
+    outcallPrice: {
+      type: Number,
+      default: 0,
+    },
     conversations: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Conversation',
       },
     ],
-    availability: {
-      type: availabilitySchema,
-      default: () => ({}),
-    },
+    // ❌ availability removed completely
   },
   { timestamps: true }
 );

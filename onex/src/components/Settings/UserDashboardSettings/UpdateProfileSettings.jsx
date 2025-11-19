@@ -9,7 +9,6 @@ import {
   XCircle,
 } from "lucide-react";
 import { UserContext } from "../../../context/UserContext";
-import AvailabilitySettings from "./AvailabilitySettings";
 
 export default function UpdateProfileSettings({ onProfileUpdate, user }) {
   const { updateProfile } = useContext(UserContext);
@@ -47,6 +46,9 @@ export default function UpdateProfileSettings({ onProfileUpdate, user }) {
     try {
       setLoadingField(field);
       const updatedUser = await updateProfile(data, field);
+
+      // ✅ Mirror updated user into localStorage so UserProfileHeader sees changes
+      localStorage.setItem("userProfile", JSON.stringify(updatedUser));
 
       setToast({
         type: "success",

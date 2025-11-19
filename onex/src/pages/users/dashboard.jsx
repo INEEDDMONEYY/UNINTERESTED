@@ -6,12 +6,10 @@ import {
   BarChart3,
   LogOut,
   Home,
-  MessageSquare,
   UserRound,
 } from "lucide-react";
 
 import UserProfileSettings from "./UserProfileSettings.jsx";
-import UserMessages from "./UserMessages.jsx";
 import ProfilePage from "../profiles/ProfilePage.jsx";
 import UserActivity from "./UserActivity.jsx";
 import { UserContext } from "../../context/UserContext";
@@ -30,7 +28,6 @@ export default function UserDashboard() {
     navigate("/signout"); // ✅ Navigate first to show loader
     await logout();       // ✅ Then perform logout in background
   };
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-300 via-yellow-100 via-white via-black to-purple-400 flex flex-col md:flex-row">
@@ -59,18 +56,6 @@ export default function UserDashboard() {
           >
             <BarChart3 size={18} />
             View Activity
-          </button>
-
-          <button
-            onClick={() => setActiveView("messages")}
-            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-              activeView === "messages"
-                ? "bg-pink-100 text-pink-800 font-semibold"
-                : "hover:bg-pink-100 text-pink-800"
-            }`}
-          >
-            <MessageSquare size={18} />
-            Messages
           </button>
 
           <button
@@ -141,18 +126,6 @@ export default function UserDashboard() {
               Browse all posts shared by users across the platform.
             </p>
             <UserActivity />
-          </div>
-        )}
-
-        {activeView === "messages" && (
-          <div>
-            <h1 className="text-2xl font-bold text-pink-700 mb-2">Messages</h1>
-            <p className="text-gray-700">
-              View and send messages to administrators here.
-            </p>
-            <div className="mt-6 p-6 bg-white/60 border border-white rounded-lg shadow">
-              <UserMessages />
-            </div>
           </div>
         )}
 

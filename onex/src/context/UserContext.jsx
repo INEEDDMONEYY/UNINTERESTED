@@ -20,7 +20,8 @@ export const UserProvider = ({ children }) => {
 
     const fetchUser = async () => {
       try {
-        const res = await api.get("/user/profile");
+        // ✅ Fixed path (removed duplicate /api)
+        const res = await api.get("/users/profile");
         setUser(res.data);
         localStorage.setItem("user", JSON.stringify(res.data));
       } catch (err) {
@@ -57,13 +58,27 @@ export const UserProvider = ({ children }) => {
     setUser(null);
   };
 
-  const updateProfile = async (data, field = null) => {
+  const updateProfile = async (data, field = null, isFormData = false) => {
     try {
-      const isFormData = data instanceof FormData;
-      const res = await api.put("/users/update-profile", isFormData ? data : { [field]: data });
-      const updatedUser = res.data.updatedUser || res.data.user || res.data;
+      let payload;
 
+      if (isFormData) {
+        // ProfilePic upload
+        payload = data;
+      } else if (typeof data === "object" && !Array.isArray(data)) {
+        // JSON object (availability, username, bio, password)
+        payload = data;
+      } else {
+        // Fallback for primitive values
+        payload = { [field]: data };
+      }
+
+      // ✅ Fixed path
+      const res = await api.put("/users/update-profile", payload);
+
+      const updatedUser = res.data.updatedUser || res.data.user || res.data;
       const mergedUser = { ...user, ...updatedUser };
+
       setUser(mergedUser);
       localStorage.setItem("user", JSON.stringify(mergedUser));
 
@@ -75,7 +90,8 @@ export const UserProvider = ({ children }) => {
 
   const refreshUser = async () => {
     try {
-      const res = await api.get("/user/profile");
+      // ✅ Fixed path
+      const res = await api.get("/users/profile");
       setUser(res.data);
       localStorage.setItem("user", JSON.stringify(res.data));
       return res.data;

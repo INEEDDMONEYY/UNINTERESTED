@@ -1,90 +1,37 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const multer = require('multer');
-const bcrypt = require('bcrypt');
-const User = require('../models/User');
-const path = require('path');
-const fs = require('fs');
-const env = require('../config/env');
+const User = require("../models/User");
 
-// ------------------------ Ensure profile-pics folder exists ------------------------
-if (!fs.existsSync(env.PROFILE_PICS_PATH)) {
-  fs.mkdirSync(env.PROFILE_PICS_PATH, { recursive: true });
-}
-
-// ------------------------ Multer Setup ------------------------
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, env.PROFILE_PICS_PATH),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${req.user.id}-${Date.now()}${ext}`);
-  },
-});
-const upload = multer({ storage });
-
-// ------------------------ Update Profile ------------------------
-router.put('/update-profile', upload.single('profilePic'), async (req, res) => {
+// ✅ Update-profile route without availability merge
+router.put("/update-profile", async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { username, password, bio, availability } = req.body;
-    const updateData = {};
+    console.log("🔹 [UserRoutes] Incoming request to /update-profile");
+    console.log("🔹 [UserRoutes] req.user:", req.user ? req.user._id : "No user attached");
+    console.log("🔹 [UserRoutes] req.body:", req.body);
 
-    // Handle basic fields
-    if (username) updateData.username = username;
-    if (password) updateData.password = await bcrypt.hash(password, 10);
-    if (bio) updateData.bio = bio;
-
-    // Handle availability update
-    if (availability && typeof availability === 'object') {
-      updateData.availability = availability;
+    if (!req.user) {
+      console.error("❌ [UserRoutes] Unauthorized — no user attached to request");
+      return res.status(401).json({ error: "Unauthorized - no user" });
     }
 
-    // Handle profile picture upload
-    if (req.file) {
-      const imagePath = `/uploads/profile-pics/${req.file.filename}`;
-      updateData.profilePic = `${env.SERVER_URL}${imagePath}`;
-    }
+    // Directly use request body for updates (no availability merge)
+    let updateData = { ...req.body };
 
-    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+    // ✅ Perform update
+    const updatedUser = await User.findByIdAndUpdate(req.user._id, updateData, {
       new: true,
-    }).select('-password');
+    }).select("-password");
 
-    res.status(200).json({
-      message: 'Profile updated successfully',
-      updatedUser: {
-        username: updatedUser.username,
-        bio: updatedUser.bio || '',
-        profilePic: updatedUser.profilePic || '',
-        availability: updatedUser.availability || {},
-        role: updatedUser.role,
-        _id: updatedUser._id,
-      },
-    });
-  } catch (err) {
-    console.error('❌ Update profile error:', err);
-    res.status(500).json({ error: 'Failed to update profile' });
-  }
-});
+    if (!updatedUser) {
+      console.error("❌ [UserRoutes] User not found in DB for id:", req.user._id);
+      return res.status(404).json({ error: "User not found" });
+    }
 
-// ------------------------ Get Current User ------------------------
-router.get('/profile', async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select('-password');
-    res.status(200).json(user);
+    console.log("✅ [UserRoutes] Updated user:", updatedUser._id);
+    res.json({ message: "Profile updated successfully", user: updatedUser });
   } catch (err) {
-    console.error('❌ Get user profile error:', err);
-    res.status(500).json({ error: 'Failed to fetch user info' });
-  }
-});
-
-// ------------------------ Get All Users ------------------------
-router.get('/', async (req, res) => {
-  try {
-    const users = await User.find().select('-password');
-    res.status(200).json(users);
-  } catch (err) {
-    console.error('❌ Error fetching users:', err);
-    res.status(500).json({ error: 'Failed to fetch users' });
+    console.error("🚨 [UserRoutes] Error updating profile:", err);
+    res.status(500).json({ error: "Failed to update profile", details: err.message || err });
   }
 });
 

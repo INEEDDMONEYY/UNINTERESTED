@@ -1,31 +1,36 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { DollarSign, Loader2, CheckCircle, XCircle } from "lucide-react";
 
-export default function MeetupServiceSettings() {
-  const [incallPrice, setIncallPrice] = useState("");
-  const [outcallPrice, setOutcallPrice] = useState("");
+export default function MeetupServiceSettings({
+  incallPrice,
+  setIncallPrice,
+  outcallPrice,
+  setOutcallPrice,
+}) {
   const [loadingField, setLoadingField] = useState(null);
   const [toast, setToast] = useState(null);
 
-  const handleSave = async (type) => {
-    try {
-      setLoadingField(type);
-      // Simulate async update (replace with actual API call)
-      await new Promise((res) => setTimeout(res, 1000));
+  const handleSave = (type) => {
+    setLoadingField(type);
 
-      setToast({
-        type: "success",
-        message: `${type === "incall" ? "Incall" : "Outcall"} price updated!`,
-      });
-    } catch (err) {
-      setToast({
-        type: "error",
-        message: "Failed to update price.",
-      });
-    } finally {
+    setTimeout(() => {
+      const price = type === "incall" ? incallPrice : outcallPrice;
+
+      if (!price || Number(price) <= 0) {
+        setToast({
+          type: "error",
+          message: `Failed to update ${type} price. Invalid value.`,
+        });
+      } else {
+        setToast({
+          type: "success",
+          message: `${type === "incall" ? "Incall" : "Outcall"} price updated successfully!`,
+        });
+      }
+
       setLoadingField(null);
       setTimeout(() => setToast(null), 3000);
-    }
+    }, 800);
   };
 
   return (
@@ -74,6 +79,11 @@ export default function MeetupServiceSettings() {
             "Save Incall Price"
           )}
         </button>
+        {incallPrice && (
+          <p className="text-sm text-gray-600">
+            Current Incall Price: <strong>${incallPrice}</strong>
+          </p>
+        )}
       </div>
 
       {/* ✅ Outcall Section */}
@@ -105,6 +115,11 @@ export default function MeetupServiceSettings() {
             "Save Outcall Price"
           )}
         </button>
+        {outcallPrice && (
+          <p className="text-sm text-gray-600">
+            Current Outcall Price: <strong>${outcallPrice}</strong>
+          </p>
+        )}
       </div>
     </section>
   );

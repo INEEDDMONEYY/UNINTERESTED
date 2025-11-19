@@ -7,13 +7,27 @@ import axios from 'axios';
 import PostDetailLoader from '../Loaders/PostDetailLoader';
 import UserProfile from '../../pages/profiles/ProfilePage';
 import UserAvailabilityDisplay from '../UserDisplay/UserAvailabilityDisplay';
-// import UserMeetupDisplay from '../UserDisplay/UserMeetupDisplay';
+import UserMeetupDisplay from '../UserDisplay/UserMeetupDisplay';
 
 export default function PostDetail() {
   const { postId } = useParams();
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // ✅ Load availability from localStorage
+  const [availability, setAvailability] = useState(() => {
+    const saved = localStorage.getItem("availability");
+    return saved ? JSON.parse(saved) : { status: "" };
+  });
+
+  // ✅ Load meetup prices from localStorage
+  const [incallPrice, setIncallPrice] = useState(() => {
+    return localStorage.getItem("incallPrice") || "";
+  });
+  const [outcallPrice, setOutcallPrice] = useState(() => {
+    return localStorage.getItem("outcallPrice") || "";
+  });
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -78,8 +92,16 @@ export default function PostDetail() {
       {/* 🟢 User Availability */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-600 mb-1">User Availability</h3>
-        <div className="h-auto overflow-hidden rounded-md border border-gray-200 p-2">
-          <UserAvailabilityDisplay userId={post.userId} />
+        <div className="h-auto overflow-hidden p-1">
+          <UserAvailabilityDisplay availability={availability} />
+        </div>
+      </div>
+
+      {/* 💲 User Meetup Prices */}
+      <div className="mb-6">
+        <h3 className="text-sm font-semibold text-gray-600 mb-1">Meetup Prices</h3>
+        <div className="h-auto overflow-hidden p-1">
+          <UserMeetupDisplay incallPrice={incallPrice} outcallPrice={outcallPrice} />
         </div>
       </div>
 
@@ -97,7 +119,7 @@ export default function PostDetail() {
       </div>
 
       {/* 🔘 Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end absolute bottom-4 right-4 sm:bottom-6 sm:right-6">
+      <div className="flex flex-row justify-between items-center mt-8">
         <button
           onClick={() => navigate('/home')}
           className="px-4 py-2 text-[12px] text-white font-medium rounded-lg shadow-md transition-all hover:opacity-90 bg-gradient-to-r from-yellow-400 via-black to-pink-500"

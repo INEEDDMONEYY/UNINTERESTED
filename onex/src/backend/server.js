@@ -50,7 +50,23 @@ app.options('', cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// ✅ Cache-Control middleware for API responses
+app.use((req, res, next) => {
+  // Default: prevent caching for API endpoints
+  if (req.originalUrl.startsWith('/api')) {
+    res.setHeader('Cache-Control', 'no-store');
+  }
+  next();
+});
+
+// ✅ Static uploads with cache headers
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders: (res, filePath) => {
+    res.setHeader('Cache-Control', 'public, max-age=31536000');
+  }
+}));
+
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
   next();
@@ -65,7 +81,7 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 /* --------------------------- 🔐 Auth Middleware ---------------------------- */
-const authenticateToken = (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     let token = null;
@@ -76,12 +92,22 @@ const authenticateToken = (req, res, next) => {
       token = req.cookies.token;
     }
 
-    if (!token) return res.status(401).json({ error: 'Unauthorized - no token provided' });
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized - no token provided' });
+    }
 
     const decoded = jwt.verify(token, env.JWT_SECRET);
-    req.user = decoded;
+
+    // ✅ Fetch full user document
+    const user = await User.findById(decoded.id).select('-password');
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    req.user = user;
     next();
   } catch (err) {
+    console.error('[AuthMiddleware] Auth error:', err.message || err);
     return res.status(403).json({ error: 'Invalid or expired token' });
   }
 };
@@ -127,11 +153,18 @@ app.use('/api', authRoutes);
 const frontendPath = path.join(__dirname, 'client', 'build');
 
 if (fs.existsSync(frontendPath)) {
-  app.use(express.static(frontendPath));
+  app.use(express.static(frontendPath, {
+    setHeaders: (res, filePath) => {
+      // Cache static build assets aggressively
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+    }
+  }));
 
   app.get('*', (req, res) => {
     const indexPath = path.join(frontendPath, 'index.html');
     if (fs.existsSync(indexPath)) {
+      // For index.html, disable caching so new builds are picked up
+      res.setHeader('Cache-Control', 'no-store');
       res.sendFile(indexPath);
     } else {
       res.status(500).send('❌ index.html not found in build folder');

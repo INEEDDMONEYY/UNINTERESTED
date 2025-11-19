@@ -20,24 +20,30 @@ export default function UpdateProfile() {
   const [loadingField, setLoadingField] = useState(null);
   const [toast, setToast] = useState(null);
 
-  const handleUpdate = async (field, payload = null) => {
+  const handleUpdate = async (field) => {
     if (!field) return;
 
     let data;
-    if (field === "availability") {
-      data = payload;
-    } else {
+    let isFormData = false;
+
+    if (field === "profilePic") {
+      // ProfilePic requires FormData
       data = new FormData();
-      if (field === "profilePic" && profilePic)
+      if (profilePic) {
         data.append("profilePic", profilePic);
-      if (field === "username") data.append("username", username);
-      if (field === "password") data.append("password", password);
-      if (field === "bio") data.append("bio", bio);
+        isFormData = true;
+      }
+    } else {
+      // Username, password, bio → plain JSON
+      data = {};
+      if (field === "username") data.username = username;
+      if (field === "password") data.password = password;
+      if (field === "bio") data.bio = bio;
     }
 
     try {
       setLoadingField(field);
-      await updateProfile(data, field);
+      await updateProfile(data, field, isFormData);
 
       setToast({
         type: "success",
