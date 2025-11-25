@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import LocationSet from "../components/Location/LocationSet";
@@ -9,7 +9,58 @@ import CategoryDisplay from "../components/Categories/categoryDisplay";
 import UserSearch from "../components/Searchbar/UserSearch";
 import EmptyCategoryLoader from "./Loaders/EmptyCategoryLoader";
 import PostCard from "../components/Posts/PostCard";
+import { FEATURE_FLAGS } from "../config/featureFlags";
 
+// ------------------ Onboarding Guide Component ------------------
+function OnboardingGuide({ steps, onFinish }) {
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const nextStep = () => {
+    if (currentStep + 1 < steps.length) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      onFinish();
+    }
+  };
+
+  const step = steps[currentStep];
+  const element = step.target?.current;
+
+  const style = element
+    ? {
+        position: "absolute",
+        top: element.getBoundingClientRect().top + window.scrollY - 10,
+        left: element.getBoundingClientRect().left + window.scrollX - 10,
+        width: element.offsetWidth + 20,
+        height: element.offsetHeight + 20,
+        border: "2px solid #2fda62ff",
+        borderRadius: "0.5rem",
+        zIndex: 9999,
+        pointerEvents: "none",
+      }
+    : {};
+
+  return (
+    <>
+      {element && <div style={style}></div>}
+      <div
+        className="fixed bottom-8 right-8 bg-white p-4 rounded-lg shadow-lg z-50 max-w-sm"
+        style={{ pointerEvents: "auto" }}
+      >
+        <h3 className="text-pink-600 font-bold mb-2">{step.title}</h3>
+        <p className="text-gray-700 text-sm">{step.description}</p>
+        <button
+          onClick={nextStep}
+          className="mt-3 px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600 text-sm"
+        >
+          {currentStep + 1 === steps.length ? "Finish" : "Next"}
+        </button>
+      </div>
+    </>
+  );
+}
+
+// ------------------ Body Component ------------------
 export default function Body() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isLoggedIn = !!user.username;
@@ -76,6 +127,24 @@ export default function Body() {
     })
     .slice(0, visibleCount);
 
+  // --------------------------- Onboarding Steps ----------------------
+  const [showOnboarding, setShowOnboarding] = useState(true);
+  const postsRef = useRef(null);
+
+  const onboardingSteps = [
+    {
+      target: postsRef,
+      title: "Uncategorized Post Section 📢",
+      description:
+        "The section highlighted in green shows all uncategorized post. You can click the post to bring up the post details.",
+    },
+    {
+      target: null, // Could add more steps like Post button, Filter, etc.
+      title: "Click 'Finish' to close ❌",
+    },
+  ];
+
+  // --------------------------- Render -------------------------------
   return (
     <section className="bg-white min-h-screen px-4 sm:px-6 md:px-10 lg:px-20 py-6 scroll-smooth">
       <Heading />
@@ -97,18 +166,20 @@ export default function Body() {
         )}
       </div>
 
-      <PromotionPosts />
+      {FEATURE_FLAGS.ENABLE_PROMOTE_ACCOUNT && <PromotionPosts />}
 
       <div className="mt-6 mb-4">
-        <UserSearch
-          users={users}
-          onResults={setSearchResults}
-          query={searchQuery}
-          onQueryChange={setSearchQuery}
-        />
+        {FEATURE_FLAGS.ENABLE_USER_SEARCH && (
+          <UserSearch
+            users={users}
+            onResults={setSearchResults}
+            query={searchQuery}
+            onQueryChange={setSearchQuery}
+          />
+        )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" ref={postsRef}>
         {filteredUncategorizedPosts.length > 0 ? (
           filteredUncategorizedPosts.map((post, i) => (
             <PostCard key={post._id || i} post={post} />
@@ -142,6 +213,13 @@ export default function Body() {
           location={location}
         />
       </div>
+
+      {showOnboarding && (
+        <OnboardingGuide
+          steps={onboardingSteps}
+          onFinish={() => setShowOnboarding(false)}
+        />
+      )}
     </section>
   );
 }

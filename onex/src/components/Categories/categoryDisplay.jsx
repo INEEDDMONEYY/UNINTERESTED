@@ -3,6 +3,7 @@ import { useState } from "react";
 import UserSearch from "../../components/Searchbar/UserSearch";
 import CategoryPostsLoader from "../Loaders/CategoryPostsLoader";
 import PostCard from "../Posts/PostCard";
+import { FEATURE_FLAGS } from "../../config/featureFlags";
 
 export default function CategoryDisplay({ selectedCategory, users = [], posts = [], location = null }) {
   const { categoryName } = useParams();
@@ -33,12 +34,14 @@ export default function CategoryDisplay({ selectedCategory, users = [], posts = 
             {category ? `Posts for: ${category}` : "Select a category to view posts"}
           </h2>
           <div className="w-full md:w-1/2 lg:w-1/3">
+          {FEATURE_FLAGS.ENABLE_USER_SEARCH && (
             <UserSearch
               users={users}
               query={query}
               onQueryChange={setQuery}
               onSelectUser={setSelectedUser}
             />
+          )}
           </div>
         </div>
 

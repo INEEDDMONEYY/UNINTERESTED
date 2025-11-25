@@ -178,6 +178,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
           type="file"
           name="picture"
           accept="image/*"
+          multiple
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 sm:p-3 rounded-lg text-sm sm:text-base"
         />

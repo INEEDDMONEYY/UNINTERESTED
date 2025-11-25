@@ -8,7 +8,9 @@ export default function SignupForm() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5020/api';
+  // ✅ Ensure API_BASE is domain only
+  const rawBase = import.meta.env.VITE_API_BASE || 'http://localhost:5020';
+  const API_BASE = rawBase.replace(/\/+$/, '');
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -27,10 +29,15 @@ export default function SignupForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password, role }),
-        credentials: 'include', // ✅ Important for cookie auth
+        credentials: 'include',
       });
 
-      const data = await response.json();
+      let data = {};
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
 
       if (response.ok) {
         navigate('/home');

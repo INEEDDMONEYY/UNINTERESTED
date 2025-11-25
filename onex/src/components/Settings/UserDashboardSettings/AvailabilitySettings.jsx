@@ -1,9 +1,44 @@
+//Availability Settings
 import React, { useState, useEffect } from "react";
 import { Loader2, CheckCircle, XCircle, Clock } from "lucide-react";
 
-export default function AvailabilitySettings({ availability, setAvailability }) {
+export default function AvailabilitySettings({
+  availability,
+  setAvailability,
+  userId, // ✅ new optional prop to namespace by user
+}) {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+
+  // ✅ Build a per-user storage key (falls back to a generic key if no userId)
+  const storageKey = userId ? `availability_${userId}` : "availability";
+
+  // ✅ Read availability for the current userId on mount / user change
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        // Only update if saved shape looks right
+        if (saved && typeof saved === "object" && "status" in saved) {
+          setAvailability(saved);
+        }
+      }
+    } catch {
+      // ignore parsing errors
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]); // re-hydrate when user identity changes
+
+  // ✅ Persist to localStorage whenever availability changes (for this userId)
+  useEffect(() => {
+    if (!availability) return;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(availability));
+    } catch {
+      // ignore storage errors
+    }
+  }, [availability, storageKey]);
 
   // Whenever availability.status changes, show a toast
   useEffect(() => {
@@ -13,7 +48,6 @@ export default function AvailabilitySettings({ availability, setAvailability }) 
         message: `Availability set to "${availability.status}"`,
       });
 
-      // Clear toast after 3 seconds
       const timer = setTimeout(() => setToast(null), 3000);
       return () => clearTimeout(timer);
     }
@@ -24,13 +58,18 @@ export default function AvailabilitySettings({ availability, setAvailability }) 
 
     // Simulate a save action locally
     setTimeout(() => {
+      // ✅ Explicitly persist current value for this user
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(availability));
+      } catch {
+        // ignore storage errors
+      }
+
       setToast({
         type: "success",
         message: "Availability saved locally!",
       });
       setLoading(false);
-
-      // Clear toast after 3 seconds
       setTimeout(() => setToast(null), 3000);
     }, 1000);
   };

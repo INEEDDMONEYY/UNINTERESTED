@@ -1,3 +1,5 @@
+//User Availability Display
+
 import { useEffect, useState } from "react";
 import { CalendarDays, Clock } from "lucide-react";
 

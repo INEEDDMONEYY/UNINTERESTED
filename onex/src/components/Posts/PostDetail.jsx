@@ -1,7 +1,8 @@
-// 📦 External Libraries
+// 📦 External Libraries 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { FEATURE_FLAGS } from '../../config/featureFlags';
 
 // 🌀 Loaders & Components
 import PostDetailLoader from '../Loaders/PostDetailLoader';
@@ -90,20 +91,24 @@ export default function PostDetail() {
       <p className="text-gray-700 text-base mb-6">{post.description || "No description provided."}</p>
 
       {/* 🟢 User Availability */}
-      <div className="mb-6">
-        <h3 className="text-sm font-semibold text-gray-600 mb-1">User Availability</h3>
-        <div className="h-auto overflow-hidden p-1">
-          <UserAvailabilityDisplay availability={availability} />
+      {FEATURE_FLAGS.ENABLE_VIEW_ACTIVITY && (
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-gray-600 mb-1">User Availability</h3>
+          <div className="h-auto overflow-hidden p-1">
+            <UserAvailabilityDisplay availability={availability} />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 💲 User Meetup Prices */}
-      <div className="mb-6">
-        <h3 className="text-sm font-semibold text-gray-600 mb-1">Meetup Prices</h3>
-        <div className="h-auto overflow-hidden p-1">
-          <UserMeetupDisplay incallPrice={incallPrice} outcallPrice={outcallPrice} />
+      {FEATURE_FLAGS.MEETUP_SERVICE_SETTINGS && (
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-gray-600 mb-1">Meetup Prices</h3>
+          <div className="h-auto overflow-hidden p-1">
+            <UserMeetupDisplay incallPrice={incallPrice} outcallPrice={outcallPrice} />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 📅 Timestamp */}
       {post.createdAt && (
@@ -113,10 +118,12 @@ export default function PostDetail() {
       )}
 
       {/* 💬 Comment Section Placeholder */}
-      <div className="mt-8 border-t pt-6 mb-7">
-        <h3 className="text-lg font-semibold text-pink-500 mb-2">Comments</h3>
-        <p className="text-sm text-gray-500">Comment functionality coming soon...</p>
-      </div>
+      {FEATURE_FLAGS.ENABLE_COMMENTS && (
+        <div className="mt-8 border-t pt-6 mb-7">
+          <h3 className="text-lg font-semibold text-pink-500 mb-2">Comments</h3>
+          <p className="text-sm text-gray-500">Comment functionality coming soon...</p>
+        </div>
+      )}
 
       {/* 🔘 Action Buttons */}
       <div className="flex flex-row justify-between items-center mt-8">
@@ -126,12 +133,15 @@ export default function PostDetail() {
         >
           Return to posts
         </button>
-        <button
-          onClick={() => navigate(`/profile/${post.username}`)}
-          className="px-4 py-2 text-[12px] text-white font-medium rounded-lg shadow-md transition-all hover:opacity-90 bg-gradient-to-r from-pink-500 via-black to-yellow-400"
-        >
-          View profile
-        </button>
+
+        {FEATURE_FLAGS.ENABLE_PUBLIC_PROFILE && (
+          <button
+            onClick={() => navigate(`/profile/${post.username}`)}
+            className="px-4 py-2 text-[12px] text-white font-medium rounded-lg shadow-md transition-all hover:opacity-90 bg-gradient-to-r from-pink-500 via-black to-yellow-400"
+          >
+            View profile
+          </button>
+        )}
       </div>
     </div>
   );

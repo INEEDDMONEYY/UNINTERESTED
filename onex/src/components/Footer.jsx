@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Logo from '../assets/Logo.png';
 import TermsPolicy from '../components/policy/TermsPolicy';
 import PrivacyPolicy from '../components/policy/PrivacyPolicy';
+import { FEATURE_FLAGS } from '../config/featureFlags';
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -28,12 +29,17 @@ export default function Footer() {
               <Link to="/privacy-policy" className="hover:underline">Privacy</Link> · Guidelines
             </p>
           </div>
-          <div>
-            <h3 className="font-semibold underline mb-1">Follow Us</h3>
-            <p className="text-gray-300">Instagram · Twitter · LinkedIn</p>
-          </div>
+
+          {/* Conditionally render Follow Us section */}
+          {FEATURE_FLAGS.ENABLE_FOLLOW_US && (
+            <div>
+              <h3 className="font-semibold underline mb-1">Follow Us</h3>
+              <p className="text-gray-300">Instagram · Twitter · LinkedIn</p>
+            </div>
+          )}
         </div>
       </div>
     </footer>
   );
 }
+

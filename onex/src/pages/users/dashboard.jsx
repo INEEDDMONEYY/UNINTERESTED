@@ -13,6 +13,7 @@ import UserProfileSettings from "./UserProfileSettings.jsx";
 import ProfilePage from "../profiles/ProfilePage.jsx";
 import UserActivity from "./UserActivity.jsx";
 import { UserContext } from "../../context/UserContext";
+import { FEATURE_FLAGS } from "../../config/featureFlags";
 
 export default function UserDashboard() {
   const navigate = useNavigate();
@@ -25,17 +26,27 @@ export default function UserDashboard() {
   }, [user]);
 
   const handleSignOut = async () => {
-    navigate("/signout"); // ✅ Navigate first to show loader
-    await logout();       // ✅ Then perform logout in background
+    navigate("/signout");
+    await logout();
+  };
+
+  // 🚫 Prevent switching to disabled views
+  const safeSetActiveView = (view) => {
+    if (view === "activity" && !FEATURE_FLAGS.ENABLE_VIEW_ACTIVITY) return;
+    if (view === "publicProfile" && !FEATURE_FLAGS.ENABLE_PUBLIC_PROFILE) return;
+    setActiveView(view);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-300 via-yellow-100 via-white via-black to-purple-400 flex flex-col md:flex-row">
+
       {/* Sidebar */}
       <aside className="w-full md:w-64 bg-white shadow-xl p-6 flex flex-col justify-between">
         <nav className="mt-2 w-full space-y-2 text-sm">
+
+          {/* Edit Profile (always enabled) */}
           <button
-            onClick={() => setActiveView("profile")}
+            onClick={() => safeSetActiveView("profile")}
             className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
               activeView === "profile"
                 ? "bg-pink-100 text-pink-800 font-semibold"
@@ -46,29 +57,35 @@ export default function UserDashboard() {
             Edit Profile
           </button>
 
-          <button
-            onClick={() => setActiveView("activity")}
-            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-              activeView === "activity"
-                ? "bg-pink-100 text-pink-800 font-semibold"
-                : "hover:bg-pink-100 text-pink-800"
-            }`}
-          >
-            <BarChart3 size={18} />
-            View Activity
-          </button>
+          {/* View Activity — gated by feature flag */}
+          {FEATURE_FLAGS.ENABLE_VIEW_ACTIVITY && (
+            <button
+              onClick={() => safeSetActiveView("activity")}
+              className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                activeView === "activity"
+                  ? "bg-pink-100 text-pink-800 font-semibold"
+                  : "hover:bg-pink-100 text-pink-800"
+              }`}
+            >
+              <BarChart3 size={18} />
+              View Activity
+            </button>
+          )}
 
-          <button
-            onClick={() => setActiveView("publicProfile")}
-            className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-              activeView === "publicProfile"
-                ? "bg-pink-100 text-pink-800 font-semibold"
-                : "hover:bg-pink-100 text-pink-800"
-            }`}
-          >
-            <UserRound size={18} />
-            Profile
-          </button>
+          {/* Public Profile — gated by feature flag */}
+          {FEATURE_FLAGS.ENABLE_PUBLIC_PROFILE && (
+            <button
+              onClick={() => safeSetActiveView("publicProfile")}
+              className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                activeView === "publicProfile"
+                  ? "bg-pink-100 text-pink-800 font-semibold"
+                  : "hover:bg-pink-100 text-pink-800"
+              }`}
+            >
+              <UserRound size={18} />
+              Profile
+            </button>
+          )}
 
           <button
             onClick={handleSignOut}
@@ -94,7 +111,7 @@ export default function UserDashboard() {
           <ol className="list-reset flex items-center gap-2">
             <li>
               <button
-                onClick={() => setActiveView("dashboard")}
+                onClick={() => safeSetActiveView("dashboard")}
                 className="text-pink-700 hover:underline"
               >
                 Dashboard
@@ -119,7 +136,7 @@ export default function UserDashboard() {
           </div>
         )}
 
-        {activeView === "activity" && (
+        {FEATURE_FLAGS.ENABLE_VIEW_ACTIVITY && activeView === "activity" && (
           <div>
             <h1 className="text-2xl font-bold text-pink-700 mb-2">Your Activity</h1>
             <p className="text-gray-700 mb-4">
@@ -129,7 +146,7 @@ export default function UserDashboard() {
           </div>
         )}
 
-        {activeView === "publicProfile" && (
+        {FEATURE_FLAGS.ENABLE_PUBLIC_PROFILE && activeView === "publicProfile" && (
           <div>
             <ProfilePage />
           </div>

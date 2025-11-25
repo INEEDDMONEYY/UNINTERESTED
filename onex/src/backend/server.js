@@ -28,6 +28,7 @@ const port = env.PORT;
 /* ------------------------------ 🌐 CORS Setup ------------------------------ */
 const allowedOrigins = [
   env.CLIENT_URL,
+  'http://localhost:5173',
   'https://uninterested.vercel.app',
   'https://uninterested.onrender.com',
   'https://glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev',
@@ -42,6 +43,8 @@ app.use(cors({
     }
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
 }));
 
 app.options('', cors());

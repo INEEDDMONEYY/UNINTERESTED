@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { useNavigate } from "react-router";
 import { Link } from "react-router-dom";
 import Logo from "../assets/Logo2.png";
+import { FEATURE_FLAGS } from "../config/featureFlags.js";
 import {
   ArrowUpRight,
   ChevronsRightLeft,
@@ -27,7 +28,7 @@ export default function Navbar() {
       ? navigate("/admin")
       : role === "user"
       ? navigate("/user/dashboard")
-      : navigate("/signin"); // fallback if not logged in
+      : navigate("/signin");
   };
 
   return (
@@ -49,18 +50,24 @@ export default function Navbar() {
         <Link to="/signin" className="flex items-center gap-1 hover:text-pink-400">
           <User size={18} /> Sign In
         </Link>
+
         <Link to="/signup" className="flex items-center gap-1 hover:text-pink-400">
           <FileUser size={18} /> Sign Up
         </Link>
+
         <button
           onClick={handleProfileClick}
           className="flex items-center gap-1 hover:text-pink-400"
         >
           <CircleUser size={18} /> Profile
         </button>
-        <Link to="/promote" className="flex items-center gap-1 hover:text-pink-400">
-          <Contact size={18} /> Promote Account
-        </Link>
+
+        {/* ✔ FEATURE FLAG APPLIED HERE */}
+        {FEATURE_FLAGS.ENABLE_PROMOTE_ACCOUNT && (
+          <Link to="/promote" className="flex items-center gap-1 hover:text-pink-400">
+            <Contact size={18} /> Promote Account
+          </Link>
+        )}
 
         {/* Close button for mobile */}
         <button

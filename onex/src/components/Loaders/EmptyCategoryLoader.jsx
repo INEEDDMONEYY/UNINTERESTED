@@ -6,7 +6,7 @@ export default function EmptyCategoryLoader() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setTimeoutReached(true);
-    }, 30000); // 30 secs
+    }, 60000); // 1 minute
 
     return () => clearTimeout(timer);
   }, []);
@@ -15,7 +15,7 @@ export default function EmptyCategoryLoader() {
     return (
       <div className="col-span-full flex flex-col items-center justify-center py-10 text-center text-gray-500">
         <div className="text-sm sm:text-base text-red-400">
-          There aren't any posts in this state/region yet.
+          <p>There aren't any posts in this state/region yet.<br /><span className="text-green-700">Be the first to post 🙌</span></p>
         </div>
       </div>
     );
@@ -29,7 +29,7 @@ export default function EmptyCategoryLoader() {
         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 opacity-20 animate-bubble-pop delay-600" />
       </div>
       <div className="mt-4 text-sm sm:text-base animate-pulse">
-        Loading uncategorized posts...
+        <p>Loading uncategorized posts...</p>
       </div>
     </div>
   );
