@@ -1,6 +1,7 @@
 // utils/cloudinary.js
+const env = require("../.env");
 const cloudinary = require('cloudinary').v2;
-const env = require("../config/env");
+
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
