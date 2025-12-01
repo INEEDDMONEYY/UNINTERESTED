@@ -9,7 +9,8 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // ✅ Create post with image support
-router.post("/", authenticateToken, upload.single("picture"), postController.createPost);
+router.post("/", upload.single("picture"), authenticateToken, postController.createPost);
+
 
 // ✅ Existing CRUD routes
 router.get("/", postController.getPosts);

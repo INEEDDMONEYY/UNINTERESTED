@@ -3,6 +3,11 @@ import { Link } from "react-router-dom";
 export default function PostCard({ post }) {
   if (!post) return null;
 
+  // Safely extract user info from populated userId
+  const username = post.userId?.username || "Unknown";
+  const bio = post.userId?.bio || "";
+  const profilePic = post.userId?.profilePic || "";
+
   return (
     <div className="relative bg-gradient-to-r from-pink-500 via-black to-yellow-500 p-[2px] rounded-lg shadow-lg max-w-sm sm:max-w-md md:max-w-lg lg:max-w-sm mx-auto sm:mx-0 transition-transform hover:scale-[1.02]">
       <div className="bg-white rounded-lg p-4">
@@ -36,20 +41,47 @@ export default function PostCard({ post }) {
 
           {/* 📝 Post Content */}
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-pink-600 break-words">
-              {post.username || "Unknown"}
-            </h2>
+            {/* User Info */}
+            <div className="flex items-center gap-2 mb-1">
+              {profilePic && (
+                <img
+                  src={profilePic}
+                  alt={username}
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-pink-300"
+                />
+              )}
+              <h2 className="text-xl sm:text-2xl font-bold text-pink-600 break-words">
+                {username}
+              </h2>
+            </div>
+
+            {bio && (
+              <p className="text-sm sm:text-base text-gray-500 mb-2 break-words">
+                {bio}
+              </p>
+            )}
+
             <h4 className="text-sm sm:text-base text-black mt-2 break-words font-semibold">
               {post.title || "No title provided."}
             </h4>
+
             <div className="overflow-hidden">
               <p className="text-sm sm:text-base text-gray-700 mt-2 break-words">
                 {post.description || "No description provided."}
               </p>
             </div>
+
             <p className="text-sm sm:text-base text-gray-700 mt-2 break-words">
-              {post.city && post.state ? `${post.city}, ${post.state}` : "Location not specified."}
+              {post.city && post.state
+                ? `${post.city}, ${post.state}`
+                : "Location not specified."}
             </p>
+
+            {post.createdAt && (
+              <p className="text-gray-400 text-xs mt-1">
+                Posted on {new Date(post.createdAt).toLocaleString()}
+              </p>
+            )}
           </div>
         </Link>
       </div>

@@ -138,16 +138,7 @@ app.use('/api/posts', postRoutes);
 /* -------------------------- 👤 User Routes ------------------------------- */
 app.use('/api/users', authenticateToken, userRoutes);
 
-/* -------------------------- 🌍 Public User List Route ---------------------- */
-app.get('/api/users', async (req, res) => {
-  try {
-    const users = await User.find().select('-password');
-    res.status(200).json(users);
-  } catch (err) {
-    console.error('❌ Get all users error:', err);
-    res.status(500).json({ error: 'Failed to fetch users' });
-  }
-});
+
 
 /* -------------------------- 🔐 Auth Routes -------------------------- */
 app.use('/api', authRoutes);

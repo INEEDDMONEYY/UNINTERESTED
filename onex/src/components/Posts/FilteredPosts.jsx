@@ -9,35 +9,46 @@ export default function FilteredPosts({
   handleLoadMore,
   MAX_POSTS = 100,
 }) {
-  // ✅ Filter posts by location and category
+  // ------------------ Filter posts by location, category ------------------
   const filteredPosts = posts
     .filter((post) => {
+      // ✅ Safe optional chaining for location filter
       const matchesLocation =
         !location ||
         post.city?.toLowerCase() === location.city?.toLowerCase() ||
         post.state?.toLowerCase() === location.state?.toLowerCase();
 
+      // ✅ Safe optional chaining for category filter
       const matchesCategory =
         !selectedCategory ||
-        post.category?.toLowerCase() === selectedCategory.toLowerCase();
+        post.category?.toLowerCase() === selectedCategory?.toLowerCase();
 
       return matchesLocation && matchesCategory;
     })
     .slice(0, visibleCount);
 
+  // ------------------ Render ------------------
   return (
     <>
-      {/* ------------------ Posts Grid ------------------ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
         {filteredPosts.length > 0 ? (
-          filteredPosts.map((post, i) => <PostCard key={post._id || i} post={post} />)
+          filteredPosts.map((post, i) => {
+            // ✅ Ensure PostCard gets username from populated userId
+            const postWithUsername = {
+              ...post,
+              username: post.userId?.username || "Unknown",
+              profilePic: post.userId?.profilePic || null,
+              bio: post.userId?.bio || "",
+            };
+            return <PostCard key={post._id || i} post={postWithUsername} />;
+          })
         ) : (
           <EmptyCategoryLoader />
         )}
       </div>
 
       {/* ------------------ Load More Button ------------------ */}
-      {filteredPosts.length >= 15 && filteredPosts.length < MAX_POSTS && (
+      {visibleCount < posts.length && visibleCount < MAX_POSTS && (
         <div className="flex justify-center mt-8">
           <button
             onClick={handleLoadMore}
