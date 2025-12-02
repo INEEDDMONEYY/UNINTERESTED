@@ -1,9 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function OnboardingGuide({ steps, onFinish }) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [show, setShow] = useState(false);
 
-  if (!steps || steps.length === 0) return null;
+  // ✅ Show guide only once per session
+  useEffect(() => {
+    const hasSeenGuide = sessionStorage.getItem("hasSeenOnboarding");
+    if (!hasSeenGuide) {
+      setShow(true);
+      sessionStorage.setItem("hasSeenOnboarding", "true");
+    }
+  }, []);
+
+  if (!steps || steps.length === 0 || !show) return null;
 
   const step = steps[currentStep];
 
@@ -11,7 +21,7 @@ export default function OnboardingGuide({ steps, onFinish }) {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      onFinish?.();
+      handleFinish();
     }
   };
 
@@ -19,6 +29,11 @@ export default function OnboardingGuide({ steps, onFinish }) {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
+  };
+
+  const handleFinish = () => {
+    setShow(false);
+    onFinish?.();
   };
 
   return (
@@ -57,7 +72,7 @@ export default function OnboardingGuide({ steps, onFinish }) {
 
         {/* Close Button */}
         <button
-          onClick={onFinish}
+          onClick={handleFinish}
           className="absolute top-2 sm:top-3 right-2 sm:right-3 text-gray-500 hover:text-gray-700 text-lg sm:text-xl"
         >
           ✕

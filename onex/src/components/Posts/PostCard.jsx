@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { Trash2 } from "lucide-react";
+import axios from "axios";
 
 export default function PostCard({ post }) {
   if (!post) return null;
@@ -8,9 +10,34 @@ export default function PostCard({ post }) {
   const bio = post.userId?.bio || "";
   const profilePic = post.userId?.profilePic || "";
 
+  // ✅ Get logged-in user
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const isOwner = user._id && post.userId?._id === user._id;
+
+  // ------------------- Delete Post -------------------
+  const handleDelete = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/posts/${post._id}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`, // ensure JWT is stored
+        },
+      });
+      alert("Post deleted successfully");
+      window.location.reload(); // refresh feed after deletion
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+      alert("Error deleting post");
+    }
+  };
+
   return (
     <div className="relative bg-gradient-to-r from-pink-500 via-black to-yellow-500 p-[2px] rounded-lg shadow-lg max-w-sm sm:max-w-md md:max-w-lg lg:max-w-sm mx-auto sm:mx-0 transition-transform hover:scale-[1.02]">
-      <div className="bg-white rounded-lg p-4">
+      <div className="bg-white rounded-lg p-4 relative">
         <Link
           to={`/post/${post._id}`}
           className="block relative hover:shadow-xl transition"
@@ -83,6 +110,17 @@ export default function PostCard({ post }) {
               </p>
             )}
           </div>
+
+          {/* 🗑️ Delete Icon for Owner */}
+          {isOwner && (
+            <button
+              onClick={handleDelete}
+              className="absolute bottom-2 left-2 p-1 rounded-full bg-red-500 hover:bg-red-600 text-white transition"
+              title="Delete Post"
+            >
+              <Trash2 size={18} />
+            </button>
+          )}
         </Link>
       </div>
     </div>

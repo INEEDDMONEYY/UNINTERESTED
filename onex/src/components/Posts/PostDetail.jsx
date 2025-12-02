@@ -6,7 +6,7 @@ import { FEATURE_FLAGS } from '../../config/featureFlags';
 
 // 🌀 Loaders & Components
 import PostDetailLoader from '../Loaders/PostDetailLoader';
-import UserProfile from '../../pages/profiles/ProfilePage';
+//import UserProfile from '../../pages/profiles/ProfilePage';
 import UserAvailabilityDisplay from '../UserDisplay/UserAvailabilityDisplay';
 import UserMeetupDisplay from '../UserDisplay/UserMeetupDisplay';
 
@@ -16,7 +16,7 @@ export default function PostDetail() {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Load availability from localStorage
+  // ✅ Load availability from localStorage (availability feature is disabled until future update)
   const [availability, setAvailability] = useState(() => {
     const saved = localStorage.getItem("availability");
     return saved ? JSON.parse(saved) : { status: "" };

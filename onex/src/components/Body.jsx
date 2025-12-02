@@ -128,7 +128,6 @@ export default function Body() {
     .slice(0, visibleCount);
 
   // --------------------------- Onboarding Steps ----------------------
-  const [showOnboarding, setShowOnboarding] = useState(true);
   const postsRef = useRef(null);
 
   const onboardingSteps = [
@@ -139,10 +138,20 @@ export default function Body() {
         "The section highlighted in green shows all uncategorized post. You can click the post to bring up the post details.",
     },
     {
-      target: null, // Could add more steps like Post button, Filter, etc.
+      target: null,
       title: "Click 'Finish' to close ❌",
     },
   ];
+
+  // ✅ Show onboarding only once per session
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return sessionStorage.getItem("hasSeenOnboarding") !== "true";
+  });
+
+  const handleOnboardingFinish = () => {
+    sessionStorage.setItem("hasSeenOnboarding", "true");
+    setShowOnboarding(false);
+  };
 
   // --------------------------- Render -------------------------------
   return (
@@ -217,7 +226,7 @@ export default function Body() {
       {showOnboarding && (
         <OnboardingGuide
           steps={onboardingSteps}
-          onFinish={() => setShowOnboarding(false)}
+          onFinish={handleOnboardingFinish}
         />
       )}
     </section>

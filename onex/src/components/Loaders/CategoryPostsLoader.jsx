@@ -6,7 +6,7 @@ export default function CategoryPostsLoader() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setTimeoutReached(true);
-    }, 60000); // ⏱️ 1 minute
+    }, 10000); // ⏱️ 10 secs
 
     return () => clearTimeout(timer);
   }, []);
