@@ -1,5 +1,5 @@
 // utils/cloudinary.js
-const env = require("../.env");
+require('dotenv').config(); // <-- add this at the very top
 const cloudinary = require('cloudinary').v2;
 
 
