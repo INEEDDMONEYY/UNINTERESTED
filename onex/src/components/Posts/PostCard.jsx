@@ -115,7 +115,7 @@ export default function PostCard({ post }) {
           {isOwner && (
             <button
               onClick={handleDelete}
-              className="absolute bottom-2 left-2 p-1 rounded-full bg-red-500 hover:bg-red-600 text-white transition"
+              className="absolute bottom-2 right-2 p-1 rounded-full bg-red-500 hover:bg-red-600 text-white transition"
               title="Delete Post"
             >
               <Trash2 size={18} />
