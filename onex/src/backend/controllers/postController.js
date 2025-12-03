@@ -22,25 +22,25 @@ exports.createPost = async (req, res) => {
         .json({ error: "Title and description are required." });
     }
 
-    let imageUrl = null;
+    let imageUrls = []; // initialize array for multiple images
 
-    /* ---------------------------- Upload image ---------------------------- */
-    if (req.file) {
+    /* ---------------------------- Upload images ---------------------------- */
+    if (req.files && req.files.length > 0) {
       try {
-        const streamUpload = () =>
-          new Promise((resolve, reject) => {
+        const uploadPromises = req.files.map((file) => {
+          return new Promise((resolve, reject) => {
             const stream = cloudinary.uploader.upload_stream(
               { folder: "posts" },
               (error, result) => {
-                if (result) resolve(result);
+                if (result) resolve(result.secure_url);
                 else reject(error);
               }
             );
-            streamifier.createReadStream(req.file.buffer).pipe(stream);
+            streamifier.createReadStream(file.buffer).pipe(stream);
           });
+        });
 
-        const uploadResult = await streamUpload();
-        imageUrl = uploadResult.secure_url;
+        imageUrls = await Promise.all(uploadPromises); // wait for all uploads
       } catch (uploadErr) {
         console.error("❌ Cloudinary upload failed:", uploadErr);
         return res.status(500).json({ error: "Image upload failed" });
@@ -57,7 +57,7 @@ exports.createPost = async (req, res) => {
       state,
       category,
       visibility,
-      picture: imageUrls,
+      pictures: imageUrls, // save array of uploaded image URLs
     });
 
     const savedPost = await newPost.save();
@@ -73,7 +73,9 @@ exports.createPost = async (req, res) => {
     res.status(201).json(populatedPost);
   } catch (err) {
     console.error("❌ [createPost] Server error:", err);
-    res.status(500).json({ error: "Failed to create post", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to create post", details: err.message });
   }
 };
 
@@ -100,7 +102,9 @@ exports.getPosts = async (req, res) => {
     res.json(posts);
   } catch (err) {
     console.error("❌ [getPosts] Error:", err);
-    res.status(500).json({ error: "Failed to fetch posts", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch posts", details: err.message });
   }
 };
 
@@ -120,7 +124,9 @@ exports.getPostById = async (req, res) => {
     res.json(post);
   } catch (err) {
     console.error("❌ [getPostById] Error:", err);
-    res.status(500).json({ error: "Failed to fetch post", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch post", details: err.message });
   }
 };
 
@@ -133,9 +139,13 @@ exports.updatePost = async (req, res) => {
 
     if (!post) return res.status(404).json({ error: "Post not found" });
 
-    if (post.userId.toString() !== req.user._id.toString() &&
-        req.user.role !== "admin") {
-      return res.status(403).json({ error: "Not authorized to update this post" });
+    if (
+      post.userId.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
+      return res
+        .status(403)
+        .json({ error: "Not authorized to update this post" });
     }
 
     const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, {
@@ -149,7 +159,9 @@ exports.updatePost = async (req, res) => {
     res.json(updatedPost);
   } catch (err) {
     console.error("❌ [updatePost] Error:", err);
-    res.status(500).json({ error: "Failed to update post", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to update post", details: err.message });
   }
 };
 
@@ -162,9 +174,13 @@ exports.deletePost = async (req, res) => {
 
     if (!post) return res.status(404).json({ error: "Post not found" });
 
-    if (post.userId.toString() !== req.user._id.toString() &&
-        req.user.role !== "admin") {
-      return res.status(403).json({ error: "Not authorized to delete this post" });
+    if (
+      post.userId.toString() !== req.user._id.toString() &&
+      req.user.role !== "admin"
+    ) {
+      return res
+        .status(403)
+        .json({ error: "Not authorized to delete this post" });
     }
 
     await Post.findByIdAndDelete(req.params.id);
@@ -172,6 +188,8 @@ exports.deletePost = async (req, res) => {
     res.json({ message: "Post deleted successfully" });
   } catch (err) {
     console.error("❌ [deletePost] Error:", err);
-    res.status(500).json({ error: "Failed to delete post", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to delete post", details: err.message });
   }
 };
