@@ -15,7 +15,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
     city: "",
     state: "",
     category: "",
-    picture: null,
+    pictures: [], // <-- changed from single picture to array
     visibility: "",
   });
 
@@ -33,7 +33,8 @@ export default function PostForm({ onSuccess, embedded = false }) {
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files && files.length > 0) {
-      setFormData((prev) => ({ ...prev, picture: files[0] }));
+      // <-- handle multiple files
+      setFormData((prev) => ({ ...prev, [name]: Array.from(files) }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -62,15 +63,23 @@ export default function PostForm({ onSuccess, embedded = false }) {
 
     try {
       const fd = new FormData();
+
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null) fd.append(key, value);
+        if (value !== null) {
+          if (key === "pictures") {
+            // append each file individually
+            value.forEach((file) => fd.append("pictures", file));
+          } else {
+            fd.append(key, value);
+          }
+        }
       });
 
       console.log("[PostForm] Submitting FormData:", formData);
 
       const res = await api.post("/posts", fd, {
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -86,7 +95,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
         city: "",
         state: "",
         category: "",
-        picture: null,
+        pictures: [],
         visibility: "",
       });
       setAcknowledged(false);
@@ -110,17 +119,28 @@ export default function PostForm({ onSuccess, embedded = false }) {
   };
 
   return (
-    <div className={`w-full ${embedded ? "bg-transparent shadow-none" : "bg-white shadow-md"} rounded-2xl p-4 sm:p-6 max-w-xl mx-auto`}>
-      {!embedded && <h1 className="text-xl sm:text-2xl font-bold mb-4 text-center">Create New Post</h1>}
+    <div
+      className={`w-full ${
+        embedded ? "bg-transparent shadow-none" : "bg-white shadow-md"
+      } rounded-2xl p-4 sm:p-6 max-w-xl mx-auto`}
+    >
+      {!embedded && (
+        <h1 className="text-xl sm:text-2xl font-bold mb-4 text-center">
+          Create New Post
+        </h1>
+      )}
 
       <div className="mb-4">
-        <label className="block mb-2 font-semibold text-sm sm:text-base">Choose Category:</label>
+        <label className="block mb-2 font-semibold text-sm sm:text-base">
+          Choose Category:
+        </label>
         <div className="overflow-x-auto">
           <CategoryList onSelect={handleCategorySelect} />
         </div>
         {formData.category && (
           <p className="text-xs sm:text-sm text-gray-600 mt-1 text-center sm:text-left">
-            Selected: <span className="font-medium text-gray-800">{formData.category}</span>
+            Selected:{" "}
+            <span className="font-medium text-gray-800">{formData.category}</span>
           </p>
         )}
       </div>
@@ -165,8 +185,9 @@ export default function PostForm({ onSuccess, embedded = false }) {
 
         <input
           type="file"
-          name="picture"
+          name="pictures"
           accept="image/*"
+          multiple // <-- allow multiple images
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 sm:p-3 rounded-lg text-sm sm:text-base"
         />
@@ -178,7 +199,9 @@ export default function PostForm({ onSuccess, embedded = false }) {
           required
           className="w-full border border-gray-300 p-2 sm:p-3 rounded-lg text-gray-700 focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base"
         >
-          <option value="" disabled>See's Only</option>
+          <option value="" disabled>
+            See's Only
+          </option>
           <option value="Men">Men</option>
           <option value="Women">Women</option>
           <option value="Both">Both</option>
@@ -192,7 +215,13 @@ export default function PostForm({ onSuccess, embedded = false }) {
             className="mt-1 w-4 h-4 text-pink-500 border-gray-300 rounded focus:ring-pink-400"
           />
           <span>
-            By acknowledging this checkbox, you are acknowledging that each post will cost <strong>$13</strong>. If you have any questions, please look at our <a href="/terms-policy" className="text-pink-600 underline">policies page</a>.
+            By acknowledging this checkbox, you are acknowledging that each post
+            will cost <strong>$13</strong>. If you have any questions, please
+            look at our{" "}
+            <a href="/terms-policy" className="text-pink-600 underline">
+              policies page
+            </a>
+            .
           </span>
         </label>
 
@@ -214,8 +243,15 @@ export default function PostForm({ onSuccess, embedded = false }) {
       </form>
 
       {toast && (
-        <div className={`mt-4 flex items-center gap-2 p-3 rounded-lg text-sm sm:text-base ${toast.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-          {toast.type === "success" ? <CheckCircle /> : <XCircle />} <span>{toast.msg}</span>
+        <div
+          className={`mt-4 flex items-center gap-2 p-3 rounded-lg text-sm sm:text-base ${
+            toast.type === "success"
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+          }`}
+        >
+          {toast.type === "success" ? <CheckCircle /> : <XCircle />}{" "}
+          <span>{toast.msg}</span>
         </div>
       )}
     </div>

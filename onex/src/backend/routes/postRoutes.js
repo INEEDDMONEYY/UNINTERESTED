@@ -4,15 +4,18 @@ const multer = require("multer");
 const postController = require("../controllers/postController");
 const authenticateToken = require("../middleware/authMiddleware");
 
-// ✅ Use memory storage for Cloudinary uploads
+// Use memory storage
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// ✅ Create post with image support
-router.post("/", upload.single("picture"), authenticateToken, postController.createPost);
+// Correct route order
+router.post(
+  "/",
+  authenticateToken,
+  upload.array("pictures", 10),
+  postController.createPost
+);
 
-
-// ✅ Existing CRUD routes
 router.get("/", postController.getPosts);
 router.get("/:id", postController.getPostById);
 router.put("/:id", authenticateToken, postController.updatePost);

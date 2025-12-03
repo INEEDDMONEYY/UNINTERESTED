@@ -2,10 +2,10 @@ const mongoose = require("mongoose");
 
 const PostSchema = new mongoose.Schema(
   {
-    userId: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     title: { type: String, required: true },
     description: { type: String, required: true },
-    picture: { type: String },
+    pictures: [{ type: String }], // <-- Changed to an array for multiple images
     city: { type: String },
     state: { type: String },
     category: { type: String, default: "" },

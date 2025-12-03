@@ -49,8 +49,8 @@ export default function AgeRequirementToast({ onOk }) {
 
 const styles = {
   overlay: { position:"fixed", top:0, left:0, width:"100%", height:"100%", backgroundColor:"rgba(0,0,0,0.5)", display:"flex", justifyContent:"center", alignItems:"center", zIndex:9999 },
-  toast: { backgroundColor:"#fff", padding:"20px", borderRadius:"8px", maxWidth:"400px", textAlign:"center", boxShadow:"0 4px 12px rgba(0,0,0,0.2)" },
+  toast: { backgroundColor:"#eba9e7ff", padding:"20px", borderRadius:"8px", maxWidth:"400px", textAlign:"center", boxShadow:"0 4px 12px rgba(0,0,0,0.2)" },
   title: { marginBottom:"10px", fontSize:"18px", fontWeight:"bold" },
   text: { marginBottom:"20px", fontSize:"14px", lineHeight:"1.5" },
-  button: { display:"block", margin:"0 auto", padding:"10px 20px", backgroundColor:"#0078d4", color:"#fff", border:"none", borderRadius:"4px", cursor:"pointer" }
+  button: { display:"block", margin:"0 auto", padding:"10px 20px", backgroundColor:"#050505ff", color:"#fff", border:"none", borderRadius:"4px", cursor:"pointer" }
 };

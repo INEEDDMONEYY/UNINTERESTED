@@ -62,7 +62,7 @@ const styles = {
     zIndex: 9999,
   },
   toast: {
-    backgroundColor: "#fff",
+    backgroundColor: "#eba9e7ff",
     padding: "20px",
     borderRadius: "8px",
     maxWidth: "400px",
@@ -83,7 +83,7 @@ const styles = {
     display: "block",
     margin: "0 auto",
     padding: "10px 20px",
-    backgroundColor: "#0078d4",
+    backgroundColor: "#242525ff",
     color: "#fff",
     border: "none",
     borderRadius: "4px",
