@@ -3,12 +3,15 @@ import { useNavigate, Link } from 'react-router-dom';
 
 export default function SignupForm() {
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');          // ✅ NEW EMAIL STATE
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('user');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // ✅ Ensure API_BASE is domain only
+  // Role removed from public signup — admins will have a separate form
+  const role = "user";
+
+  // Keep API_BASE cleanup
   const rawBase = import.meta.env.VITE_API_BASE || 'http://localhost:5020';
   const API_BASE = rawBase.replace(/\/+$/, '');
 
@@ -17,6 +20,7 @@ export default function SignupForm() {
 
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
     if (!passwordRegex.test(password)) {
       setError(
         'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
@@ -28,7 +32,7 @@ export default function SignupForm() {
       const response = await fetch(`${API_BASE}/api/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, role }),
+        body: JSON.stringify({ username, email, password, role }),
         credentials: 'include',
       });
 
@@ -51,6 +55,8 @@ export default function SignupForm() {
 
   return (
     <form onSubmit={handleSignup} className="flex flex-col w-96">
+
+      {/* Username */}
       <input
         type="text"
         placeholder="Create a username"
@@ -59,6 +65,18 @@ export default function SignupForm() {
         onChange={(e) => setUsername(e.target.value)}
         required
       />
+
+      {/* ✅ NEW EMAIL INPUT (requested) */}
+      <input
+        type="email"
+        placeholder="Enter your email"
+        className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+
+      {/* Password */}
       <input
         type="password"
         placeholder="Enter your password"
@@ -68,14 +86,7 @@ export default function SignupForm() {
         required
       />
 
-      <select
-        className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg"
-        value={role}
-        onChange={(e) => setRole(e.target.value)}
-      >
-        <option value="user">User</option>
-        <option value="admin">Admin</option>
-      </select>
+      {/* ❌ ROLE DROPDOWN REMOVED */}
 
       <button
         type="submit"

@@ -22,7 +22,8 @@ export default function CategoryList({ onSelect }) {
             onClick={() => onSelect(category)}
             className="
               min-w-[120px] 
-              bg-white text-black font-semibold 
+              bg-black text-white font-semibold
+              border border-pink-600 
               py-3 px-3 rounded-lg shadow-md 
               flex items-center justify-center text-center 
               hover:scale-105 hover:bg-gradient-to-r hover:from-pink-400 hover:to-yellow-300 

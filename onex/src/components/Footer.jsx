@@ -37,6 +37,14 @@ export default function Footer() {
               <p className="text-gray-300">Instagram · Twitter · LinkedIn</p>
             </div>
           )}
+
+          <div>
+            <h3 className="font-semibold underline mb-1">Platform updates</h3>
+            <p className="text-gray-300">
+              <Link to="/platform-updates" className="hover:underline">Updates</Link>
+              {/**<Link to="/" className="hover:underline">Privacy</Link> */}
+            </p>
+          </div>
         </div>
       </div>
     </footer>

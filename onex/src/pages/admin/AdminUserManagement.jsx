@@ -6,15 +6,32 @@ export default function AdminUserManagement() {
   const [selectedUser, setSelectedUser] = useState("");
   const [promotionDuration, setPromotionDuration] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchUsers = async () => {
+      setLoading(true);
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/users`);
-        setUsers(Array.isArray(data) ? data : []);
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_API_URL || ""}/api/users`,
+          {
+            withCredentials: true, // ✅ send cookies for auth
+          }
+        );
+
+        if (Array.isArray(data)) {
+          setUsers(data);
+        } else if (Array.isArray(data.users)) {
+          setUsers(data.users);
+        } else {
+          setUsers([]);
+        }
       } catch (err) {
         console.error("Failed to fetch users:", err);
         setUsers([]);
+        setError(
+          err.response?.data?.error || "Failed to fetch users. Make sure you are an admin."
+        );
       } finally {
         setLoading(false);
       }
@@ -24,14 +41,33 @@ export default function AdminUserManagement() {
   }, []);
 
   const handlePromoteUser = async () => {
-    // 🔗 Connect this to your backend promotion route
-    console.log("Promoting user:", selectedUser, "for", promotionDuration);
-    // await axios.post('/api/promote', { userId: selectedUser, duration: promotionDuration });
+    if (!selectedUser || !promotionDuration) {
+      alert("Please select a user and promotion duration");
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL || ""}/api/admin/users/promote`,
+        { userId: selectedUser, duration: promotionDuration },
+        { withCredentials: true } // ✅ send admin auth cookie
+      );
+      alert("User promotion updated successfully!");
+      // Optional: refresh users
+    } catch (err) {
+      console.error("Failed to promote user:", err);
+      alert(
+        err.response?.data?.error || "Failed to promote user. Make sure you are an admin."
+      );
+    }
   };
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h6 className="text-xl font-bold text-pink-700 mb-4">User Management</h6>
+
+      {/* ✅ Error */}
+      {error && <p className="text-red-600 mb-4">{error}</p>}
 
       {/* ✅ Scrollable User Grid */}
       <div className="overflow-x-auto mb-8">
@@ -47,6 +83,9 @@ export default function AdminUserManagement() {
                 <h3 className="text-black font-semibold text-md mb-1">{user.username}</h3>
                 <p className="text-gray-600 text-sm">{user.email}</p>
                 <p className="text-gray-500 text-xs mt-1">ID: {user._id}</p>
+                <p className="text-gray-500 text-xs mt-1">
+                  Role: {user.role || "user"}
+                </p>
               </div>
             ))
           ) : (

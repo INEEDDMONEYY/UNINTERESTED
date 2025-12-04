@@ -10,6 +10,7 @@ import {
   Image,
   Upload,
 } from "lucide-react";
+import PlatformUpdatesForm from "../../components/updates/PlatformUpdatesForm.jsx";
 
 export default function AdminSettings({ onProfileUpdate }) {
   const [users, setUsers] = useState([]);
@@ -377,6 +378,12 @@ export default function AdminSettings({ onProfileUpdate }) {
             <Trash2 size={16} /> Delete
           </button>
         </div>
+      </div>
+
+      {/* --- Platform Updates Form Section --- */}
+      <div className="bg-white border border-pink-200 rounded-lg p-4 shadow-sm mt-6">
+        <h2 className="text-lg font-bold text-black mb-3">Platform Updates</h2>
+        <PlatformUpdatesForm />
       </div>
     </div>
   );

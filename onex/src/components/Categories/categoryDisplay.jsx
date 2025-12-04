@@ -29,7 +29,7 @@ export default function CategoryDisplay({ selectedCategory, users = [], posts = 
 
   return (
     <div className="w-full py-10 px-4 sm:px-6 md:px-12 lg:px-20">
-      <div className="bg-white text-black rounded-lg shadow-md p-4 sm:p-6">
+      <div className="bg-pink-100 text-black rounded-t-lg shadow-md p-4 sm:p-6 border border-black border-2">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <h2 className="text-xl sm:text-2xl font-bold">
             {category ? `Posts for: ${category}` : "Select a category to view posts"}
@@ -67,7 +67,7 @@ export default function CategoryDisplay({ selectedCategory, users = [], posts = 
             <CategoryPostsLoader />
           )
         ) : (
-          <p className="text-gray-500 italic">No category selected.</p>
+          <p className="text-black italic">No category selected.</p>
         )}
       </div>
     </div>

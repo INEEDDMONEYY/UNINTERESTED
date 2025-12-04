@@ -2,10 +2,10 @@ const express = require("express");
 const router = express.Router();
 const Conversation = require("../models/Conversation");
 const User = require("../models/User");
-const auth = require("../middleware/authMiddleware");
+const { authMiddleware } = require("../middleware/authMiddleware");
 
-// ✅ GET all conversations for the logged-in user
-router.get("/", auth, async (req, res) => {
+// GET all conversations for logged-in user
+router.get("/", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
     const conversations = await Conversation.find({ participants: userId })
@@ -19,13 +19,12 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
-// ✅ POST create new conversation
-router.post("/", auth, async (req, res) => {
+// POST create new conversation
+router.post("/", authMiddleware, async (req, res) => {
   try {
     const { recipientId } = req.body;
     const userId = req.user.id;
 
-    // Check if conversation already exists
     const existing = await Conversation.findOne({
       participants: { $all: [userId, recipientId] },
     });

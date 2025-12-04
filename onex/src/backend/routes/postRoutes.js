@@ -2,23 +2,32 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const postController = require("../controllers/postController");
-const authenticateToken = require("../middleware/authMiddleware");
+const { authMiddleware } = require("..//middleware/authMiddleware"); // ✅ destructure the function
 
 // Use memory storage
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Correct route order
+// -------------------- Routes -------------------- //
+
+// Create a new post (authenticated)
 router.post(
   "/",
-  authenticateToken,
+  authMiddleware, // ✅ use the function
   upload.array("pictures", 10),
   postController.createPost
 );
 
+// Get all posts
 router.get("/", postController.getPosts);
+
+// Get a single post by ID
 router.get("/:id", postController.getPostById);
-router.put("/:id", authenticateToken, postController.updatePost);
-router.delete("/:id", authenticateToken, postController.deletePost);
+
+// Update a post (authenticated)
+router.put("/:id", authMiddleware, postController.updatePost);
+
+// Delete a post (authenticated)
+router.delete("/:id", authMiddleware, postController.deletePost);
 
 module.exports = router;

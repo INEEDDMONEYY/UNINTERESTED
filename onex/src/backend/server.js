@@ -21,6 +21,10 @@ const conversationRoutes = require('./routes/conversationRoutes');
 const postRoutes = require('./routes/postRoutes');
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
+const platformUpdatesRoutes = require('./routes/PlatformUpdatesRoutes'); // ✅ Platform Updates Routes
+
+// 🛡️ Middleware
+const { authMiddleware, adminOnlyMiddleware } = require('./middleware/authMiddleware');
 
 const app = express();
 const port = env.PORT;
@@ -56,7 +60,6 @@ app.use(cookieParser());
 
 // ✅ Cache-Control middleware for API responses
 app.use((req, res, next) => {
-  // Default: prevent caching for API endpoints
   if (req.originalUrl.startsWith('/api')) {
     res.setHeader('Cache-Control', 'no-store');
   }
@@ -83,65 +86,35 @@ if (process.env.NODE_ENV !== 'test') {
     .catch((err) => console.error('❌ MongoDB connection error:', err));
 }
 
-/* --------------------------- 🔐 Auth Middleware ---------------------------- */
-const authenticateToken = async (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
-    let token = null;
-
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.split(' ')[1];
-    } else if (req.cookies && req.cookies.token) {
-      token = req.cookies.token;
-    }
-
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized - no token provided' });
-    }
-
-    const decoded = jwt.verify(token, env.JWT_SECRET);
-
-    // ✅ Fetch full user document
-    const user = await User.findById(decoded.id).select('-password');
-    if (!user) {
-      return res.status(401).json({ error: 'User not found' });
-    }
-
-    req.user = user;
-    next();
-  } catch (err) {
-    console.error('[AuthMiddleware] Auth error:', err.message || err);
-    return res.status(403).json({ error: 'Invalid or expired token' });
-  }
-};
-
-const verifyAdmin = (req, res, next) => {
-  if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
-  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admins only' });
-  next();
-};
-
 /* -------------------------- 🧩 Admin Routes ---------------------- */
-app.use('/api/admin/settings', authenticateToken, verifyAdmin, adminSettingsRoutes);
-app.use('/api/admin/users', authenticateToken, verifyAdmin, adminUserRoutes);
-app.use('/api/admin/profile', authenticateToken, verifyAdmin, adminProfileRoutes);
+// Simplified: group all admin routes under /api/admin with auth + admin middleware
+const adminRouter = express.Router();
+adminRouter.use(authMiddleware, adminOnlyMiddleware);
+
+adminRouter.use('/settings', adminSettingsRoutes);
+adminRouter.use('/users', adminUserRoutes);
+adminRouter.use('/profile', adminProfileRoutes);
+
+app.use('/api/admin', adminRouter);
 
 /* -------------------------- 💬 Message Routes --------------------- */
-app.use('/api/messages', authenticateToken, messageRoutes);
+app.use('/api/messages', authMiddleware, messageRoutes);
 
 /* -------------------------- 🗨️ Conversation Routes --------------- */
-app.use('/api/conversations', authenticateToken, conversationRoutes);
+app.use('/api/conversations', authMiddleware, conversationRoutes);
 
 /* -------------------------- 📝 Post Routes --------------------------- */
 app.use('/api/posts', postRoutes);
 
 /* -------------------------- 👤 User Routes ------------------------------- */
-app.use('/api/users', authenticateToken, userRoutes);
-
-
+app.use('/api/users', authMiddleware, userRoutes);
 
 /* -------------------------- 🔐 Auth Routes -------------------------- */
 app.use('/api', authRoutes);
+
+/* ---------------------- 🆕 Platform Updates Routes --------------------- */
+// Anyone authenticated can view updates, only admins can create
+app.use('/api/updates', platformUpdatesRoutes);
 
 /* -------------------------- 🧭 Serve Frontend Build ------------------------ */
 const frontendPath = path.join(__dirname, 'client', 'build');
@@ -149,7 +122,6 @@ const frontendPath = path.join(__dirname, 'client', 'build');
 if (fs.existsSync(frontendPath)) {
   app.use(express.static(frontendPath, {
     setHeaders: (res, filePath) => {
-      // Cache static build assets aggressively
       res.setHeader('Cache-Control', 'public, max-age=31536000');
     }
   }));
@@ -157,7 +129,6 @@ if (fs.existsSync(frontendPath)) {
   app.get('*', (req, res) => {
     const indexPath = path.join(frontendPath, 'index.html');
     if (fs.existsSync(indexPath)) {
-      // For index.html, disable caching so new builds are picked up
       res.setHeader('Cache-Control', 'no-store');
       res.sendFile(indexPath);
     } else {

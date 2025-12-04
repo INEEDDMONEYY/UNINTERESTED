@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 export default function Header() {
   const [devMessage, setDevMessage] = useState(
-    localStorage.getItem("devMessage") || "Welcome to the platform 🌟"
+    localStorage.getItem("devMessage") || "Welcome to Mystery Mansion where all your naughty fantacies can be explored 🌟"
   );
   const [currentDate, setCurrentDate] = useState("");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -35,12 +35,12 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="bg-pink-100 text-black py-4 px-6 shadow-md flex flex-col md:flex-row justify-between items-center gap-4">
+    <header className="bg-pink-100 text-black py-4 px-6 shadow-md flex flex-col md:flex-row justify-between items-center gap-4 border border-black rounded-b-lg">
       <div className="text-lg font-semibold">
         Welcome, <span className="text-pink-700">{user.username || "Guest"}</span>
       </div>
       <div className="text-sm text-gray-700">{currentDate}</div>
-      <div className="text-sm italic text-gray-800 text-center md:text-right">
+      <div className="text-sm italic text-gray-800 text-center md:text-right border border-black rounded-sm bg-green-300 px-2">
         {devMessage}
       </div>
     </header>

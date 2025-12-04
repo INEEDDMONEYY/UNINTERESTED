@@ -2,10 +2,10 @@ const express = require("express");
 const router = express.Router();
 const Message = require("../models/Message");
 const Conversation = require("../models/Conversation");
-const auth = require("../middleware/authMiddleware");
+const { authMiddleware } = require("../middleware/authMiddleware");
 
-// ✅ GET all messages for a conversation
-router.get("/:conversationId", auth, async (req, res) => {
+// GET all messages for a conversation
+router.get("/:conversationId", authMiddleware, async (req, res) => {
   try {
     const { conversationId } = req.params;
     const messages = await Message.find({ conversationId })
@@ -18,8 +18,8 @@ router.get("/:conversationId", auth, async (req, res) => {
   }
 });
 
-// ✅ POST send new message
-router.post("/", auth, async (req, res) => {
+// POST send new message
+router.post("/", authMiddleware, async (req, res) => {
   try {
     const { conversationId, text } = req.body;
     const senderId = req.user.id;

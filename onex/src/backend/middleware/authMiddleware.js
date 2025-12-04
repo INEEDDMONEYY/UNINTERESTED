@@ -1,17 +1,19 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const env = require("../config/env"); // Make sure this is imported if you use env.JWT_SECRET
+const env = require("../config/env"); // central env file for JWT_SECRET
 
-module.exports = async function (req, res, next) {
+/* ---------------------------------------------------------
+   🔐 AUTH MIDDLEWARE
+   Verifies JWT from header or cookie and attaches user to req
+--------------------------------------------------------- */
+const authMiddleware = async (req, res, next) => {
   try {
     console.log("\n[AuthMiddleware] ---------------- NEW REQUEST ----------------");
-
-    // Log incoming headers and cookies
     console.log("[AuthMiddleware] Headers:", req.headers);
     console.log("[AuthMiddleware] Cookies:", req.cookies);
 
     // Extract token from Authorization header or cookies
-    let token =
+    const token =
       req.header("Authorization")?.replace("Bearer ", "") ||
       req.cookies?.token;
 
@@ -22,7 +24,7 @@ module.exports = async function (req, res, next) {
       return res.status(401).json({ error: "No token provided" });
     }
 
-    // Verify token
+    // Verify JWT
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET || env.JWT_SECRET);
@@ -32,15 +34,16 @@ module.exports = async function (req, res, next) {
       return res.status(401).json({ error: "Invalid or expired token" });
     }
 
-    // Ensure payload has id or _id
+    // Ensure token contains user ID
     const userId = decoded.id || decoded._id;
     if (!userId) {
       console.error("[AuthMiddleware] Token payload missing id/_id");
       return res.status(401).json({ error: "Invalid token payload - missing id/_id" });
     }
+
     console.log("[AuthMiddleware] User ID from token:", userId);
 
-    // Fetch user from DB
+    // Fetch user from DB and attach to req
     const user = await User.findById(userId).select("-password");
     console.log("[AuthMiddleware] User found in DB:", user ? user._id : "null");
 
@@ -49,13 +52,46 @@ module.exports = async function (req, res, next) {
       return res.status(401).json({ error: "User not found" });
     }
 
-    // Attach user to request
-    req.user = user;
+    req.user = user; // attach user to request
     console.log("[AuthMiddleware] Attached user to req.user:", req.user._id);
 
     next();
   } catch (err) {
     console.error("[AuthMiddleware] Unexpected error:", err);
-    return res.status(500).json({ error: "Server error in auth middleware", details: err.message });
+    return res.status(500).json({
+      error: "Server error in auth middleware",
+      details: err.message,
+    });
   }
+};
+
+/* ---------------------------------------------------------
+   🛡️ ADMIN-ONLY MIDDLEWARE
+   Use after authMiddleware to restrict access to admins
+--------------------------------------------------------- */
+const adminOnlyMiddleware = (req, res, next) => {
+  console.log("[AdminMiddleware] Checking admin access…");
+
+  if (!req.user) {
+    console.error("[AdminMiddleware] No req.user found — auth missing");
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  if (req.user.role !== "admin") {
+    console.warn(
+      `[AdminMiddleware] Access denied. User ${req.user.username} is NOT an admin.`
+    );
+    return res.status(403).json({ error: "Admins only" });
+  }
+
+  console.log(`[AdminMiddleware] Access granted. Admin: ${req.user.username}`);
+  next();
+};
+
+/* ---------------------------------------------------------
+   EXPORT MIDDLEWARES
+--------------------------------------------------------- */
+module.exports = {
+  authMiddleware,
+  adminOnlyMiddleware,
 };

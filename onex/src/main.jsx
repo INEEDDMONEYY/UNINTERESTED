@@ -20,6 +20,7 @@ import PrivacyPolicy from './pages/policies/PrivacyPolicyPage.jsx';
 import ProfilePage from './pages/profiles/ProfilePage.jsx'; // ✅ Uncommented
 import Signout from "./pages/SignoutPage.jsx";
 import UserProfile from "./pages/profiles/ProfilePage.jsx"
+import PlatformUpdates from "./pages/updates/PlatformUpdatesPage.jsx";
 
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
@@ -102,6 +103,10 @@ const router = createBrowserRouter([
   {
     path: "privacy-policy",
     element: <PrivacyPolicy />,
+  },
+  {
+    path: "platform-updates",
+    element: <PlatformUpdates />,
   },
   {
     path: "/post/:postId",
