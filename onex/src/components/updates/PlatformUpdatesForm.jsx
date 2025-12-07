@@ -18,13 +18,23 @@ export default function PlatformUpdatesForm({ onUpdateSubmit }) {
     setError("");
 
     try {
-      // 🔗 Replace with your backend endpoint
+      // Retrieve the token from localStorage
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setError("No token found. Please log in as an admin.");
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE || ""}/api/admin/updates`,
+        `${import.meta.env.VITE_API_BASE || ""}/api/platform-updates`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // send token
+          },
           body: JSON.stringify({ title, description }),
         }
       );

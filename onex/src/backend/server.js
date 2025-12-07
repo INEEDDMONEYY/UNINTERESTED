@@ -36,6 +36,7 @@ const allowedOrigins = [
   'https://uninterested.vercel.app',
   'https://uninterested.onrender.com',
   'https://glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev',
+  'https://mysterymansion.xyz/',
 ];
 
 app.use(cors({

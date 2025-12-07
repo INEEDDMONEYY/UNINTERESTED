@@ -14,14 +14,15 @@ export default function PostForm({ onSuccess, embedded = false }) {
     description: "",
     city: "",
     state: "",
+    country: "",
     category: "",
-    pictures: [], // <-- changed from single picture to array
+    pictures: [],
     visibility: "",
   });
 
   const [acknowledged, setAcknowledged] = useState(false);
 
-  // ✅ Ensure user is logged in
+  // Ensure user is logged in
   useEffect(() => {
     const token = getAuthToken();
     if (!token) {
@@ -33,7 +34,6 @@ export default function PostForm({ onSuccess, embedded = false }) {
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files && files.length > 0) {
-      // <-- handle multiple files
       setFormData((prev) => ({ ...prev, [name]: Array.from(files) }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
@@ -63,11 +63,9 @@ export default function PostForm({ onSuccess, embedded = false }) {
 
     try {
       const fd = new FormData();
-
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== null) {
           if (key === "pictures") {
-            // append each file individually
             value.forEach((file) => fd.append("pictures", file));
           } else {
             fd.append(key, value);
@@ -78,9 +76,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
       console.log("[PostForm] Submitting FormData:", formData);
 
       const res = await api.post("/posts", fd, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       console.log("[PostForm] Post created successfully:", res.data);
@@ -94,6 +90,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
         description: "",
         city: "",
         state: "",
+        country: "",
         category: "",
         pictures: [],
         visibility: "",
@@ -122,30 +119,30 @@ export default function PostForm({ onSuccess, embedded = false }) {
     <div
       className={`w-full ${
         embedded ? "bg-transparent shadow-none" : "bg-white shadow-md"
-      } rounded-2xl p-4 sm:p-6 max-w-xl mx-auto`}
+      } rounded-2xl p-4 sm:p-6 md:p-8 max-w-3xl mx-auto`}
     >
       {!embedded && (
-        <h1 className="text-xl sm:text-2xl font-bold mb-4 text-center">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 text-center">
           Create New Post
         </h1>
       )}
 
       <div className="mb-4">
-        <label className="block mb-2 font-semibold text-sm sm:text-base">
+        <label className="block mb-2 font-semibold text-sm sm:text-base md:text-lg">
           Choose Category:
         </label>
         <div className="overflow-x-auto">
           <CategoryList onSelect={handleCategorySelect} />
         </div>
         {formData.category && (
-          <p className="text-xs sm:text-sm text-gray-600 mt-1 text-center sm:text-left">
+          <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1 text-center sm:text-left">
             Selected:{" "}
             <span className="font-medium text-gray-800">{formData.category}</span>
           </p>
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:gap-4 md:gap-5">
         <input
           type="text"
           name="title"
@@ -153,7 +150,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
           value={formData.title}
           onChange={handleChange}
           required
-          className="w-full border border-gray-300 p-2 sm:p-3 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base"
+          className="w-full border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base md:text-lg"
         />
         <textarea
           name="description"
@@ -162,8 +159,9 @@ export default function PostForm({ onSuccess, embedded = false }) {
           onChange={handleChange}
           required
           rows={4}
-          className="w-full border border-gray-300 p-2 sm:p-3 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base resize-none"
+          className="w-full border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base md:text-lg resize-none"
         />
+
         <div className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
@@ -171,7 +169,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
             placeholder="City"
             value={formData.city}
             onChange={handleChange}
-            className="flex-1 border border-gray-300 p-2 sm:p-3 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base"
+            className="flex-1 border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base md:text-lg"
           />
           <input
             type="text"
@@ -179,17 +177,26 @@ export default function PostForm({ onSuccess, embedded = false }) {
             placeholder="State"
             value={formData.state}
             onChange={handleChange}
-            className="flex-1 border border-gray-300 p-2 sm:p-3 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base"
+            className="flex-1 border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base md:text-lg"
           />
         </div>
-
+        
+        <input
+            type="text"
+            name="country"
+            placeholder="Country"
+            value={formData.country}
+            onChange={handleChange}
+            className="flex-1 border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base md:text-lg"
+          />
+          
         <input
           type="file"
           name="pictures"
           accept="image/*"
-          multiple // <-- allow multiple images
+          multiple
           onChange={handleChange}
-          className="w-full border border-gray-300 p-2 sm:p-3 rounded-lg text-sm sm:text-base"
+          className="w-full border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg text-sm sm:text-base md:text-lg"
         />
 
         <select
@@ -197,7 +204,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
           value={formData.visibility}
           onChange={handleChange}
           required
-          className="w-full border border-gray-300 p-2 sm:p-3 rounded-lg text-gray-700 focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base"
+          className="w-full border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg text-gray-700 focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base md:text-lg"
         >
           <option value="" disabled>
             See's Only
@@ -207,12 +214,12 @@ export default function PostForm({ onSuccess, embedded = false }) {
           <option value="Both">Both</option>
         </select>
 
-        <label className="flex items-start gap-2 mt-1 text-xs sm:text-sm text-gray-700">
+        <label className="flex items-start gap-2 mt-1 text-xs sm:text-sm md:text-base text-gray-700">
           <input
             type="checkbox"
             checked={acknowledged}
             onChange={(e) => setAcknowledged(e.target.checked)}
-            className="mt-1 w-4 h-4 text-pink-500 border-gray-300 rounded focus:ring-pink-400"
+            className="mt-1 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-pink-500 border-gray-300 rounded focus:ring-pink-400"
           />
           <span>
             By acknowledging this checkbox, you are acknowledging that each post
@@ -228,7 +235,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-gradient-to-r from-pink-500 to-yellow-400 text-white py-2 sm:py-3 rounded-lg text-sm sm:text-base font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition"
+          className="w-full bg-gradient-to-r from-pink-500 to-yellow-400 text-white py-2 sm:py-3 md:py-4 rounded-lg text-sm sm:text-base md:text-lg font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition"
         >
           {loading ? <Loader2 className="animate-spin" /> : "Post"}
         </button>
@@ -236,15 +243,15 @@ export default function PostForm({ onSuccess, embedded = false }) {
         <button
           type="button"
           onClick={() => navigate("/home")}
-          className="w-full flex items-center justify-center gap-2 py-2 sm:py-3 mt-2 rounded-lg border border-pink-400 text-pink-600 hover:bg-pink-50 transition text-sm sm:text-base font-medium"
+          className="w-full flex items-center justify-center gap-2 py-2 sm:py-3 md:py-4 mt-2 rounded-lg border border-pink-400 text-pink-600 hover:bg-pink-50 transition text-sm sm:text-base md:text-lg font-medium"
         >
-          <ArrowLeft className="w-4 h-4" /> Return Home
+          <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" /> Return Home
         </button>
       </form>
 
       {toast && (
         <div
-          className={`mt-4 flex items-center gap-2 p-3 rounded-lg text-sm sm:text-base ${
+          className={`mt-4 flex items-center gap-2 p-3 rounded-lg text-sm sm:text-base md:text-lg ${
             toast.type === "success"
               ? "bg-green-100 text-green-700"
               : "bg-red-100 text-red-700"

@@ -15,4 +15,6 @@ export const FEATURE_FLAGS = {
   ENABLE_USER_SEARCH: false,
   //Social Media Integration Flags (future use)
   ENABLE_FOLLOW_US: false,
+  //Onboarding Tutorial Flag
+  ENABLE_ONBOARDING: false,
 };

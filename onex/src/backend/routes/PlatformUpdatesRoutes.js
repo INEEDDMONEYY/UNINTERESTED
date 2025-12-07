@@ -9,6 +9,6 @@ const router = express.Router();
 router.post("/", authMiddleware, adminOnlyMiddleware, createUpdate);
 
 // Authenticated users (or public if you want) can fetch all updates
-router.get("/", authMiddleware, getUpdates);
+router.get("/", getUpdates);
 
 module.exports = router;

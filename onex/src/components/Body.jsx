@@ -143,8 +143,9 @@ export default function Body() {
     },
   ];
 
-  // ✅ Show onboarding only once per session
+  // ✅ Feature-flag aware onboarding state
   const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (!FEATURE_FLAGS.ENABLE_ONBOARDING) return false;
     return sessionStorage.getItem("hasSeenOnboarding") !== "true";
   });
 
@@ -188,7 +189,10 @@ export default function Body() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" ref={postsRef}>
+      <div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+        ref={postsRef}
+      >
         {filteredUncategorizedPosts.length > 0 ? (
           filteredUncategorizedPosts.map((post, i) => (
             <PostCard key={post._id || i} post={post} />
@@ -223,7 +227,8 @@ export default function Body() {
         />
       </div>
 
-      {showOnboarding && (
+      {/* ✅ Feature-flag controlled onboarding */}
+      {FEATURE_FLAGS.ENABLE_ONBOARDING && showOnboarding && (
         <OnboardingGuide
           steps={onboardingSteps}
           onFinish={handleOnboardingFinish}

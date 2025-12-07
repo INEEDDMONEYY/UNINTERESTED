@@ -8,6 +8,7 @@ const PostSchema = new mongoose.Schema(
     pictures: [{ type: String }], // <-- Changed to an array for multiple images
     city: { type: String },
     state: { type: String },
+    country: { type: String },
     category: { type: String, default: "" },
     visibility: {
       type: String,

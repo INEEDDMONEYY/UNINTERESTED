@@ -40,7 +40,7 @@ export default function Header() {
         Welcome, <span className="text-pink-700">{user.username || "Guest"}</span>
       </div>
       <div className="text-sm text-gray-700">{currentDate}</div>
-      <div className="text-sm italic text-gray-800 text-center md:text-right border border-black rounded-sm bg-green-300 px-2">
+      <div className="text-sm italic text-white text-center md:text-right border border-black rounded-sm bg-pink-600 px-2">
         {devMessage}
       </div>
     </header>
