@@ -58,6 +58,16 @@ const UserSchema = new mongoose.Schema(
         ref: 'Conversation',
       },
     ],
+
+    /* ---------------- 🔐 Password Reset Fields ---------------- */
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpires: {
+      type: Date,
+    },
+    /* ----------------------------------------------------------- */
+
     // ❌ availability removed completely
   },
   { timestamps: true }
@@ -71,8 +81,11 @@ UserSchema.set('toJSON', {
   virtuals: true,
   transform: (doc, ret) => {
     delete ret.password;
+    delete ret.resetPasswordToken; // extra safety
+    delete ret.resetPasswordExpires;
     return ret;
   },
 });
 
 module.exports = mongoose.model('User', UserSchema);
+

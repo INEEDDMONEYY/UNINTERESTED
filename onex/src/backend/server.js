@@ -22,6 +22,7 @@ const postRoutes = require('./routes/postRoutes');
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
 const platformUpdatesRoutes = require('./routes/PlatformUpdatesRoutes'); // ✅ Platform Updates Routes
+const forgotPasswordRoutes = require('./routes/forgotPasswordRoutes'); // ✅ Added forgot password
 
 // 🛡️ Middleware
 const { authMiddleware, adminOnlyMiddleware } = require('./middleware/authMiddleware');
@@ -88,7 +89,6 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 /* -------------------------- 🧩 Admin Routes ---------------------- */
-// Simplified: group all admin routes under /api/admin with auth + admin middleware
 const adminRouter = express.Router();
 adminRouter.use(authMiddleware, adminOnlyMiddleware);
 
@@ -113,8 +113,10 @@ app.use('/api/users', authMiddleware, userRoutes);
 /* -------------------------- 🔐 Auth Routes -------------------------- */
 app.use('/api', authRoutes);
 
+/* -------------------------- 🔑 Forgot Password Routes -------------------------- */
+app.use('/api', forgotPasswordRoutes); // ✅ integrated forgot password
+
 /* ---------------------- 🆕 Platform Updates Routes --------------------- */
-// Anyone authenticated can view updates, only admins can create
 app.use('/api/updates', platformUpdatesRoutes);
 
 /* -------------------------- 🧭 Serve Frontend Build ------------------------ */
