@@ -1,3 +1,4 @@
+//Main.jsx file, main entry point of the React application
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";

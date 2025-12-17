@@ -1,3 +1,4 @@
+require('dotenv').config(); // ✅ central env
 const env = require('./config/env'); // ✅ central env
 const express = require('express');
 const mongoose = require('mongoose');
