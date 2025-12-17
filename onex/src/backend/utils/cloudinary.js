@@ -1,5 +1,6 @@
-const cloudinary = require('cloudinary').v2;
 const env = require('../config/env');
+const cloudinary = require('cloudinary').v2;
+
 
 // Debug: Always print ENV
 console.log("Cloudinary ENV:", {
