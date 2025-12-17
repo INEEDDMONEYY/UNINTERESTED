@@ -27,15 +27,32 @@ exports.createPost = async (req, res) => {
     /* ---------------------------- Upload images ---------------------------- */
     if (req.files && req.files.length > 0) {
       try {
-        const uploadPromises = req.files.map((file) => {
+        // 🔹 Validate Cloudinary config
+        const cloudConfig = cloudinary.config();
+        if (!cloudConfig.api_key || !cloudConfig.api_secret || !cloudConfig.cloud_name) {
+          throw new Error(
+            `Cloudinary is not properly configured. Current config: ${JSON.stringify(cloudConfig)}`
+          );
+        }
+
+        const uploadPromises = req.files.map((file, idx) => {
+          if (!file.buffer) {
+            throw new Error(`File buffer is missing for file index ${idx}`);
+          }
+
           return new Promise((resolve, reject) => {
             const stream = cloudinary.uploader.upload_stream(
               { folder: "posts" },
               (error, result) => {
-                if (result) resolve(result.secure_url);
-                else reject(error);
+                if (error) {
+                  console.error(`❌ Cloudinary upload error for file index ${idx}:`, error);
+                  reject(error);
+                } else {
+                  resolve(result.secure_url);
+                }
               }
             );
+
             streamifier.createReadStream(file.buffer).pipe(stream);
           });
         });
@@ -43,7 +60,7 @@ exports.createPost = async (req, res) => {
         imageUrls = await Promise.all(uploadPromises); // wait for all uploads
       } catch (uploadErr) {
         console.error("❌ Cloudinary upload failed:", uploadErr);
-        return res.status(500).json({ error: "Image upload failed" });
+        return res.status(500).json({ error: "Image upload failed", details: uploadErr.message });
       }
     }
 
