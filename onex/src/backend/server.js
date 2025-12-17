@@ -1,4 +1,4 @@
-require('dotenv').config(); // ✅ central env
+require('dotenv').config({ path: __dirname + '/config/.env' });// ✅ central env
 const env = require('./config/env'); // ✅ central env
 const express = require('express');
 const mongoose = require('mongoose');
