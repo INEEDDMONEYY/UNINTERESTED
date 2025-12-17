@@ -21,6 +21,7 @@ import ProfilePage from './pages/profiles/ProfilePage.jsx'; // ✅ Uncommented
 import Signout from "./pages/SignoutPage.jsx";
 import UserProfile from "./pages/profiles/ProfilePage.jsx"
 import PlatformUpdates from "./pages/updates/PlatformUpdatesPage.jsx";
+import ResetPassword from "./pages/resetPasswordPage.jsx";
 
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
@@ -107,6 +108,10 @@ const router = createBrowserRouter([
   {
     path: "platform-updates",
     element: <PlatformUpdates />,
+  },
+  {
+    path: "reset-password/:token",
+    element: <ResetPassword />,
   },
   {
     path: "/post/:postId",

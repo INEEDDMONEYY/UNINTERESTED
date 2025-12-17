@@ -25,13 +25,13 @@ export default function ForgotPasswordForm() {
       const res = await api.post("/forgot-password", { email });
       setMessage(
         res.data?.message ||
-          "If the email exists, a password reset link was sent."
+          " A password reset link was sent to your email."
       );
       setEmail("");
     } catch (err) {
       setError(
         err.response?.data?.error ||
-          "Unable to send reset email. Please try again."
+          "Unable to send reset email please make sure email is the exact one used when signed up. Please try again."
       );
     } finally {
       setLoading(false);
