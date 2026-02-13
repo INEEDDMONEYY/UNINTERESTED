@@ -14,7 +14,7 @@ const upload = multer({ storage });
 router.post(
   "/",
   authMiddleware, // ✅ use the function
-  upload.array("pictures", 10),
+  upload.array("pictures", file),
   postController.createPost
 );
 
