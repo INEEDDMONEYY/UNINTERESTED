@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Trash2 } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
 import axios from "axios";
 
 export default function PostCard({ post }) {
@@ -10,11 +11,26 @@ export default function PostCard({ post }) {
   const bio = post.userId?.bio || "";
   const profilePic = post.userId?.profilePic || "";
 
-  // ✅ Get logged-in user
+  // Logged-in user
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isOwner = user._id && post.userId?._id === user._id;
 
-  // ------------------- Delete Post -------------------
+  // Carousel state
+  const [currentImage, setCurrentImage] = useState(0);
+
+  const totalImages = post.pictures?.length || 0;
+
+  const prevImage = (e) => {
+    e.stopPropagation();
+    setCurrentImage((prev) => (prev - 1 + totalImages) % totalImages);
+  };
+
+  const nextImage = (e) => {
+    e.stopPropagation();
+    setCurrentImage((prev) => (prev + 1) % totalImages);
+  };
+
+  // Delete post
   const handleDelete = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -24,11 +40,11 @@ export default function PostCard({ post }) {
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/posts/${post._id}`, {
         headers: {
-          Authorization: `Bearer ${user.token}`, // ensure JWT is stored
+          Authorization: `Bearer ${user.token}`,
         },
       });
       alert("Post deleted successfully");
-      window.location.reload(); // refresh feed after deletion
+      window.location.reload();
     } catch (err) {
       console.error("Failed to delete post:", err);
       alert("Error deleting post");
@@ -38,11 +54,8 @@ export default function PostCard({ post }) {
   return (
     <div className="relative bg-gradient-to-r from-pink-500 via-black to-yellow-500 p-[2px] rounded-lg shadow-lg max-w-sm sm:max-w-md md:max-w-lg lg:max-w-sm mx-auto sm:mx-0 transition-transform hover:scale-[1.02]">
       <div className="bg-white rounded-lg p-4 relative">
-        <Link
-          to={`/post/${post._id}`}
-          className="block relative hover:shadow-xl transition"
-        >
-          {/* 🏷️ Visibility Badge */}
+        <Link to={`/post/${post._id}`} className="block relative hover:shadow-xl transition">
+          {/* Visibility Badge */}
           {post.visibility && (
             <div className="absolute top-2 right-2 bg-pink-600 text-white text-xs sm:text-sm font-semibold px-2 py-1 rounded-full shadow-md">
               {post.visibility === "Both"
@@ -51,14 +64,46 @@ export default function PostCard({ post }) {
             </div>
           )}
 
-          {/* 🖼️ Post Picture */}
-          <div className="mb-4">
-            {post.picture ? (
-              <img
-                src={post.picture}
-                alt="Post"
-                className="w-auto h-48 sm:h-20 md:h-28 lg:h-28 rounded-md object-cover border border-pink-300"
-              />
+          {/* Image Carousel */}
+          <div className="mb-4 relative">
+            {totalImages > 0 ? (
+              <>
+                <img
+                  src={post.pictures[currentImage]}
+                  alt={`Post image ${currentImage + 1}`}
+                  className="w-full h-48 sm:h-40 md:h-52 lg:h-48 rounded-md object-cover border border-pink-300"
+                />
+                {totalImages > 1 && (
+                  <>
+                    <button
+                      onClick={prevImage}
+                      className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black/50 text-white p-1 rounded-full hover:bg-black/70 transition"
+                      title="Previous"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-black/50 text-white p-1 rounded-full hover:bg-black/70 transition"
+                      title="Next"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </>
+                )}
+                {totalImages > 1 && (
+                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
+                    {post.pictures.map((_, idx) => (
+                      <span
+                        key={idx}
+                        className={`w-2 h-2 rounded-full ${
+                          idx === currentImage ? "bg-pink-600" : "bg-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             ) : (
               <div className="w-full h-48 sm:h-40 md:h-52 lg:h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-sm rounded-md">
                 No Image
@@ -66,7 +111,7 @@ export default function PostCard({ post }) {
             )}
           </div>
 
-          {/* 📝 Post Content */}
+          {/* Post Content */}
           <div>
             {/* User Info */}
             <div className="flex items-center gap-2 mb-1">
@@ -111,7 +156,7 @@ export default function PostCard({ post }) {
             )}
           </div>
 
-          {/* 🗑️ Delete Icon for Owner */}
+          {/* Delete Button for Owner */}
           {isOwner && (
             <button
               onClick={handleDelete}
