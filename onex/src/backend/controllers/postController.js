@@ -7,7 +7,10 @@ const streamifier = require("streamifier");
 /* -------------------------------------------------------------------------- */
 exports.createPost = async (req, res) => {
   try {
-    console.log("🔹 [createPost] req.user:", req.user);
+    console.log("🔹 [createPost] NEW REQUEST");
+    console.log("🔹 req.user:", req.user);
+    console.log("🔹 req.body:", req.body);
+    console.log("🔹 req.files:", req.files);
 
     if (!req.user || !req.user._id) {
       console.error("❌ Missing req.user or req.user._id");
@@ -17,19 +20,19 @@ exports.createPost = async (req, res) => {
     const { description, city, state, category, visibility, title } = req.body;
 
     if (!description || !title) {
-      return res
-        .status(400)
-        .json({ error: "Title and description are required." });
+      return res.status(400).json({ error: "Title and description are required." });
     }
 
     let imageUrls = []; // initialize array for multiple images
 
     /* ---------------------------- Upload images ---------------------------- */
     if (req.files && req.files.length > 0) {
+      console.log(`🔹 Found ${req.files.length} files. Starting Cloudinary uploads...`);
       try {
-        // Upload each file using streamifier + Cloudinary
         const uploadPromises = req.files.map((file, idx) => {
+          console.log(`🔹 Preparing file index ${idx}:`, file.originalname, file.size, file.mimetype);
           if (!file.buffer) {
+            console.warn(`❌ File buffer missing for index ${idx}`);
             throw new Error(`File buffer is missing for file index ${idx}`);
           }
 
@@ -41,22 +44,28 @@ exports.createPost = async (req, res) => {
                   console.error(`❌ Cloudinary upload error for file index ${idx}:`, error);
                   reject(error);
                 } else {
+                  console.log(`✅ Cloudinary upload success for index ${idx}:`, result.secure_url);
                   resolve(result.secure_url);
                 }
               }
             );
 
-            // Pipe the file buffer into Cloudinary
             streamifier.createReadStream(file.buffer).pipe(stream);
           });
         });
 
         // Wait for all uploads
         imageUrls = await Promise.all(uploadPromises);
+        console.log("🔹 All images uploaded. URLs:", imageUrls);
       } catch (uploadErr) {
         console.error("❌ Cloudinary upload failed:", uploadErr);
-        return res.status(500).json({ error: "Image upload failed", details: uploadErr.message });
+        return res.status(500).json({
+          error: "Image upload failed",
+          details: uploadErr.message,
+        });
       }
+    } else {
+      console.warn("⚠️ No files found in req.files. pictures array will be empty.");
     }
 
     console.log("🔹 Saving new post with userId:", req.user._id.toString());
@@ -73,6 +82,7 @@ exports.createPost = async (req, res) => {
     });
 
     const savedPost = await newPost.save();
+    console.log("🔹 Post saved to DB:", savedPost);
 
     // Populate the user for the frontend
     const populatedPost = await Post.findById(savedPost._id).populate({
@@ -81,7 +91,7 @@ exports.createPost = async (req, res) => {
       strictPopulate: false,
     });
 
-    console.log("✅ Post created:", populatedPost._id);
+    console.log("✅ Post created successfully:", populatedPost._id);
     res.status(201).json(populatedPost);
   } catch (err) {
     console.error("❌ [createPost] Server error:", err);
@@ -95,6 +105,7 @@ exports.createPost = async (req, res) => {
 exports.getPosts = async (req, res) => {
   try {
     const { userId, state, city } = req.query;
+    console.log("🔹 [getPosts] Query params:", req.query);
 
     const filter = {};
     if (userId) filter.userId = userId;
@@ -109,6 +120,7 @@ exports.getPosts = async (req, res) => {
         strictPopulate: false,
       });
 
+    console.log(`🔹 [getPosts] Found ${posts.length} posts`);
     res.json(posts);
   } catch (err) {
     console.error("❌ [getPosts] Error:", err);
@@ -121,14 +133,20 @@ exports.getPosts = async (req, res) => {
 /* -------------------------------------------------------------------------- */
 exports.getPostById = async (req, res) => {
   try {
+    console.log("🔹 [getPostById] ID:", req.params.id);
+
     const post = await Post.findById(req.params.id).populate({
       path: "userId",
       select: "username bio profilePic",
       strictPopulate: false,
     });
 
-    if (!post) return res.status(404).json({ error: "Post not found" });
+    if (!post) {
+      console.warn(`⚠️ [getPostById] Post not found for ID: ${req.params.id}`);
+      return res.status(404).json({ error: "Post not found" });
+    }
 
+    console.log("🔹 [getPostById] Post found:", post._id);
     res.json(post);
   } catch (err) {
     console.error("❌ [getPostById] Error:", err);
@@ -141,6 +159,8 @@ exports.getPostById = async (req, res) => {
 /* -------------------------------------------------------------------------- */
 exports.updatePost = async (req, res) => {
   try {
+    console.log("🔹 [updatePost] ID:", req.params.id, "Body:", req.body);
+
     const post = await Post.findById(req.params.id);
 
     if (!post) return res.status(404).json({ error: "Post not found" });
@@ -149,6 +169,7 @@ exports.updatePost = async (req, res) => {
       post.userId.toString() !== req.user._id.toString() &&
       req.user.role !== "admin"
     ) {
+      console.warn("⚠️ [updatePost] User not authorized");
       return res.status(403).json({ error: "Not authorized to update this post" });
     }
 
@@ -160,6 +181,7 @@ exports.updatePost = async (req, res) => {
       strictPopulate: false,
     });
 
+    console.log("🔹 [updatePost] Post updated:", updatedPost._id);
     res.json(updatedPost);
   } catch (err) {
     console.error("❌ [updatePost] Error:", err);
@@ -172,6 +194,8 @@ exports.updatePost = async (req, res) => {
 /* -------------------------------------------------------------------------- */
 exports.deletePost = async (req, res) => {
   try {
+    console.log("🔹 [deletePost] ID:", req.params.id);
+
     const post = await Post.findById(req.params.id);
 
     if (!post) return res.status(404).json({ error: "Post not found" });
@@ -180,11 +204,13 @@ exports.deletePost = async (req, res) => {
       post.userId.toString() !== req.user._id.toString() &&
       req.user.role !== "admin"
     ) {
+      console.warn("⚠️ [deletePost] User not authorized");
       return res.status(403).json({ error: "Not authorized to delete this post" });
     }
 
     await Post.findByIdAndDelete(req.params.id);
 
+    console.log("✅ Post deleted successfully:", post._id);
     res.json({ message: "Post deleted successfully" });
   } catch (err) {
     console.error("❌ [deletePost] Error:", err);
