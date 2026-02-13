@@ -11,6 +11,8 @@ const apiKey = process.env.CLOUDINARY_API_KEY;
 const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
 // Debug: show raw env (this prints BEFORE cloudinary.config)
+console.log("All ENV keys:", Object.keys(process.env));
+
 console.log("🧪 Cloudinary ENV Loaded:", {
   cloud_name: cloudName,
   api_key: apiKey ? "✅ Loaded" : "❌ Missing",
