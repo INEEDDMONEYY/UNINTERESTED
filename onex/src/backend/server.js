@@ -37,7 +37,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'https://uninterested.vercel.app',
   'https://uninterested.onrender.com',
-  'https://glorious-space-trout-9vw7vw7pvgphxvq5-5173.app.github.dev',
+  'https://urban-rotary-phone-9vw7vw7prww26j4-5173.app.github.dev',
   'https://mysterymansion.xyz',
 ];
 

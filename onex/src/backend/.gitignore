@@ -1,0 +1,4 @@
+#env locals
+.env
+.env.local 
+.env*
