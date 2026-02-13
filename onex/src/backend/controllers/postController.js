@@ -7,85 +7,59 @@ const streamifier = require("streamifier");
 /* -------------------------------------------------------------------------- */
 exports.createPost = async (req, res) => {
   try {
-    console.log("🔹 [createPost] NEW REQUEST");
-    console.log("🔹 req.user:", req.user);
-    console.log("🔹 req.body:", req.body);
-    console.log("🔹 req.files:", req.files);
+    console.log("🔹 [createPost] req.user:", req.user?._id);
 
-    if (!req.user || !req.user._id) {
-      console.error("❌ Missing req.user or req.user._id");
+    if (!req.user?._id) {
       return res.status(401).json({ error: "Unauthorized - no user attached" });
     }
+
+    console.log("🔹 req.headers:", req.headers);
+    console.log("🔹 req.body:", req.body);
+    console.log("🔹 req.files:", req.files);
 
     const { description, city, state, category, visibility, title } = req.body;
 
     if (!description || !title) {
-      return res
-        .status(400)
-        .json({ error: "Title and description are required." });
+      return res.status(400).json({ error: "Title and description are required." });
     }
 
-    let imageUrls = []; // initialize array for multiple images
+    let imageUrls = [];
 
-    /* ---------------------------- Upload images ---------------------------- */
     if (req.files && req.files.length > 0) {
-      console.log(
-        `🔹 Found ${req.files.length} files. Starting Cloudinary uploads...`,
-      );
-      try {
-        const uploadPromises = req.files.map((file, idx) => {
-          console.log(
-            `🔹 Preparing file index ${idx}:`,
-            file.originalname,
-            file.size,
-            file.mimetype,
-          );
+      console.log(`🔹 Uploading ${req.files.length} file(s) to Cloudinary...`);
+
+      const uploadPromises = req.files.map((file, idx) => {
+        return new Promise((resolve, reject) => {
           if (!file.buffer) {
-            console.warn(`❌ File buffer missing for index ${idx}`);
-            throw new Error(`File buffer is missing for file index ${idx}`);
+            return reject(new Error(`File buffer missing for file index ${idx}`));
           }
 
-          return new Promise((resolve, reject) => {
-            const stream = cloudinary.uploader.upload_stream(
-              { folder: "posts" },
-              (error, result) => {
-                if (error) {
-                  console.error(
-                    `❌ Cloudinary upload error for file index ${idx}:`,
-                    error,
-                  );
-                  reject(error);
-                } else {
-                  console.log(
-                    `✅ Cloudinary upload success for index ${idx}:`,
-                    result.secure_url,
-                  );
-                  resolve(result.secure_url);
-                }
-              },
-            );
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: "posts" },
+            (error, result) => {
+              if (error) {
+                console.error(`❌ Cloudinary upload failed for index ${idx}:`, error);
+                reject(error);
+              } else {
+                resolve(result.secure_url);
+              }
+            }
+          );
 
-            streamifier.createReadStream(file.buffer).pipe(stream);
-          });
+          require("streamifier").createReadStream(file.buffer).pipe(stream);
         });
+      });
 
-        // Wait for all uploads
+      try {
         imageUrls = await Promise.all(uploadPromises);
-        console.log("🔹 All images uploaded. URLs:", imageUrls);
-      } catch (uploadErr) {
-        console.error("❌ Cloudinary upload failed:", uploadErr);
-        return res.status(500).json({
-          error: "Image upload failed",
-          details: uploadErr.message,
-        });
+        console.log("✅ Uploaded image URLs:", imageUrls);
+      } catch (err) {
+        console.error("❌ Cloudinary upload error:", err);
+        return res.status(500).json({ error: "Image upload failed", details: err.message });
       }
     } else {
-      console.warn(
-        "⚠️ No files found in req.files. pictures array will be empty.",
-      );
+      console.warn("⚠️ No files found in req.files. pictures array will be empty.");
     }
-
-    console.log("🔹 Saving new post with userId:", req.user._id.toString());
 
     const newPost = new Post({
       userId: req.user._id,
@@ -95,28 +69,25 @@ exports.createPost = async (req, res) => {
       state,
       category,
       visibility,
-      pictures: imageUrls, // save array of uploaded image URLs
+      pictures: imageUrls,
     });
 
     const savedPost = await newPost.save();
     console.log("🔹 Post saved to DB:", savedPost);
 
-    // Populate the user for the frontend
     const populatedPost = await Post.findById(savedPost._id).populate({
       path: "userId",
       select: "username bio profilePic",
       strictPopulate: false,
     });
 
-    console.log("✅ Post created successfully:", populatedPost._id);
     res.status(201).json(populatedPost);
   } catch (err) {
     console.error("❌ [createPost] Server error:", err);
-    res
-      .status(500)
-      .json({ error: "Failed to create post", details: err.message });
+    res.status(500).json({ error: "Failed to create post", details: err.message });
   }
 };
+
 
 /* -------------------------------------------------------------------------- */
 /* 📜 Get all posts                                                          */

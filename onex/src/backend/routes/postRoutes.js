@@ -4,49 +4,35 @@ const multer = require("multer");
 const postController = require("../controllers/postController");
 const { authMiddleware } = require("../middleware/authMiddleware");
 
-// ✅ Memory storage
+// Memory storage for multer
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// ----------------- Debug Middleware -----------------
-// Logs headers and confirms content type
-const logRequestMiddleware = (req, res, next) => {
-  console.log("\n🔹 [PostRoute] Incoming request");
-  console.log("Method:", req.method);
-  console.log("URL:", req.originalUrl);
-  console.log("Headers:", req.headers);
-  console.log("Content-Type:", req.headers["content-type"]);
+// Debug middleware to log headers and content-type
+router.use("/", (req, res, next) => {
+  console.log("🔹 [PostRoute Debug] Method:", req.method);
+  console.log("🔹 [PostRoute Debug] Content-Type:", req.headers["content-type"]);
   next();
-};
+});
 
-// ----------------- Create a new post -----------------
+// Create a new post
 router.post(
   "/",
-  logRequestMiddleware,          // <-- log everything
   authMiddleware,
-  upload.array("pictures", 5),
-  (req, res, next) => {
-    console.log("🔹 req.files:", req.files);
-    if (!req.files || req.files.length === 0) {
-      console.warn(
-        "⚠️ No files found in req.files. pictures array will be empty."
-      );
-    }
-    next();
-  },
+  upload.array("pictures", 5), // field name must match frontend
   postController.createPost
 );
 
-// ----------------- Get all posts -----------------
+// Get all posts
 router.get("/", postController.getPosts);
 
-// ----------------- Get single post -----------------
+// Get single post
 router.get("/:id", postController.getPostById);
 
-// ----------------- Update post -----------------
+// Update post
 router.put("/:id", authMiddleware, postController.updatePost);
 
-// ----------------- Delete post -----------------
+// Delete post
 router.delete("/:id", authMiddleware, postController.deletePost);
 
-module.exports = router; // ✅ THIS IS CRITICAL
+module.exports = router;

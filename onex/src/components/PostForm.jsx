@@ -31,98 +31,56 @@ export default function PostForm({ onSuccess, embedded = false }) {
     }
   }, [navigate]);
 
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (files && files.length > 0) {
-      console.log("[PostForm] Files selected:", files);
-      setFormData((prev) => ({ ...prev, [name]: Array.from(files) }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleCategorySelect = (category) => {
-    setFormData((prev) => ({ ...prev, category }));
-  };
-
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setToast(null);
+  e.preventDefault();
+  setToast(null);
 
-    if (!acknowledged) {
-      setToast({ type: "error", msg: "Please acknowledge the cost before submitting." });
-      return;
-    }
+  if (!acknowledged) {
+    setToast({ type: "error", msg: "Please acknowledge the cost before submitting." });
+    return;
+  }
 
-    const token = getAuthToken();
-    if (!token) {
-      setToast({ type: "error", msg: "No authentication token found. Please log in." });
-      return;
-    }
+  const token = getAuthToken();
+  if (!token) {
+    setToast({ type: "error", msg: "No auth token. Please log in." });
+    return;
+  }
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      const fd = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null) {
-          if (key === "pictures") {
-            value.forEach((file, idx) => {
-              console.log(`[PostForm] Appending file ${idx}:`, file.name, file.size);
-              fd.append("pictures", file);
-            });
-          } else {
-            fd.append(key, value);
-          }
+  try {
+    const fd = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value !== null) {
+        if (key === "pictures") {
+          value.forEach((file) => fd.append("pictures", file)); // MUST match multer field name
+        } else {
+          fd.append(key, value);
         }
-      });
-
-      // Debug: log all entries in FormData
-      for (let pair of fd.entries()) {
-        console.log("[PostForm] FormData entry:", pair[0], pair[1]);
       }
+    });
 
-      const res = await api.post("/posts", fd, {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true, // ensures cookies/auth headers are sent
-      });
+    console.log("[PostForm] Sending FormData:");
+    for (let pair of fd.entries()) console.log(pair[0], pair[1]);
 
-      console.log("[PostForm] Post created successfully:", res.data);
+    const res = await api.post("/posts", fd, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      withCredentials: true,
+    });
 
-      setToast({ type: "success", msg: "Post created successfully!" });
+    console.log("[PostForm] Post created:", res.data);
+    setToast({ type: "success", msg: "Post created successfully!" });
+    if (onSuccess) onSuccess();
+  } catch (err) {
+    console.error("[PostForm] Error:", err.response?.data || err.message);
+    setToast({ type: "error", msg: err.response?.data?.error || "Error creating post" });
+  } finally {
+    setLoading(false);
+  }
+};
 
-      if (onSuccess) onSuccess();
-
-      const category = formData.category; // capture before reset
-      setFormData({
-        title: "",
-        description: "",
-        city: "",
-        state: "",
-        country: "",
-        category: "",
-        pictures: [],
-        visibility: "",
-      });
-      setAcknowledged(false);
-
-      if (!embedded) {
-        setTimeout(() => {
-          navigate(category ? `/category/${category}` : "/home");
-        }, 1200);
-      }
-    } catch (err) {
-      console.error("[PostForm] Post creation error:", err.response?.data || err.message);
-      setToast({
-        type: "error",
-        msg:
-          err.response?.data?.error ||
-          "Error creating post. Make sure you are logged in.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div
