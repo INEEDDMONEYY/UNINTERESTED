@@ -20,17 +20,26 @@ exports.createPost = async (req, res) => {
     const { description, city, state, category, visibility, title } = req.body;
 
     if (!description || !title) {
-      return res.status(400).json({ error: "Title and description are required." });
+      return res
+        .status(400)
+        .json({ error: "Title and description are required." });
     }
 
     let imageUrls = []; // initialize array for multiple images
 
     /* ---------------------------- Upload images ---------------------------- */
     if (req.files && req.files.length > 0) {
-      console.log(`🔹 Found ${req.files.length} files. Starting Cloudinary uploads...`);
+      console.log(
+        `🔹 Found ${req.files.length} files. Starting Cloudinary uploads...`,
+      );
       try {
         const uploadPromises = req.files.map((file, idx) => {
-          console.log(`🔹 Preparing file index ${idx}:`, file.originalname, file.size, file.mimetype);
+          console.log(
+            `🔹 Preparing file index ${idx}:`,
+            file.originalname,
+            file.size,
+            file.mimetype,
+          );
           if (!file.buffer) {
             console.warn(`❌ File buffer missing for index ${idx}`);
             throw new Error(`File buffer is missing for file index ${idx}`);
@@ -41,13 +50,19 @@ exports.createPost = async (req, res) => {
               { folder: "posts" },
               (error, result) => {
                 if (error) {
-                  console.error(`❌ Cloudinary upload error for file index ${idx}:`, error);
+                  console.error(
+                    `❌ Cloudinary upload error for file index ${idx}:`,
+                    error,
+                  );
                   reject(error);
                 } else {
-                  console.log(`✅ Cloudinary upload success for index ${idx}:`, result.secure_url);
+                  console.log(
+                    `✅ Cloudinary upload success for index ${idx}:`,
+                    result.secure_url,
+                  );
                   resolve(result.secure_url);
                 }
-              }
+              },
             );
 
             streamifier.createReadStream(file.buffer).pipe(stream);
@@ -65,7 +80,9 @@ exports.createPost = async (req, res) => {
         });
       }
     } else {
-      console.warn("⚠️ No files found in req.files. pictures array will be empty.");
+      console.warn(
+        "⚠️ No files found in req.files. pictures array will be empty.",
+      );
     }
 
     console.log("🔹 Saving new post with userId:", req.user._id.toString());
@@ -95,7 +112,9 @@ exports.createPost = async (req, res) => {
     res.status(201).json(populatedPost);
   } catch (err) {
     console.error("❌ [createPost] Server error:", err);
-    res.status(500).json({ error: "Failed to create post", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to create post", details: err.message });
   }
 };
 
@@ -112,19 +131,19 @@ exports.getPosts = async (req, res) => {
     if (state) filter.state = state;
     if (city) filter.city = city;
 
-    const posts = await Post.find(filter)
-      .sort({ createdAt: -1 })
-      .populate({
-        path: "userId",
-        select: "username bio profilePic",
-        strictPopulate: false,
-      });
+    const posts = await Post.find(filter).sort({ createdAt: -1 }).populate({
+      path: "userId",
+      select: "username bio profilePic",
+      strictPopulate: false,
+    });
 
     console.log(`🔹 [getPosts] Found ${posts.length} posts`);
     res.json(posts);
   } catch (err) {
     console.error("❌ [getPosts] Error:", err);
-    res.status(500).json({ error: "Failed to fetch posts", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch posts", details: err.message });
   }
 };
 
@@ -150,7 +169,9 @@ exports.getPostById = async (req, res) => {
     res.json(post);
   } catch (err) {
     console.error("❌ [getPostById] Error:", err);
-    res.status(500).json({ error: "Failed to fetch post", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch post", details: err.message });
   }
 };
 
@@ -160,6 +181,16 @@ exports.getPostById = async (req, res) => {
 exports.updatePost = async (req, res) => {
   try {
     console.log("🔹 [updatePost] ID:", req.params.id, "Body:", req.body);
+    console.log("🔹 req.files array length:", req.files?.length);
+    console.log(
+      "🔹 req.files content:",
+      req.files?.map((f) => ({
+        originalname: f.originalname,
+        size: f.size,
+        mimetype: f.mimetype,
+        hasBuffer: !!f.buffer,
+      })),
+    );
 
     const post = await Post.findById(req.params.id);
 
@@ -170,7 +201,9 @@ exports.updatePost = async (req, res) => {
       req.user.role !== "admin"
     ) {
       console.warn("⚠️ [updatePost] User not authorized");
-      return res.status(403).json({ error: "Not authorized to update this post" });
+      return res
+        .status(403)
+        .json({ error: "Not authorized to update this post" });
     }
 
     const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, {
@@ -185,7 +218,9 @@ exports.updatePost = async (req, res) => {
     res.json(updatedPost);
   } catch (err) {
     console.error("❌ [updatePost] Error:", err);
-    res.status(500).json({ error: "Failed to update post", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to update post", details: err.message });
   }
 };
 
@@ -205,7 +240,9 @@ exports.deletePost = async (req, res) => {
       req.user.role !== "admin"
     ) {
       console.warn("⚠️ [deletePost] User not authorized");
-      return res.status(403).json({ error: "Not authorized to delete this post" });
+      return res
+        .status(403)
+        .json({ error: "Not authorized to delete this post" });
     }
 
     await Post.findByIdAndDelete(req.params.id);
@@ -214,6 +251,8 @@ exports.deletePost = async (req, res) => {
     res.json({ message: "Post deleted successfully" });
   } catch (err) {
     console.error("❌ [deletePost] Error:", err);
-    res.status(500).json({ error: "Failed to delete post", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to delete post", details: err.message });
   }
 };
