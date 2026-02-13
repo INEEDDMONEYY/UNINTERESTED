@@ -9,6 +9,7 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
+const cloudinary = require('./utils/cloudinary'); // ✅ Cloudinary setup
 
 (async () => {
   try {
