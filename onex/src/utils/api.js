@@ -10,7 +10,7 @@ API_BASE = API_BASE.replace(/\/+$/, "");
 /* ---------------------- Axios Instance ------------------------- */
 const api = axios.create({
   baseURL: `${API_BASE}/api`, // always append /api once
-  withCredentials: true,
+  withCredentials: true,       // keep credentials if using cookies/auth
   headers: { "Content-Type": "application/json" },
 });
 
@@ -20,9 +20,8 @@ api.interceptors.request.use(
     const token = localStorage.getItem("token");
     if (token) config.headers["Authorization"] = `Bearer ${token}`;
 
-    if (config.data instanceof FormData) {
-      config.headers["Content-Type"] = "multipart/form-data";
-    }
+    // ✅ Removed manual FormData Content-Type override
+    // Axios will handle FormData correctly for file uploads
 
     return config;
   },
@@ -37,7 +36,7 @@ api.interceptors.response.use(
     const requestUrl = error.config?.url || "";
 
     if (status === 401) {
-      // ✅ Skip clearing on signup/signin routes
+      // Skip clearing on signup/signin routes
       if (!requestUrl.includes("/signup") && !requestUrl.includes("/signin")) {
         console.warn("⚠️ Unauthorized — clearing token & user data...");
         localStorage.removeItem("token");

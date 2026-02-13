@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom"; // fixed import
 import { Loader2, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
 import CategoryList from "../components/Categories/categoryList";
 import api, { getAuthToken } from "../utils/api";
@@ -77,6 +77,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
 
       const res = await api.post("/posts", fd, {
         headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true, // ensures cookies/auth headers are sent
       });
 
       console.log("[PostForm] Post created successfully:", res.data);
@@ -85,6 +86,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
 
       if (onSuccess) onSuccess();
 
+      const category = formData.category; // capture before reset
       setFormData({
         title: "",
         description: "",
@@ -99,7 +101,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
 
       if (!embedded) {
         setTimeout(() => {
-          navigate(formData.category ? `/category/${formData.category}` : "/home");
+          navigate(category ? `/category/${category}` : "/home");
         }, 1200);
       }
     } catch (err) {
@@ -180,16 +182,16 @@ export default function PostForm({ onSuccess, embedded = false }) {
             className="flex-1 border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base md:text-lg"
           />
         </div>
-        
+
         <input
-            type="text"
-            name="country"
-            placeholder="Country"
-            value={formData.country}
-            onChange={handleChange}
-            className="flex-1 border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base md:text-lg"
-          />
-          
+          type="text"
+          name="country"
+          placeholder="Country"
+          value={formData.country}
+          onChange={handleChange}
+          className="flex-1 border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base md:text-lg"
+        />
+
         <input
           type="file"
           name="pictures"
