@@ -34,6 +34,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files && files.length > 0) {
+      console.log("[PostForm] Files selected:", files);
       setFormData((prev) => ({ ...prev, [name]: Array.from(files) }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
@@ -66,14 +67,20 @@ export default function PostForm({ onSuccess, embedded = false }) {
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== null) {
           if (key === "pictures") {
-            value.forEach((file) => fd.append("pictures", file));
+            value.forEach((file, idx) => {
+              console.log(`[PostForm] Appending file ${idx}:`, file.name, file.size);
+              fd.append("pictures", file);
+            });
           } else {
             fd.append(key, value);
           }
         }
       });
 
-      console.log("[PostForm] Submitting FormData:", formData);
+      // Debug: log all entries in FormData
+      for (let pair of fd.entries()) {
+        console.log("[PostForm] FormData entry:", pair[0], pair[1]);
+      }
 
       const res = await api.post("/posts", fd, {
         headers: { Authorization: `Bearer ${token}` },
