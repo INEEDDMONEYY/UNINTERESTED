@@ -12,4 +12,9 @@ if (!process.env.CLOUDINARY_CLOUD_NAME) {
   console.error("❌ Cloudinary env variables missing");
 }
 
+console.log("===== CLOUDINARY CONFIG =====");
+console.log(cloudinary.config());
+console.log("==============================");
+
+
 module.exports = cloudinary;
