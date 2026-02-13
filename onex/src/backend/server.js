@@ -9,17 +9,7 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
-const cloudinary = require('./utils/cloudinary'); // ✅ Cloudinary setup
 
-(async () => {
-  try {
-    console.log("Testing Cloudinary upload...");
-    const result = await cloudinary.uploader.upload("https://res.cloudinary.com/demo/image/upload/w_100/lady.jpg", { folder: "test" });
-    console.log("Cloudinary upload succeeded:", result.secure_url);
-  } catch (err) {
-    console.error("Cloudinary upload failed:", err.message);
-  }
-})();
 
 // 🧩 Models
 const User = require('./models/User');
