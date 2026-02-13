@@ -7,8 +7,7 @@ API_BASE = API_BASE.replace(/\/+$/, "");
 const api = axios.create({
   baseURL: `${API_BASE}/api`,
   withCredentials: true,
-  // ✅ REMOVE the default Content-Type
-  // headers: { "Content-Type": "application/json" },
+  headers: { "Content-Type": "application/json" },
 });
 
 // Request interceptor
