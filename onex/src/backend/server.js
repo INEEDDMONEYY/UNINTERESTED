@@ -1,10 +1,4 @@
 require('dotenv').config();// ✅ central env
-console.log("===== ENV DEBUG =====");
-console.log("CLOUDINARY_CLOUD_NAME:", process.env.CLOUDINARY_CLOUD_NAME);
-console.log("CLOUDINARY_API_KEY:", process.env.CLOUDINARY_API_KEY ? "✅ Loaded" : "❌ Missing");
-console.log("CLOUDINARY_API_SECRET:", process.env.CLOUDINARY_API_SECRET ? "✅ Loaded" : "❌ Missing");
-console.log("=====================");
-
 const env = require('./config/env'); // ✅ central env
 const express = require('express');
 const mongoose = require('mongoose');
