@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "NODE_ENV=test jest",
-    "start": "node --watch server.js"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
