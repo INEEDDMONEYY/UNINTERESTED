@@ -2,3 +2,6 @@
 .env
 .env.local 
 .env*
+
+# Ignore Firebase service account key
+backend/config/firebase-key.json
