@@ -78,12 +78,9 @@ export default function PostForm({ onSuccess, embedded = false }) {
       console.log("[PostForm] Sending FormData:");
       for (let pair of fd.entries()) console.log(pair[0], pair[1]);
 
-      const res = await api.post("/posts", fd, {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      });
+      await api.post("/posts", fd, { headers: { Authorization: `Bearer ${token}` } });
 
-      console.log("[PostForm] Post created:", res.data);
+      console.log("[PostForm] Post created successfully");
       setToast({ type: "success", msg: "Post created successfully!" });
       if (onSuccess) onSuccess();
 

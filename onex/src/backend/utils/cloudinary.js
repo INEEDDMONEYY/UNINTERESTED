@@ -1,6 +1,6 @@
 // backend/utils/cloudinary.js
 
-const cloudinary = require("cloudinary").v2;
+const { v2: cloudinary } = require("cloudinary");
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -11,5 +11,6 @@ cloudinary.config({
 if (!process.env.CLOUDINARY_CLOUD_NAME) {
   console.error("❌ Cloudinary env variables missing");
 }
+
 
 module.exports = cloudinary;

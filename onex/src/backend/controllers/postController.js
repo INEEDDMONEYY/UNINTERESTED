@@ -9,6 +9,22 @@ exports.createPost = async (req, res) => {
   try {
     console.log("🔹 [createPost] req.user:", req.user?._id);
 
+    // --- NEW DEBUG LOG ---
+    console.log("🔹 [DEBUG] req.files content:");
+    if (req.files && req.files.length > 0) {
+      req.files.forEach((file, idx) => {
+        console.log(`File ${idx}:`, {
+          originalname: file.originalname,
+          mimetype: file.mimetype,
+          size: file.size,
+          hasBuffer: !!file.buffer,
+        });
+      });
+    } else {
+      console.log("No files received in req.files");
+    }
+    // ----------------------
+
     if (!req.user?._id) {
       return res.status(401).json({ error: "Unauthorized - no user attached" });
     }
