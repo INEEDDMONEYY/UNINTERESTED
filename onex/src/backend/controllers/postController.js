@@ -2,6 +2,7 @@ const Post = require("../models/Post");
 const { v2: cloudinary } = require("cloudinary");
 const streamifier = require("streamifier");
 const { v4: uuidv4 } = require("uuid");
+import cloudinary from "../utils/cloudinary.js"; // now credentials are loaded
 
 
  cloudinary.config({
