@@ -1,13 +1,14 @@
 // backend/utils/firebase.js
 const admin = require("firebase-admin");
 
-const serviceAccount = process.env.FIREBASE_CREDENTIALS
-  ? JSON.parse(process.env.FIREBASE_CREDENTIALS)
-  : require("../config/firebase-key.json"); // fallback for local dev
-
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  storageBucket: process.env.FIREBASE_BUCKET || "mysterymansion-2f698.appspot.com",
+  credential: admin.credential.cert({
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    // Replace escaped newlines with actual newlines
+    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+  }),
+  storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,
 });
 
 const bucket = admin.storage().bucket();
