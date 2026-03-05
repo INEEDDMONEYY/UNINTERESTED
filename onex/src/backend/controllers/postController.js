@@ -1,6 +1,14 @@
 const Post = require("../models/Post");
-const bucket = require("../utils/firebase");
-const { v4: uuidv4 } = require("uuid"); // unique filenames
+const { v2: cloudinary } = require("cloudinary");
+const streamifier = require("streamifier");
+const { v4: uuidv4 } = require("uuid");
+
+// Make sure cloudinary is configured somewhere in your project:
+// cloudinary.config({
+//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+//   api_key: process.env.CLOUDINARY_API_KEY,
+//   api_secret: process.env.CLOUDINARY_API_SECRET,
+// });
 
 // ---------------- Create a new post ----------------
 async function createPost(req, res) {
@@ -13,22 +21,23 @@ async function createPost(req, res) {
 
     let imageUrls = [];
 
-    // Upload files to Firebase Storage
+    // Upload files to Cloudinary
     if (req.files && req.files.length > 0) {
-      const uploadPromises = req.files.map(async (file) => {
-        const filename = `posts/${uuidv4()}-${file.originalname}`;
-        const fileRef = bucket.file(filename);
-
-        await fileRef.save(file.buffer, {
-          contentType: file.mimetype,
-          public: true, // makes the URL publicly accessible
+      const uploadPromises = req.files.map((file) => {
+        return new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: "posts" },
+            (error, result) => {
+              if (error) return reject(error);
+              resolve(result.secure_url);
+            }
+          );
+          streamifier.createReadStream(file.buffer).pipe(stream);
         });
-
-        return `https://storage.googleapis.com/${bucket.name}/${filename}`;
       });
 
       imageUrls = await Promise.all(uploadPromises);
-      console.log("✅ Uploaded images to Firebase:", imageUrls);
+      console.log("✅ Uploaded images to Cloudinary:", imageUrls);
     }
 
     const newPost = new Post({

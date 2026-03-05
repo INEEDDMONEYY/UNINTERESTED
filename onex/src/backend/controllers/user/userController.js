@@ -1,6 +1,13 @@
 import User from "../../models/User.js";
-import bucket from "../utils/firebase.js"; // Firebase bucket
-import { v4 as uuidv4 } from "uuid";
+import { v2 as cloudinary } from "cloudinary";
+import streamifier from "streamifier";
+
+// Make sure your cloudinary config is already set somewhere:
+// cloudinary.config({
+//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+//   api_key: process.env.CLOUDINARY_API_KEY,
+//   api_secret: process.env.CLOUDINARY_API_SECRET,
+// });
 
 export const updateProfile = async (req, res) => {
   try {
@@ -15,19 +22,23 @@ export const updateProfile = async (req, res) => {
     if (bio) user.bio = bio;
     if (password) user.password = password;
 
-    // 📸 Upload profile image to Firebase
+    // 📸 Upload profile image to Cloudinary
     if (req.file) {
-      const filename = `profiles/${uuidv4()}-${req.file.originalname}`;
-      const file = bucket.file(filename);
+      // Convert buffer to stream for Cloudinary
+      const uploadStream = () =>
+        new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: "profiles" },
+            (error, result) => {
+              if (error) return reject(error);
+              resolve(result);
+            }
+          );
+          streamifier.createReadStream(req.file.buffer).pipe(stream);
+        });
 
-      await file.save(req.file.buffer, {
-        contentType: req.file.mimetype,
-        public: true,
-      });
-
-      const imageUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
-
-      user.image = imageUrl;
+      const result = await uploadStream();
+      user.image = result.secure_url;
     }
 
     await user.save();
@@ -36,7 +47,6 @@ export const updateProfile = async (req, res) => {
       message: "Profile updated",
       user,
     });
-
   } catch (err) {
     console.error("Error updating profile:", err);
     res.status(500).json({ error: "Failed to update profile", details: err.message });
