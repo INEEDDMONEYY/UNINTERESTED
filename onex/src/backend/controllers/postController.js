@@ -3,12 +3,12 @@ const { v2: cloudinary } = require("cloudinary");
 const streamifier = require("streamifier");
 const { v4: uuidv4 } = require("uuid");
 
-// Make sure cloudinary is configured somewhere in your project:
-// cloudinary.config({
-//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-//   api_key: process.env.CLOUDINARY_API_KEY,
-//   api_secret: process.env.CLOUDINARY_API_SECRET,
-// });
+
+ cloudinary.config({
+   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+   api_key: process.env.CLOUDINARY_API_KEY,
+   api_secret: process.env.CLOUDINARY_API_SECRET,
+ });
 
 // ---------------- Create a new post ----------------
 async function createPost(req, res) {

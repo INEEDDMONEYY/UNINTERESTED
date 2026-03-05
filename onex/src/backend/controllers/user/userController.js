@@ -2,12 +2,11 @@ import User from "../../models/User.js";
 import { v2 as cloudinary } from "cloudinary";
 import streamifier from "streamifier";
 
-// Make sure your cloudinary config is already set somewhere:
-// cloudinary.config({
-//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-//   api_key: process.env.CLOUDINARY_API_KEY,
-//   api_secret: process.env.CLOUDINARY_API_SECRET,
-// });
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export const updateProfile = async (req, res) => {
   try {
@@ -32,7 +31,7 @@ export const updateProfile = async (req, res) => {
             (error, result) => {
               if (error) return reject(error);
               resolve(result);
-            }
+            },
           );
           streamifier.createReadStream(req.file.buffer).pipe(stream);
         });
@@ -49,6 +48,8 @@ export const updateProfile = async (req, res) => {
     });
   } catch (err) {
     console.error("Error updating profile:", err);
-    res.status(500).json({ error: "Failed to update profile", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to update profile", details: err.message });
   }
 };
