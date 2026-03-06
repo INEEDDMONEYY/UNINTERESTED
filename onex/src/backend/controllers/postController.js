@@ -1,5 +1,5 @@
 const Post = require("../models/Post");
-const cloudinary = require('./utils/cloudinary');;
+const cloudinary = require('../utils/cloudinary');;
 const streamifier = require("streamifier");
 const { v4: uuidv4 } = require("uuid");
 

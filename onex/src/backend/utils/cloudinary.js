@@ -6,7 +6,7 @@ console.log("📝 Cloudinary env vars at import:", {
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
 });
 
-const { v2: cloudinary } = require("cloudinary");
+const cloudinary = require('./utils/cloudinary');
 
 // Prefer CLOUDINARY_URL if present, otherwise use individual keys
 if (process.env.CLOUDINARY_URL) {
