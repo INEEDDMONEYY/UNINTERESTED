@@ -1,5 +1,5 @@
 import User from "../../models/User.js";
-import { v2 as cloudinary } from "cloudinary";
+const cloudinary = require('./utils/cloudinary');
 import streamifier from "streamifier";
 
 cloudinary.config({
