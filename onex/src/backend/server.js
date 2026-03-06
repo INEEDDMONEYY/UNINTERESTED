@@ -1,33 +1,40 @@
-require('dotenv').config();// ✅ central env
-const env = require('./config/env'); // ✅ central env
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const path = require('path');
-const multer = require('multer');
-const fs = require('fs');
-const cloudinary = require('./utils/cloudinary'); // ✅ Cloudinary utils
+// server.js (ESM version)
+
+import 'dotenv/config'; // ✅ loads env variables first
+import './utils/cloudinary.js'; // ✅ runs Cloudinary config at import
+import env from './config/env.js'; // central env
+
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import path from 'path';
+import multer from 'multer';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 // 🧩 Models
-const User = require('./models/User');
+import User from './models/User.js';
 
 // 🧭 Routes
-const adminSettingsRoutes = require('./routes/adminSettings');
-const adminUserRoutes = require('./routes/adminUsers');
-const adminProfileRoutes = require('./routes/adminProfile');
-const messageRoutes = require('./routes/messageRoutes');
-const conversationRoutes = require('./routes/conversationRoutes');
-const postRoutes = require('./routes/postRoutes');
-const userRoutes = require('./routes/userRoutes');
-const authRoutes = require('./routes/authRoutes');
-const platformUpdatesRoutes = require('./routes/PlatformUpdatesRoutes'); // ✅ Platform Updates Routes
-const forgotPasswordRoutes = require('./routes/forgotPasswordRoutes'); // ✅ Added forgot password
+import adminSettingsRoutes from './routes/adminSettings.js';
+import adminUserRoutes from './routes/adminUsers.js';
+import adminProfileRoutes from './routes/adminProfile.js';
+import messageRoutes from './routes/messageRoutes.js';
+import conversationRoutes from './routes/conversationRoutes.js';
+import postRoutes from './routes/postRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import platformUpdatesRoutes from './routes/PlatformUpdatesRoutes.js';
+import forgotPasswordRoutes from './routes/forgotPasswordRoutes.js';
 
 // 🛡️ Middleware
-const { authMiddleware, adminOnlyMiddleware } = require('./middleware/authMiddleware');
+import { authMiddleware, adminOnlyMiddleware } from './middleware/authMiddleware.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = env.PORT;
@@ -42,18 +49,20 @@ const allowedOrigins = [
   'https://mysterymansion.xyz',
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || env.NODE_ENV !== 'production') {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin) || env.NODE_ENV !== 'production') {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  })
+);
 
 app.options('', cors());
 
@@ -71,11 +80,14 @@ app.use((req, res, next) => {
 });
 
 // ✅ Static uploads with cache headers
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
-  setHeaders: (res, filePath) => {
-    res.setHeader('Cache-Control', 'public, max-age=31536000');
-  }
-}));
+app.use(
+  '/uploads',
+  express.static(path.join(__dirname, 'uploads'), {
+    setHeaders: (res, filePath) => {
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+    },
+  })
+);
 
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
@@ -116,7 +128,7 @@ app.use('/api/users', authMiddleware, userRoutes);
 app.use('/api', authRoutes);
 
 /* -------------------------- 🔑 Forgot Password Routes -------------------------- */
-app.use('/api', forgotPasswordRoutes); // ✅ integrated forgot password
+app.use('/api', forgotPasswordRoutes);
 
 /* ---------------------- 🆕 Platform Updates Routes --------------------- */
 app.use('/api/updates', platformUpdatesRoutes);
@@ -125,11 +137,13 @@ app.use('/api/updates', platformUpdatesRoutes);
 const frontendPath = path.join(__dirname, 'client', 'build');
 
 if (fs.existsSync(frontendPath)) {
-  app.use(express.static(frontendPath, {
-    setHeaders: (res, filePath) => {
-      res.setHeader('Cache-Control', 'public, max-age=31536000');
-    }
-  }));
+  app.use(
+    express.static(frontendPath, {
+      setHeaders: (res, filePath) => {
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+      },
+    })
+  );
 
   app.get('*', (req, res) => {
     const indexPath = path.join(frontendPath, 'index.html');
@@ -159,4 +173,4 @@ if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
 }
 
-module.exports = app;
+export default app;
