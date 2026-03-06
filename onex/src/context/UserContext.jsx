@@ -19,6 +19,7 @@ export const UserProvider = ({ children }) => {
   const persistUser = (u) => {
     if (!u) return;
     try {
+      localStorage.setItem("user", JSON.stringify(u)); // update main user key
       localStorage.setItem(`user_${u._id}`, JSON.stringify(u)); // session/auth canonical store
       if (u._id) {
         localStorage.setItem(keyFor("userProfile", u._id), JSON.stringify(u)); // namespaced profile store
@@ -38,7 +39,7 @@ export const UserProvider = ({ children }) => {
 
     const fetchUser = async () => {
       try {
-        const res = await api.get("/users/profile");
+        const res = await api.get("/me");
         // backend might return user at res.data or res.data.user; handle both
         const fetched = res.data?.user ?? res.data;
         setUser(fetched);
@@ -115,7 +116,7 @@ export const UserProvider = ({ children }) => {
   // refreshUser: re-fetch authoritative profile from the server and persist
   const refreshUser = async () => {
     try {
-      const res = await api.get("/users/profile");
+      const res = await api.get("/me");
       const fetched = res.data?.user ?? res.data;
       setUser(fetched);
       persistUser(fetched);
