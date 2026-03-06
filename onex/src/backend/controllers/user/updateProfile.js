@@ -2,12 +2,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import User from "../../models/User.js"; // your Mongoose user model
 
-cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.CLOUD_KEY,
-  api_secret: process.env.CLOUD_SECRET,
-});
-
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id; // assuming you have auth middleware

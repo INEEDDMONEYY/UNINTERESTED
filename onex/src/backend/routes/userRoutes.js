@@ -1,20 +1,13 @@
 //User routes file
 import express from "express";
 import multer from "multer";
-import { v2 as cloudinary } from "cloudinary";
+import cloudinary from "../utils/cloudinary.js";
 import User from "../models/User.js";
 
 const router = express.Router();
 
 // ✅ Multer setup for handling file uploads
 const upload = multer({ dest: "uploads/" });
-
-// ✅ Cloudinary config (use environment variables for security)
-cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.CLOUD_KEY,
-  api_secret: process.env.CLOUD_SECRET,
-});
 
 // ✅ Update-profile route with Cloudinary integration
 router.put("/update-profile", upload.single("profilePic"), async (req, res) => {
