@@ -1,46 +1,71 @@
-//Availability Settings
+// Availability Settings
 import React, { useState, useEffect } from "react";
 import { Loader2, CheckCircle, XCircle, Clock } from "lucide-react";
 
 export default function AvailabilitySettings({
   availability,
   setAvailability,
-  userId, // ✅ new optional prop to namespace by user
+  userId,
 }) {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
-  // ✅ Build a per-user storage key (falls back to a generic key if no userId)
+  // Per-user localStorage key
   const storageKey = userId ? `availability_${userId}` : "availability";
 
-  // ✅ Read availability for the current userId on mount / user change
+  // ✅ Load availability from backend first (true cross-device persistence)
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (raw) {
-        const saved = JSON.parse(raw);
-        // Only update if saved shape looks right
-        if (saved && typeof saved === "object" && "status" in saved) {
-          setAvailability(saved);
-        }
-      }
-    } catch {
-      // ignore parsing errors
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]); // re-hydrate when user identity changes
+    async function loadFromBackend() {
+      try {
+        const res = await fetch("/api/users/me", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
 
-  // ✅ Persist to localStorage whenever availability changes (for this userId)
+        const data = await res.json();
+
+        if (data?.availability) {
+          setAvailability({ status: data.availability });
+
+          // Sync to localStorage
+          localStorage.setItem(
+            storageKey,
+            JSON.stringify({ status: data.availability })
+          );
+
+          return; // stop here if backend had data
+        }
+      } catch (err) {
+        console.error("Failed to load availability from backend", err);
+      }
+
+      // Fallback: load from localStorage
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (raw) {
+          const saved = JSON.parse(raw);
+          if (saved && typeof saved === "object" && "status" in saved) {
+            setAvailability(saved);
+          }
+        }
+      } catch {}
+    }
+
+    loadFromBackend();
+  }, [userId]);
+  
+
+  // Persist to localStorage whenever availability changes
   useEffect(() => {
     if (!availability) return;
     try {
       localStorage.setItem(storageKey, JSON.stringify(availability));
-    } catch {
-      // ignore storage errors
-    }
+    } catch {}
   }, [availability, storageKey]);
 
-  // Whenever availability.status changes, show a toast
+
+  // Toast on status change
   useEffect(() => {
     if (availability.status) {
       setToast({
@@ -53,26 +78,39 @@ export default function AvailabilitySettings({
     }
   }, [availability.status]);
 
-  const handleSave = () => {
+
+  // Save to backend
+  const handleSave = async () => {
     setLoading(true);
 
-    // Simulate a save action locally
-    setTimeout(() => {
-      // ✅ Explicitly persist current value for this user
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(availability));
-      } catch {
-        // ignore storage errors
-      }
+    try {
+      const res = await fetch("/api/users/update-profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          availability: availability.status,
+        }),
+      });
+
+      await res.json();
 
       setToast({
         type: "success",
-        message: "Availability saved locally!",
+        message: "Availability saved!",
       });
-      setLoading(false);
-      setTimeout(() => setToast(null), 3000);
-    }, 1000);
+    } catch (err) {
+      setToast({
+        type: "error",
+        message: "Failed to save availability",
+      });
+    }
+
+    setLoading(false);
   };
+
 
   return (
     <section className="w-full px-4 py-6 md:px-6 lg:px-8">
@@ -95,9 +133,9 @@ export default function AvailabilitySettings({
         </div>
       )}
 
-      {/* ✅ Redesigned Flex Layout */}
       <div className="bg-white shadow rounded-lg p-6 flex flex-col items-center justify-center space-y-4 max-w-md mx-auto text-center">
         <label className="block text-pink-600 font-medium">Availability</label>
+
         <select
           value={availability.status || ""}
           onChange={(e) =>

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema(
   {
@@ -13,7 +13,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       trim: true,
       lowercase: true,
-      default: '',
+      default: "",
     },
     password: {
       type: String,
@@ -22,23 +22,30 @@ const UserSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
+      enum: ["user", "admin"],
+      default: "user",
     },
     profilePic: {
       type: String,
-      default: '',
+      default: "",
     },
     bio: {
       type: String,
       trim: true,
       maxlength: 500,
-      default: '',
+      default: "",
+    },
+    availability: {
+      status: {
+        type: String,
+        enum: ["Available", "Not Available", ""],
+        default: "",
+      },
     },
     status: {
       type: String,
-      enum: ['active', 'suspended'],
-      default: 'active',
+      enum: ["active", "suspended"],
+      default: "active",
     },
     lastLogin: {
       type: Date,
@@ -55,7 +62,7 @@ const UserSchema = new mongoose.Schema(
     conversations: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Conversation',
+        ref: "Conversation",
       },
     ],
 
@@ -67,17 +74,15 @@ const UserSchema = new mongoose.Schema(
       type: Date,
     },
     /* ----------------------------------------------------------- */
-
-    // ❌ availability removed completely
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-UserSchema.virtual('isAdmin').get(function () {
-  return this.role === 'admin';
+UserSchema.virtual("isAdmin").get(function () {
+  return this.role === "admin";
 });
 
-UserSchema.set('toJSON', {
+UserSchema.set("toJSON", {
   virtuals: true,
   transform: (doc, ret) => {
     delete ret.password;
@@ -87,5 +92,4 @@ UserSchema.set('toJSON', {
   },
 });
 
-export default mongoose.model('User', UserSchema);
-
+export default mongoose.model("User", UserSchema);

@@ -141,7 +141,7 @@ export default function UpdateProfileSettings({ onProfileUpdate }) {
       )}
 
       {/* Profile Picture (Feature Flag) */}
-      {FEATURE_FLAGS.profile_picture_updates && (
+      {FEATURE_FLAGS.ENABLE_PROFILE_PIC_UPDATE && (
         <section className="flex flex-col sm:flex-row items-center gap-4 border-b border-pink-100 pb-6">
           <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-pink-400 shadow">
             <img

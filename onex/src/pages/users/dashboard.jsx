@@ -111,7 +111,7 @@ export default function UserDashboard() {
           className="w-10 h-10 rounded-full object-cover"
         />
         <div>
-          <p className="text-sm font-semibold">{user?.name || "User"}</p>
+          <p className="text-sm font-semibold">{user?.username || "User"}</p>
           <p className="text-xs text-gray-500">Member</p>
         </div>
       </div>
@@ -124,7 +124,7 @@ export default function UserDashboard() {
       {/* MOBILE DRAWER OVERLAY */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          className="fixed inset-0 bg-black/40 z-40 md:hidden rounded-md"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -163,7 +163,7 @@ export default function UserDashboard() {
         {/* DESKTOP HEADER */}
         <div className="hidden md:block mb-6">
           <h1 className="text-3xl font-bold text-gray-800">
-            Welcome back, {user?.name || "User"} 👋
+            Welcome back, {user?.username || "User"} 👋
           </h1>
           <p className="text-gray-500">
             Manage your account and activity from your dashboard.

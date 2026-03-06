@@ -1,14 +1,14 @@
-// 📦 External Libraries 
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { FEATURE_FLAGS } from '../../config/featureFlags';
+// 📦 External Libraries
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { FEATURE_FLAGS } from "../../config/featureFlags";
 
 // 🌀 Loaders & Components
-import PostDetailLoader from '../Loaders/PostDetailLoader';
+import PostDetailLoader from "../Loaders/PostDetailLoader";
 //import UserProfile from '../../pages/profiles/ProfilePage';
-import UserAvailabilityDisplay from '../UserDisplay/UserAvailabilityDisplay';
-import UserMeetupDisplay from '../UserDisplay/UserMeetupDisplay';
+import UserAvailabilityDisplay from "../UserDisplay/UserAvailabilityDisplay";
+import UserMeetupDisplay from "../UserDisplay/UserMeetupDisplay";
 
 export default function PostDetail() {
   const { postId } = useParams();
@@ -33,7 +33,9 @@ export default function PostDetail() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts/${postId}`);
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/posts/${postId}`,
+        );
         setPost(data);
       } catch (err) {
         console.error("Failed to fetch post:", err);
@@ -49,9 +51,7 @@ export default function PostDetail() {
   if (loading) return <PostDetailLoader />;
   if (!post) {
     return (
-      <div className="text-center py-10 text-red-500">
-        Post not found.
-      </div>
+      <div className="text-center py-10 text-red-500">Post not found.</div>
     );
   }
 
@@ -83,17 +83,32 @@ export default function PostDetail() {
 
       {/* 🧑 Username + Title */}
       <div className="mb-4">
-        <h2 className="text-2xl font-bold text-pink-600">{post.title || "Untitled Post"}</h2>
-        <p className="text-sm text-gray-500 mt-1">by {post.username || "Anonymous"}</p>
+        <h2 className="text-2xl font-bold text-pink-600">
+          {post.title || "Untitled Post"}
+        </h2>
+        <p className="text-sm text-gray-500 mt-1">
+          by {post.userId?.username || "Anonymous"}
+        </p>
       </div>
 
       {/* 📝 Description */}
-      <p className="text-gray-700 text-base mb-6">{post.description || "No description provided."}</p>
+      <p className="text-gray-700 text-base mb-6">
+        {(post.description || "No description provided.")
+          .split(/(?<=[.!?])\s+/) // split on sentence endings
+          .map((sentence, i) => (
+            <span key={i}>
+              {sentence}
+              <br />
+            </span>
+          ))}
+      </p>
 
       {/* 🟢 User Availability */}
       {FEATURE_FLAGS.ENABLE_VIEW_ACTIVITY && (
         <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-600 mb-1">User Availability</h3>
+          <h3 className="text-sm font-semibold text-gray-600 mb-1">
+            User Availability
+          </h3>
           <div className="h-auto overflow-hidden p-1">
             <UserAvailabilityDisplay availability={availability} />
           </div>
@@ -103,9 +118,14 @@ export default function PostDetail() {
       {/* 💲 User Meetup Prices */}
       {FEATURE_FLAGS.MEETUP_SERVICE_SETTINGS && (
         <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-600 mb-1">Meetup Prices</h3>
+          <h3 className="text-sm font-semibold text-gray-600 mb-1">
+            Meetup Prices
+          </h3>
           <div className="h-auto overflow-hidden p-1">
-            <UserMeetupDisplay incallPrice={incallPrice} outcallPrice={outcallPrice} />
+            <UserMeetupDisplay
+              incallPrice={incallPrice}
+              outcallPrice={outcallPrice}
+            />
           </div>
         </div>
       )}
@@ -121,14 +141,16 @@ export default function PostDetail() {
       {FEATURE_FLAGS.ENABLE_COMMENTS && (
         <div className="mt-8 border-t pt-6 mb-7">
           <h3 className="text-lg font-semibold text-pink-500 mb-2">Comments</h3>
-          <p className="text-sm text-gray-500">Comment functionality coming soon...</p>
+          <p className="text-sm text-gray-500">
+            Comment functionality coming soon...
+          </p>
         </div>
       )}
 
       {/* 🔘 Action Buttons */}
       <div className="flex flex-row justify-between items-center mt-8">
         <button
-          onClick={() => navigate('/home')}
+          onClick={() => navigate("/home")}
           className="px-4 py-2 text-[12px] text-white font-medium rounded-lg shadow-md transition-all hover:opacity-90 bg-gradient-to-r from-yellow-400 via-black to-pink-500"
         >
           Return to posts

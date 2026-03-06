@@ -3,7 +3,7 @@ import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-export default function PostCard({ post }) {
+export default function PostCard({ post, onDelete }) {
   if (!post) return null;
 
   // -------------------- User Info --------------------
@@ -34,25 +34,15 @@ export default function PostCard({ post }) {
   };
 
   // -------------------- Delete Post --------------------
-  const handleDelete = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDelete = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
 
-    if (!window.confirm("Are you sure you want to delete this post?")) return;
+  if (!window.confirm("Remove this post from your feed?")) return;
 
-    try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/posts/${post._id}`, {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-      alert("Post deleted successfully");
-      window.location.reload();
-    } catch (err) {
-      console.error("Failed to delete post:", err);
-      alert("Error deleting post");
-    }
-  };
+  onDelete(post._id); // UI-only delete
+};
+
 
   return (
     <div className="relative bg-gradient-to-r from-pink-500 via-black to-yellow-500 p-[2px] rounded-lg shadow-lg max-w-sm sm:max-w-md md:max-w-lg lg:max-w-sm mx-auto sm:mx-0 transition-transform hover:scale-[1.02]">
