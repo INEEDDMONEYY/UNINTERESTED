@@ -1,11 +1,11 @@
-const express = require("express");
-const router = express.Router();
-
-const {
+import express from "express";
+import {
   getSettings,
   updateSettings,
   updateAdminCredentials,
-} = require("../controllers/AdminSettingsController");
+} from "../controllers/AdminSettingsController.js";
+
+const router = express.Router();
 
 /* ----------------------------- ⚙️ Admin Settings Routes ----------------------------- */
 // ✅ Core site and admin settings
@@ -15,4 +15,4 @@ router.put("/", updateSettings);          // PUT /api/admin/settings
 // ✅ Admin credentials (username/password)
 router.put("/credentials", updateAdminCredentials);  // PUT /api/admin/settings/credentials
 
-module.exports = router;
+export default router;

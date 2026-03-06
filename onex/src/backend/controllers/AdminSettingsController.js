@@ -1,11 +1,11 @@
-const AdminSettings = require("../models/AdminSettings");
-const User = require("../models/User");
-const bcrypt = require("bcrypt");
-const path = require("path");
-const fs = require("fs");
+import AdminSettings from "../models/AdminSettings.js";
+import User from "../models/User.js";
+import bcrypt from "bcrypt";
+import path from "path";
+import fs from "fs";
 
 /* --------------------------- 📄 Get Admin Settings --------------------------- */
-exports.getSettings = async (req, res) => {
+export const getSettings = async (req, res) => {
   try {
     let settings = await AdminSettings.findOne();
     if (!settings) {
@@ -21,7 +21,7 @@ exports.getSettings = async (req, res) => {
 };
 
 /* --------------------------- 🛠 Update Admin Settings --------------------------- */
-exports.updateSettings = async (req, res) => {
+export const updateSettings = async (req, res) => {
   try {
     let updates = {};
 
@@ -45,7 +45,7 @@ exports.updateSettings = async (req, res) => {
 };
 
 /* --------------------------- 👥 Get All Users --------------------------- */
-exports.getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({}, "-password");
     res.json({ success: true, users });
@@ -56,7 +56,7 @@ exports.getAllUsers = async (req, res) => {
 };
 
 /* --------------------------- 🔑 Update Admin Credentials --------------------------- */
-exports.updateAdminCredentials = async (req, res) => {
+export const updateAdminCredentials = async (req, res) => {
   try {
     const { username, password } = req.body;
     const adminId = req.user?.id || req.user?._id;
@@ -99,7 +99,7 @@ exports.updateAdminCredentials = async (req, res) => {
 };
 
 /* --------------------------- 🖼 Upload Profile Picture --------------------------- */
-exports.uploadProfilePicture = async (req, res) => {
+export const uploadProfilePicture = async (req, res) => {
   try {
     const adminId = req.user?.id || req.user?._id;
     if (!adminId) return res.status(401).json({ success: false, error: "Unauthorized" });
@@ -126,7 +126,7 @@ exports.uploadProfilePicture = async (req, res) => {
 };
 
 /* --------------------------- 🗑 Delete User --------------------------- */
-exports.deleteUser = async (req, res) => {
+export const deleteUser = async (req, res) => {
   try {
     const deleted = await User.findByIdAndDelete(req.params.id);
     if (!deleted) {

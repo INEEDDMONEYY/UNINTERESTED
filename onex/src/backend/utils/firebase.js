@@ -1,5 +1,5 @@
 // backend/utils/firebase.js
-const admin = require("firebase-admin");
+import admin from "firebase-admin";
 
 admin.initializeApp({
   credential: admin.credential.cert({
@@ -12,4 +12,4 @@ admin.initializeApp({
 });
 
 const bucket = admin.storage().bucket();
-module.exports = bucket;
+export default bucket;

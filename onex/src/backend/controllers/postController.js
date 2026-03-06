@@ -1,36 +1,37 @@
-const Post = require("../models/Post");
-const cloudinary = require('../utils/cloudinary');;
-const streamifier = require("streamifier");
-const { v4: uuidv4 } = require("uuid");
+// backend/controllers/postController.js
+import Post from '../models/Post.js';
+import cloudinary from '../utils/cloudinary.js';
+import streamifier from 'streamifier';
+import { v4 as uuidv4 } from 'uuid';
 
 // ---------------- Create a new post ----------------
-async function createPost(req, res) {
+export async function createPost(req, res) {
   try {
-    if (!req.user?._id) return res.status(401).json({ error: "Unauthorized" });
+    if (!req.user?._id) return res.status(401).json({ error: 'Unauthorized' });
 
     const { title, description, city, state, category, visibility } = req.body;
     if (!title || !description)
-      return res.status(400).json({ error: "Title and description required" });
+      return res.status(400).json({ error: 'Title and description required' });
 
     let imageUrls = [];
 
     // Upload files to Cloudinary
     if (req.files && req.files.length > 0) {
-      const uploadPromises = req.files.map((file) => {
-        return new Promise((resolve, reject) => {
+      const uploadPromises = req.files.map((file) =>
+        new Promise((resolve, reject) => {
           const stream = cloudinary.uploader.upload_stream(
-            { folder: "posts" },
+            { folder: 'posts' },
             (error, result) => {
               if (error) return reject(error);
               resolve(result.secure_url);
             }
           );
           streamifier.createReadStream(file.buffer).pipe(stream);
-        });
-      });
+        })
+      );
 
       imageUrls = await Promise.all(uploadPromises);
-      console.log("✅ Uploaded images to Cloudinary:", imageUrls);
+      console.log('✅ Uploaded images to Cloudinary:', imageUrls);
     }
 
     const newPost = new Post({
@@ -47,19 +48,21 @@ async function createPost(req, res) {
     const savedPost = await newPost.save();
 
     const populatedPost = await Post.findById(savedPost._id).populate({
-      path: "userId",
-      select: "username bio profilePic",
+      path: 'userId',
+      select: 'username bio profilePic',
     });
 
     res.status(201).json(populatedPost);
   } catch (err) {
-    console.error("❌ [createPost] Error:", err);
-    res.status(500).json({ error: "Failed to create post", details: err.message });
+    console.error('❌ [createPost] Error:', err);
+    res
+      .status(500)
+      .json({ error: 'Failed to create post', details: err.message });
   }
 }
 
 // ---------------- Get all posts ----------------
-async function getPosts(req, res) {
+export async function getPosts(req, res) {
   try {
     const { userId, state, city } = req.query;
     const filter = {};
@@ -67,79 +70,70 @@ async function getPosts(req, res) {
     if (state) filter.state = state;
     if (city) filter.city = city;
 
-    const posts = await Post.find(filter).sort({ createdAt: -1 }).populate({
-      path: "userId",
-      select: "username bio profilePic",
-    });
+    const posts = await Post.find(filter)
+      .sort({ createdAt: -1 })
+      .populate({ path: 'userId', select: 'username bio profilePic' });
 
     res.json(posts);
   } catch (err) {
-    console.error("❌ [getPosts] Error:", err);
-    res.status(500).json({ error: "Failed to fetch posts", details: err.message });
+    console.error('❌ [getPosts] Error:', err);
+    res.status(500).json({ error: 'Failed to fetch posts', details: err.message });
   }
 }
 
 // ---------------- Get post by ID ----------------
-async function getPostById(req, res) {
+export async function getPostById(req, res) {
   try {
     const post = await Post.findById(req.params.id).populate({
-      path: "userId",
-      select: "username bio profilePic",
+      path: 'userId',
+      select: 'username bio profilePic',
     });
 
-    if (!post) return res.status(404).json({ error: "Post not found" });
+    if (!post) return res.status(404).json({ error: 'Post not found' });
 
     res.json(post);
   } catch (err) {
-    console.error("❌ [getPostById] Error:", err);
-    res.status(500).json({ error: "Failed to fetch post", details: err.message });
+    console.error('❌ [getPostById] Error:', err);
+    res.status(500).json({ error: 'Failed to fetch post', details: err.message });
   }
 }
 
 // ---------------- Update post ----------------
-async function updatePost(req, res) {
+export async function updatePost(req, res) {
   try {
     const post = await Post.findById(req.params.id);
-    if (!post) return res.status(404).json({ error: "Post not found" });
+    if (!post) return res.status(404).json({ error: 'Post not found' });
 
-    if (post.userId.toString() !== req.user._id.toString() && req.user.role !== "admin") {
-      return res.status(403).json({ error: "Not authorized to update this post" });
+    if (post.userId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Not authorized to update this post' });
     }
 
     const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate({
-      path: "userId",
-      select: "username bio profilePic",
+      path: 'userId',
+      select: 'username bio profilePic',
     });
 
     res.json(updatedPost);
   } catch (err) {
-    console.error("❌ [updatePost] Error:", err);
-    res.status(500).json({ error: "Failed to update post", details: err.message });
+    console.error('❌ [updatePost] Error:', err);
+    res.status(500).json({ error: 'Failed to update post', details: err.message });
   }
 }
 
 // ---------------- Delete post ----------------
-async function deletePost(req, res) {
+export async function deletePost(req, res) {
   try {
     const post = await Post.findById(req.params.id);
-    if (!post) return res.status(404).json({ error: "Post not found" });
+    if (!post) return res.status(404).json({ error: 'Post not found' });
 
-    if (post.userId.toString() !== req.user._id.toString() && req.user.role !== "admin") {
-      return res.status(403).json({ error: "Not authorized to delete this post" });
+    if (post.userId.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Not authorized to delete this post' });
     }
 
     await Post.findByIdAndDelete(req.params.id);
-    res.json({ message: "Post deleted successfully" });
+    res.json({ message: 'Post deleted successfully' });
   } catch (err) {
-    console.error("❌ [deletePost] Error:", err);
-    res.status(500).json({ error: "Failed to delete post", details: err.message });
+    console.error('❌ [deletePost] Error:', err);
+    res.status(500).json({ error: 'Failed to delete post', details: err.message });
   }
 }
-
-module.exports = {
-  createPost,
-  getPosts,
-  getPostById,
-  updatePost,
-  deletePost,
-};

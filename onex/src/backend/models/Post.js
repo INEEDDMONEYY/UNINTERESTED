@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const PostSchema = new mongoose.Schema(
   {
@@ -23,4 +23,4 @@ const PostSchema = new mongoose.Schema(
   { timestamps: true } // ✅ Automatically adds createdAt and updatedAt
 );
 
-module.exports = mongoose.model("Post", PostSchema);
+export default mongoose.model("Post", PostSchema);

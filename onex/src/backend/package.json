@@ -2,6 +2,7 @@
   "name": "mystery-mansion-backend",
   "version": "1.0.0",
   "description": "This a sever for Mystery Mansion a business dedicated toward making sure sex workers have the safest experience.",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "test": "NODE_ENV=test jest",

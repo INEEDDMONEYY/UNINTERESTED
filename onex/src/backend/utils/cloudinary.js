@@ -1,5 +1,5 @@
 // backend/utils/cloudinary.js
-const { v2: cloudinary } = require("cloudinary");
+import { v2 as cloudinary } from "cloudinary";
 
 console.log("📝 Cloudinary env vars at import:", {
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
@@ -32,4 +32,4 @@ if (process.env.CLOUDINARY_URL) {
 
 console.log("🔹 Cloudinary runtime config:", cloudinary.config());
 
-module.exports = cloudinary;
+export default cloudinary;

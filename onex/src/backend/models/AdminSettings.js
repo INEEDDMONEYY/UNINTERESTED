@@ -1,5 +1,5 @@
 // models/AdminSettings.js
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const AdminSettingsSchema = new mongoose.Schema(
   {
@@ -51,6 +51,6 @@ const AdminSettingsSchema = new mongoose.Schema(
 );
 
 // ✅ Avoid model overwrite error in development or hot reload
-module.exports =
+export default
   mongoose.models.AdminSettings ||
   mongoose.model("AdminSettings", AdminSettingsSchema);

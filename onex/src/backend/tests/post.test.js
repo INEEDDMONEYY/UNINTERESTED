@@ -1,9 +1,9 @@
 // test/post.test.js
-require('./setup');
-const seedPosts = require('./seed');
-const request = require('supertest');
-const app = require('../server');
-const Post = require('../models/Post');
+import './setup.js';
+import seedPosts from './seed.js';
+import request from 'supertest';
+import app from '../server.js';
+import Post from '../models/Post.js';
 
 beforeEach(async () => {
   await seedPosts(10); // populate test DB before each test

@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
-const env = require("../config/env"); // adjust path if needed
-const User = require("../models/User");
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+import env from "../config/env.js"; // adjust path if needed
+import User from "../models/User.js";
 
 async function seed() {
   try {

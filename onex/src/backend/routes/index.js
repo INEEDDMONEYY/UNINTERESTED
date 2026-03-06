@@ -1,6 +1,4 @@
 //Index file to aggregate and export all route modules
 // routes/index.js
-module.exports = {
-  authRoutes: require('./authRoutes'),
-  userRoutes: require('./userRoutes'),
-};
+export { default as authRoutes } from './authRoutes.js';
+export { default as userRoutes } from './userRoutes.js';

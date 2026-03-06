@@ -1,7 +1,7 @@
-const Message = require("../models/Message");
+import Message from "../models/Message.js";
 
 // ✅ GET all messages between admin & a user
-exports.getMessages = async (req, res) => {
+export const getMessages = async (req, res) => {
   try {
     const { userId } = req.query; // Optional filter if admin wants messages from a specific user
 
@@ -18,7 +18,7 @@ exports.getMessages = async (req, res) => {
 };
 
 // ✅ POST a new message
-exports.sendMessage = async (req, res) => {
+export const sendMessage = async (req, res) => {
   try {
     const { senderId, receiverId, senderRole, text } = req.body;
 

@@ -1,5 +1,5 @@
-const { faker } = require('@faker-js/faker');
-const Post = require('../models/Post');
+import { faker } from '@faker-js/faker';
+import Post from '../models/Post.js';
 
 const seedPosts = async (count = 5) => {
   const mockPosts = Array.from({ length: count }).map(() => ({
@@ -18,4 +18,4 @@ const seedPosts = async (count = 5) => {
   await Post.insertMany(mockPosts);
 };
 
-module.exports = seedPosts;
+export default seedPosts;

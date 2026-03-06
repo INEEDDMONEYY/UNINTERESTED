@@ -1,13 +1,14 @@
 // Auth Routes 
-const express = require("express");
-const router = express.Router();
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-const env = require("../config/env");
+import express from "express";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import env from "../config/env.js";
 
 // 🔐 NEW: import combined middleware
-const { authMiddleware, adminOnlyMiddleware } = require("../middleware/authMiddleware");
+import { authMiddleware, adminOnlyMiddleware } from "../middleware/authMiddleware.js";
+
+const router = express.Router();
 
 /* -------------------------- 🔑 Signup -------------------------- */
 router.post("/signup", async (req, res) => {
@@ -145,4 +146,4 @@ router.post("/admin/create-user", authMiddleware, adminOnlyMiddleware, async (re
   }
 });
 
-module.exports = router;
+export default router;

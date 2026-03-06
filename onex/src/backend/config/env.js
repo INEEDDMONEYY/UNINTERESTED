@@ -1,6 +1,10 @@
 // backend/config/env.js
-require("dotenv").config();
-const path = require("path");
+import "dotenv/config";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Validate required env variables
 const requiredVars = [
@@ -40,4 +44,4 @@ const env = {
   PROFILE_PICS_PATH: path.join(__dirname, "../uploads/profile-pics"),
 };
 
-module.exports = env;
+export default env;

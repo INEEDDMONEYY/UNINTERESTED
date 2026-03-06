@@ -1,8 +1,9 @@
-const express = require("express");
+import express from "express";
+import Message from "../models/Message.js";
+import Conversation from "../models/Conversation.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
+
 const router = express.Router();
-const Message = require("../models/Message");
-const Conversation = require("../models/Conversation");
-const { authMiddleware } = require("../middleware/authMiddleware");
 
 // GET all messages for a conversation
 router.get("/:conversationId", authMiddleware, async (req, res) => {
@@ -47,4 +48,4 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

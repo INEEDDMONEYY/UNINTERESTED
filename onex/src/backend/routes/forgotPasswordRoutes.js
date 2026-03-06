@@ -1,10 +1,11 @@
 // routes/forgotPasswordRoutes.js
-const express = require("express");
+import express from "express";
+import crypto from "crypto";
+import bcrypt from "bcrypt";
+import User from "../models/User.js";
+import sendResetEmail from "../utils/sendResetEmail.js";
+
 const router = express.Router();
-const crypto = require("crypto");
-const bcrypt = require("bcrypt");
-const User = require("../models/User");
-const sendResetEmail = require("../utils/sendResetEmail");
 
 /* ------------------------ 🔑 Forgot Password ------------------------ */
 router.post("/forgot-password", async (req, res) => {
@@ -81,4 +82,4 @@ router.post("/reset-password/:token", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

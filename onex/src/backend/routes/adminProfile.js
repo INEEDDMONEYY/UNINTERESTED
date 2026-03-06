@@ -1,14 +1,14 @@
-const express = require("express");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
-const router = express.Router();
+import express from "express";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { uploadProfilePicture } from "../controllers/AdminSettingsController.js";
 
-const { uploadProfilePicture } = require("../controllers/AdminSettingsController");
+const router = express.Router();
 
 /* --------------------------- 📂 Multer Setup --------------------------- */
 // Ensure uploads directory exists
-const uploadDir = path.join(__dirname, "../uploads");
+const uploadDir = path.join(path.dirname(new URL(import.meta.url).pathname), "../uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -27,4 +27,4 @@ const upload = multer({ storage });
 // ✅ Upload profile picture
 router.post("/picture", upload.single("profilePic"), uploadProfilePicture); // POST /api/admin/profile/picture
 
-module.exports = router;
+export default router;

@@ -1,7 +1,7 @@
 // backend/routes/platformUpdatesRoutes.js
-const express = require("express");
-const { createUpdate, getUpdates } = require("../controllers/PlatformUpdatesController");
-const { authMiddleware, adminOnlyMiddleware } = require("../middleware/authMiddleware");
+import express from "express";
+import { createUpdate, getUpdates } from "../controllers/PlatformUpdatesController.js";
+import { authMiddleware, adminOnlyMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -11,4 +11,4 @@ router.post("/", authMiddleware, adminOnlyMiddleware, createUpdate);
 // Authenticated users (or public if you want) can fetch all updates
 router.get("/", getUpdates);
 
-module.exports = router;
+export default router;

@@ -1,27 +1,27 @@
 // app.js
-require('dotenv').config();// ✅ central env
+import 'dotenv/config';// ✅ central env
 
-const env = require('./config/env');
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
-const jwt = require('jsonwebtoken');
-const path = require('path');
-const fs = require('fs');
+import env from './config/env.js';
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import jwt from 'jsonwebtoken';
+import path from 'path';
+import fs from 'fs';
 
 // Models
-const User = require('./models/User');
+import User from './models/User.js';
 
 // Routes
-const adminSettingsRoutes = require('./routes/adminSettings');
-const adminUserRoutes = require('./routes/adminUsers');
-const adminProfileRoutes = require('./routes/adminProfile');
-const messageRoutes = require('./routes/messageRoutes');
-const conversationRoutes = require('./routes/conversationRoutes');
-const postRoutes = require('./routes/postRoutes');
-const userRoutes = require('./routes/userRoutes');
-const authRoutes = require('./routes/authRoutes');
+import adminSettingsRoutes from './routes/adminSettings.js';
+import adminUserRoutes from './routes/adminUsers.js';
+import adminProfileRoutes from './routes/adminProfile.js';
+import messageRoutes from './routes/messageRoutes.js';
+import conversationRoutes from './routes/conversationRoutes.js';
+import postRoutes from './routes/postRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 
 const app = express();
 
@@ -29,4 +29,4 @@ const app = express();
 
 // (Paste everything from your current server.js EXCEPT the app.listen part)
 
-module.exports = app;
+export default app;

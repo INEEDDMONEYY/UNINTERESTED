@@ -1,6 +1,6 @@
 // controllers/userController.js
 import { v2 as cloudinary } from "cloudinary";
-import User from "../../models/User"; // your Mongoose user model
+import User from "../../models/User.js"; // your Mongoose user model
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,

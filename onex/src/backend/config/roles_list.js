@@ -8,4 +8,4 @@ const ROLES_LIST = Object.freeze({
 });
 
 // Export module
-module.exports = ROLES_LIST;
+export default ROLES_LIST;

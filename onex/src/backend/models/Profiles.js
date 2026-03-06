@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const profileSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true },
@@ -12,4 +12,4 @@ const profileSchema = new mongoose.Schema({
   outcallPrice: { type: Number, default: 0 }
 }, { timestamps: true });
 
-module.exports = mongoose.model("Profile", profileSchema);
+export default mongoose.model("Profile", profileSchema);

@@ -1,9 +1,10 @@
 //User routes file
-const express = require("express");
+import express from "express";
+import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
+import User from "../models/User.js";
+
 const router = express.Router();
-const multer = require("multer");
-const { v2: cloudinary } = require("cloudinary");
-const User = require("../models/User");
 
 // ✅ Multer setup for handling file uploads
 const upload = multer({ dest: "uploads/" });
@@ -59,4 +60,4 @@ router.put("/update-profile", upload.single("profilePic"), async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

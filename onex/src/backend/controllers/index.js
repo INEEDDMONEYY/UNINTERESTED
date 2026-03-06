@@ -1,6 +1,5 @@
-//Index file to aggregate and export all route modules
-// routes/index.js
-module.exports = {
-  authRoutes: require('./authRoutes'),
-  userRoutes: require('./userRoutes'),
-};
+//Index file to aggregate and export all controller modules
+// controllers/index.js
+export { default as authRoutes } from './auth.js';
+export * from './AdminSettingsController.js';
+export * from './messageController.js';

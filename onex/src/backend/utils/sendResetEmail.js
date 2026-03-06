@@ -1,7 +1,7 @@
 // utils/sendzResetEmail.js
 
-const { Resend } = require("resend");
-const env = require("../config/env"); // centralized env setup
+import { Resend } from "resend";
+import env from "../config/env.js"; // centralized env setup
 
 // Initialize Resend client with API key from environment variables
 const resend = new Resend(env.RESEND_API_KEY);
@@ -63,4 +63,4 @@ async function sendResetEmail({ to, username, resetToken }) {
   }
 }
 
-module.exports = sendResetEmail;
+export default sendResetEmail;

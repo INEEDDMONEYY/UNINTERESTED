@@ -1,6 +1,6 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-const env = require("../config/env"); // central env file for JWT_SECRET
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import env from "../config/env.js"; // central env file for JWT_SECRET
 
 /* ---------------------------------------------------------
    🔐 AUTH MIDDLEWARE
@@ -91,7 +91,4 @@ const adminOnlyMiddleware = (req, res, next) => {
 /* ---------------------------------------------------------
    EXPORT MIDDLEWARES
 --------------------------------------------------------- */
-module.exports = {
-  authMiddleware,
-  adminOnlyMiddleware,
-};
+export { authMiddleware, adminOnlyMiddleware };
