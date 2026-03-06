@@ -7,58 +7,98 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-black text-white border-t border-gray-700 py-8 px-6 w-full">
-      <div className="max-w-6xl mx-auto flex flex-col items-center gap-6">
+    <footer
+      style={{ fontFamily: "'DM Sans', sans-serif" }}
+      className="bg-black text-white border-t border-gray-800 pt-10 pb-6 px-6 w-full"
+    >
+      {/* Google Font import via style tag trick */}
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap');`}</style>
 
-        {/* ---------------- Top Logo ---------------- */}
-        <div className="flex items-center gap-4">
-          <img src={Logo} alt="Company Logo" className="h-16 w-auto" />
-          <div className="text-center text-sm">
-            <p className="font-bold text-lg">Mystery Mansion</p>
-            <p className="text-gray-400 text-sm">© {year}. All rights reserved.</p>
+      <div className="max-w-6xl mx-auto">
+
+        {/* ── Main 3-col grid ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 sm:gap-6 items-start">
+
+          {/* Col 1 — Brand */}
+          <div className="flex flex-col items-center sm:items-start gap-3">
+            <img src={Logo} alt="Mystery Mansion Logo" className="h-14 w-auto" />
+            <p
+              style={{ fontFamily: "'Playfair Display', serif", letterSpacing: "0.04em" }}
+              className="text-white text-lg font-bold leading-tight"
+            >
+              Mystery Mansion
+            </p>
+            <p className="text-gray-500 text-xs">© {year}. All rights reserved.</p>
           </div>
-        </div>
 
-        {/* ---------------- Middle Policies & Updates Grid ---------------- */}
-        <div className="grid grid-cols-2 gap-8 text-center">
-          {/* Policies */}
-          <div className="flex flex-col gap-2 items-center">
-            <h3 className="font-semibold text-base md:text-lg underline">Platform Policies</h3>
-            <div className="text-gray-400 text-sm flex flex-wrap gap-2 justify-center">
-              <Link to="/terms-policy" className="hover:text-pink-500 transition-colors">Terms</Link>
-              ·
-              <Link to="/privacy-policy" className="hover:text-pink-500 transition-colors">Privacy</Link>
-              · Guidelines
+          {/* Col 2 — Platform Policies */}
+          <div className="flex flex-col items-center gap-3 text-center">
+            <h3
+              style={{ letterSpacing: "0.12em", fontSize: "0.65rem" }}
+              className="text-pink-500 uppercase font-semibold tracking-widest"
+            >
+              Platform Policies
+            </h3>
+            <div className="flex flex-col gap-1.5 text-sm text-gray-400">
+              <Link to="/terms-policy" className="hover:text-pink-400 transition-colors duration-200">
+                Terms of Service
+              </Link>
+              <Link to="/privacy-policy" className="hover:text-pink-400 transition-colors duration-200">
+                Privacy Policy
+              </Link>
+              <span className="text-gray-600 cursor-default">Community Guidelines</span>
             </div>
 
             {FEATURE_FLAGS.ENABLE_FOLLOW_US && (
-              <div className="mt-2 text-gray-400 text-sm">
-                Follow Us: Instagram · Twitter · LinkedIn
+              <div className="mt-2 flex flex-col gap-1 text-gray-500 text-xs">
+                <span className="text-gray-600 uppercase tracking-widest text-[0.6rem]">Follow Us</span>
+                <div className="flex gap-3 justify-center">
+                  <span className="hover:text-pink-400 cursor-pointer transition-colors">Instagram</span>
+                  <span className="text-gray-700">·</span>
+                  <span className="hover:text-pink-400 cursor-pointer transition-colors">Twitter</span>
+                  <span className="text-gray-700">·</span>
+                  <span className="hover:text-pink-400 cursor-pointer transition-colors">LinkedIn</span>
+                </div>
               </div>
             )}
           </div>
 
-          {/* Updates */}
-          <div className="flex flex-col gap-2 items-center">
-            <h3 className="font-semibold text-base md:text-lg underline">Platform Updates</h3>
-            <div className="text-gray-400 text-sm">
-              <Link to="/platform-updates" className="hover:text-pink-500 transition-colors">
-                Updates
-              </Link>
-            </div>
+          {/* Col 3 — Platform Updates */}
+          <div className="flex flex-col items-center sm:items-end gap-3 text-center sm:text-right">
+            <h3
+              style={{ letterSpacing: "0.12em", fontSize: "0.65rem" }}
+              className="text-pink-500 uppercase font-semibold tracking-widest"
+            >
+              Platform Updates
+            </h3>
+            <Link
+              to="/platform-updates"
+              className="text-sm text-gray-400 hover:text-pink-400 transition-colors duration-200"
+            >
+              View latest updates
+            </Link>
           </div>
         </div>
 
-        {/* ---------------- Footer Bottom: Powered By ---------------- */}
-        <div className="mt-8 flex flex-col items-center gap-2 text-gray-400 text-xs">
+        {/* ── Divider ── */}
+        <div className="my-8 border-t border-gray-800" />
+
+        {/* ── Bottom bar ── */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-gray-600 text-xs">
           <p>Built with ❤️ for a safer experience. Designed by Mystery Mansion.</p>
           <div className="flex items-center gap-2">
             <span>Powered by</span>
-            <a href="https://fantometechnologies.com" target="_blank" rel="noopener noreferrer">
-              <img src={Partners} alt="Partner Logo" className="h-6 w-auto" />
+            <a
+              href="https://fantometechnologies.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="opacity-70 hover:opacity-100 transition-opacity duration-200"
+            >
+              <img src={Partners} alt="Fantome Technologies" className="h-5 w-auto" />
             </a>
           </div>
         </div>
+
       </div>
     </footer>
   );
