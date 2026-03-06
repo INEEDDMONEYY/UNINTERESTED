@@ -3,6 +3,7 @@ import Post from '../models/Post.js';
 import cloudinary from '../utils/cloudinary.js';
 import streamifier from 'streamifier';
 import { v4 as uuidv4 } from 'uuid';
+import { normalizeState } from '../utils/stateNormalizer.js';
 
 // ---------------- Create a new post ----------------
 export async function createPost(req, res) {
@@ -39,7 +40,7 @@ export async function createPost(req, res) {
       title,
       description,
       city,
-      state,
+      state: normalizeState(state), // Normalize state abbreviations to full names
       category,
       visibility,
       pictures: imageUrls,

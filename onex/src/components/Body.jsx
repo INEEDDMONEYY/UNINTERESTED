@@ -10,6 +10,7 @@ import UserSearch from "../components/Searchbar/UserSearch";
 import EmptyCategoryLoader from "./Loaders/EmptyCategoryLoader";
 import PostCard from "../components/Posts/PostCard";
 import { FEATURE_FLAGS } from "../config/featureFlags";
+import { statesMatch } from "../utils/stateNormalizer";
 
 // ------------------ Onboarding Guide Component ------------------
 function OnboardingGuide({ steps, onFinish }) {
@@ -122,7 +123,7 @@ export default function Body() {
       const matchesLocation =
         !location ||
         post.city?.toLowerCase() === location.city?.toLowerCase() ||
-        post.state?.toLowerCase() === location.state?.toLowerCase();
+        statesMatch(post.state, location.state);
       return hasNoCategory && matchesLocation;
     })
     .slice(0, visibleCount);
