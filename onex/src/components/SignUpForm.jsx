@@ -11,10 +11,6 @@ export default function SignupForm() {
   // Role removed from public signup — admins will have a separate form
   const role = "user";
 
-  // Keep API_BASE cleanup
-  const rawBase = import.meta.env.VITE_API_BASE || 'http://localhost:5020';
-  const API_BASE = rawBase.replace(/\/+$/, '');
-
   const handleSignup = async (e) => {
     e.preventDefault();
 
@@ -29,7 +25,7 @@ export default function SignupForm() {
     }
 
     try {
-      const response = await fetch(`${API_BASE}/api/signup`, {
+      const response = await fetch("/api/signup", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password, role }),

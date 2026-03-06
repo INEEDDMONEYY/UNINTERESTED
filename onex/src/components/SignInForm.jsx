@@ -7,8 +7,6 @@ export default function SigninForm({ setLoading }) {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5020/api';
-
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -24,7 +22,7 @@ export default function SigninForm({ setLoading }) {
     setLoading(true); // 🔥 Trigger loader in parent
 
     try {
-      const response = await fetch(`${API_BASE}/api/signin`, {
+      const response = await fetch("/api/signin", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
