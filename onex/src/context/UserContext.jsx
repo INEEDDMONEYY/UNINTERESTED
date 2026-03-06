@@ -91,9 +91,9 @@ export const UserProvider = ({ children }) => {
 
       if (isFormData) {
         // Send FormData; let axios set proper multipart boundary
-        res = await api.put("/users/update-profile", data);
+        res = await api.post("/users/update-profile", data);
       } else {
-        res = await api.put("/users/update-profile", data);
+        res = await api.post("/users/update-profile", data);
       }
 
       // Backend may return { message, user } or the user directly
