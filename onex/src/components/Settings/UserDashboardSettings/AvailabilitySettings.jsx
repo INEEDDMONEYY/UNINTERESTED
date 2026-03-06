@@ -17,7 +17,7 @@ export default function AvailabilitySettings({
   useEffect(() => {
     async function loadFromBackend() {
       try {
-        const res = await fetch("/api/users/me", {
+        const res = await fetch("/api/me", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
