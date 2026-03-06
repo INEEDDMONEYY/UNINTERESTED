@@ -1,4 +1,11 @@
 // backend/utils/cloudinary.js
+
+console.log("📝 Cloudinary env vars at import:", {
+  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
+});
+
 const { v2: cloudinary } = require("cloudinary");
 
 // Prefer CLOUDINARY_URL if present, otherwise use individual keys

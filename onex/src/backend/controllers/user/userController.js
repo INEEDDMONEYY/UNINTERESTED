@@ -1,7 +1,6 @@
 import User from "../../models/User.js";
 import { v2 as cloudinary } from "cloudinary";
 import streamifier from "streamifier";
-import cloudinary from "../utils/cloudinary.js"; // now credentials are loaded
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
