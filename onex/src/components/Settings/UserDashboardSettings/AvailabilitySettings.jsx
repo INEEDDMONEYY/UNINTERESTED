@@ -10,6 +10,8 @@ export default function AvailabilitySettings({
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
+  const apiBase = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE || '');
+
   // Per-user localStorage key
   const storageKey = userId ? `availability_${userId}` : "availability";
 
@@ -17,7 +19,7 @@ export default function AvailabilitySettings({
   useEffect(() => {
     async function loadFromBackend() {
       try {
-        const res = await fetch("/api/me", {
+        const res = await fetch(`${apiBase}/api/me`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -84,7 +86,7 @@ export default function AvailabilitySettings({
     setLoading(true);
 
     try {
-      const res = await fetch("/api/users/update-profile", {
+      const res = await fetch(`${apiBase}/api/users/update-profile`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
