@@ -1,8 +1,8 @@
 // 📦 External Libraries
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
+import api from "../../utils/api";
 
 // 🌀 Loaders & Components
 import PostDetailLoader from "../Loaders/PostDetailLoader";
@@ -14,6 +14,7 @@ export default function PostDetail() {
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
   const [availability, setAvailability] = useState({ status: "" });
   const [incallPrice, setIncallPrice] = useState("");
   const [outcallPrice, setOutcallPrice] = useState("");
@@ -21,9 +22,8 @@ export default function PostDetail() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_API_URL || ""}/api/posts/${postId}`,
-        );
+        setFetchError("");
+        const { data } = await api.get(`/posts/${postId}`);
 
         console.log("✅ Post fetched:", data); // Debug log
 
@@ -39,6 +39,15 @@ export default function PostDetail() {
         console.error("Failed to fetch post:", err);
         console.error("Error response:", err.response?.data); // Debug log
         setPost(null);
+        const status = err?.response?.status;
+        const backendMessage = err?.response?.data?.error;
+        if (!status) {
+          setFetchError("Unable to reach the server. Please check your connection or deployment API URL.");
+        } else if (status === 404) {
+          setFetchError("This post could not be found. It may have been deleted or the link is invalid.");
+        } else {
+          setFetchError(backendMessage || `Failed to load post details (HTTP ${status}).`);
+        }
       } finally {
         setLoading(false);
       }
@@ -50,7 +59,10 @@ export default function PostDetail() {
   if (loading) return <PostDetailLoader />;
   if (!post) {
     return (
-      <div className="text-center py-10 text-red-500">Post not found.</div>
+      <div className="text-center py-10 text-red-500">
+        <p className="font-semibold">Post not found.</p>
+        {fetchError && <p className="mt-2 text-sm text-red-400">{fetchError}</p>}
+      </div>
     );
   }
 
@@ -154,7 +166,7 @@ export default function PostDetail() {
 
         {FEATURE_FLAGS.ENABLE_PUBLIC_PROFILE && (
           <button
-            onClick={() => navigate(`/profile/${post.username}`)}
+            onClick={() => navigate(`/profile/${post.userId?.username || ""}`)}
             className="px-4 py-2 text-[12px] text-white font-medium rounded-lg shadow-md transition-all hover:opacity-90 bg-gradient-to-r from-pink-500 via-black to-yellow-400"
           >
             View profile
