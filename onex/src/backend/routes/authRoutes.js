@@ -12,12 +12,19 @@ import { authMiddleware, adminOnlyMiddleware } from "../middleware/authMiddlewar
 const router = express.Router();
 
 const escapeRegex = (value = "") => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const normalizeUsername = (value = "") =>
+  value
+    .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"')
+    .replace(/\u00A0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
 /* -------------------------- 🔑 Signup -------------------------- */
 router.post("/signup", async (req, res) => {
   try {
     const { username, email, password, role = "user" } = req.body;
-    const normalizedUsername = (username || "").trim();
+    const normalizedUsername = normalizeUsername(username || "");
     const normalizedEmail = (email || "").trim().toLowerCase();
 
     if (!normalizedUsername || !normalizedEmail || !password) {
@@ -63,7 +70,8 @@ router.post("/signup", async (req, res) => {
 router.post("/signin", async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    const identifier = (username || email || "").trim();
+    const rawIdentifier = username || email || "";
+    const identifier = normalizeUsername(rawIdentifier);
 
     if (!identifier || !password) {
       return res.status(400).json({ error: "Username/email and password are required" });

@@ -9,10 +9,18 @@ export default function SigninForm({ setLoading }) {
   const navigate = useNavigate();
   const { login } = useUser();
 
+  const normalizeUsernameInput = (value = '') =>
+    value
+      .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
+      .replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"')
+      .replace(/\u00A0/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const normalizedIdentifier = username.trim();
+    const normalizedIdentifier = normalizeUsernameInput(username);
     if (!normalizedIdentifier || !password) {
       setError('Username/email and password are required.');
       return;
