@@ -10,7 +10,7 @@ export async function createPost(req, res) {
   try {
     if (!req.user?._id) return res.status(401).json({ error: 'Unauthorized' });
 
-    const { title, description, city, state, category, visibility } = req.body;
+    const { title, description, city, state, category, visibility, isPromo, promoExpiresAt } = req.body;
     if (!title || !description)
       return res.status(400).json({ error: 'Title and description required' });
 
@@ -44,13 +44,15 @@ export async function createPost(req, res) {
       category,
       visibility,
       pictures: imageUrls,
+      isPromo: isPromo === 'true' || isPromo === true,
+      promoExpiresAt: promoExpiresAt || null,
     });
 
     const savedPost = await newPost.save();
 
     const populatedPost = await Post.findById(savedPost._id).populate({
       path: 'userId',
-      select: 'username bio profilePic',
+      select: 'username bio profilePic availability incallPrice outcallPrice',
     });
 
     res.status(201).json(populatedPost);
@@ -73,7 +75,7 @@ export async function getPosts(req, res) {
 
     const posts = await Post.find(filter)
       .sort({ createdAt: -1 })
-      .populate({ path: 'userId', select: 'username bio profilePic' });
+      .populate({ path: 'userId', select: 'username bio profilePic availability incallPrice outcallPrice' });
 
     res.json(posts);
   } catch (err) {
@@ -87,7 +89,7 @@ export async function getPostById(req, res) {
   try {
     const post = await Post.findById(req.params.id).populate({
       path: 'userId',
-      select: 'username bio profilePic',
+      select: 'username bio profilePic availability incallPrice outcallPrice',
     });
 
     if (!post) return res.status(404).json({ error: 'Post not found' });
@@ -111,7 +113,7 @@ export async function updatePost(req, res) {
 
     const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate({
       path: 'userId',
-      select: 'username bio profilePic',
+      select: 'username bio profilePic availability incallPrice outcallPrice',
     });
 
     res.json(updatedPost);

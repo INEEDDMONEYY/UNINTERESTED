@@ -3,6 +3,7 @@ import express from "express";
 import multer from "multer";
 import cloudinary from "../utils/cloudinary.js";
 import User from "../models/User.js";
+import { enforceRestriction } from "../middleware/restrictionMiddleware.js";
 
 const router = express.Router();
 
@@ -10,7 +11,7 @@ const router = express.Router();
 const upload = multer({ dest: "uploads/" });
 
 // ✅ Update-profile route with Cloudinary integration
-router.post("/update-profile", upload.single("profilePic"), async (req, res) => {
+router.post("/update-profile", enforceRestriction("profile:update"), upload.single("profilePic"), async (req, res) => {
   try {
     console.log("🔹 [UserRoutes] Incoming request to /update-profile");
     console.log("🔹 [UserRoutes] req.user:", req.user ? req.user._id : "No user attached");

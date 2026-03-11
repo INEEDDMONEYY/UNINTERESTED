@@ -28,7 +28,7 @@ export default function PlatformUpdatesForm({ onUpdateSubmit }) {
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE || ""}/api/platform-updates`,
+        `${import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_BASE || import.meta.env.VITE_API_URL || ""}/api/updates`,
         {
           method: "POST",
           headers: {
@@ -79,6 +79,9 @@ export default function PlatformUpdatesForm({ onUpdateSubmit }) {
           onChange={(e) => setDescription(e.target.value)}
           required
         />
+        <p className="text-xs text-gray-600 -mt-2">
+          Tip: Enter one point per line. Each line will display as a bullet point on the updates page.
+        </p>
 
         {error && <p className="text-red-600 text-sm">{error}</p>}
 

@@ -1,4 +1,4 @@
-// Frontend UserContext file (updated to namespace localStorage by user ID)
+// Frontend UserContext file (updated with error timeout)
 import { createContext, useState, useEffect } from "react";
 import api, { setAuthToken, clearAuthData, getAuthToken } from "../utils/api";
 
@@ -7,29 +7,33 @@ export const UserContext = createContext();
 const keyFor = (base, userId) => (userId ? `${base}_${userId}` : base);
 
 export const UserProvider = ({ children }) => {
-  // Auth session user (signed-in user)
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem("user");
     return saved ? JSON.parse(saved) : null;
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [appToast, setAppToast] = useState(null);
 
-  // Helper: persist session user (auth storage) and per-user profile storage
+  const RESTRICTION_LABELS = {
+    "no-posting": "Posting is disabled for your account.",
+    "no-comments": "Messaging/commenting is disabled for your account.",
+    "read-only": "Your account is in read-only mode.",
+  };
+
   const persistUser = (u) => {
     if (!u) return;
     try {
-      localStorage.setItem("user", JSON.stringify(u)); // update main user key
-      localStorage.setItem(`user_${u._id}`, JSON.stringify(u)); // session/auth canonical store
+      localStorage.setItem("user", JSON.stringify(u));
+      localStorage.setItem(`user_${u._id}`, JSON.stringify(u));
       if (u._id) {
-        localStorage.setItem(keyFor("userProfile", u._id), JSON.stringify(u)); // namespaced profile store
+        localStorage.setItem(keyFor("userProfile", u._id), JSON.stringify(u));
       }
     } catch (e) {
       console.error("Failed to persist user:", e);
     }
   };
 
-  // On mount: try to hydrate session user from token -> profile endpoint
   useEffect(() => {
     const token = getAuthToken();
     if (!token) {
@@ -37,42 +41,94 @@ export const UserProvider = ({ children }) => {
       return;
     }
 
+    let didTimeout = false;
+    const timeoutId = setTimeout(() => {
+      didTimeout = true;
+      setError("User load timed out. Please try again.");
+      setLoading(false);
+    }, 10000); // 10-second timeout
+
     const fetchUser = async () => {
       try {
         const res = await api.get("/me");
-        // backend might return user at res.data or res.data.user; handle both
+        if (didTimeout) return; // ignore if timed out
+
         const fetched = res.data?.user ?? res.data;
         setUser(fetched);
         persistUser(fetched);
       } catch (err) {
+        if (didTimeout) return;
         clearAuthData();
         setUser(null);
         setError(err.response?.data?.error || err.message);
       } finally {
-        setLoading(false);
+        if (!didTimeout) {
+          clearTimeout(timeoutId);
+          setLoading(false);
+        }
       }
     };
 
     fetchUser();
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Login: set token, set session user and namespaced profile store
+  useEffect(() => {
+    const restriction = user?.roleRestriction;
+    if (!restriction) return;
+
+    setAppToast({
+      type: "warning",
+      message: RESTRICTION_LABELS[restriction] || `Restriction applied: ${restriction}`,
+    });
+
+    const timer = setTimeout(() => setAppToast(null), 3500);
+    return () => clearTimeout(timer);
+  }, [user?.roleRestriction]);
+
+  useEffect(() => {
+    const handleAppToast = (event) => {
+      const message = event?.detail?.message || "This action is restricted for your account.";
+      const type = event?.detail?.type || "error";
+
+      setAppToast({ type, message });
+      setTimeout(() => setAppToast(null), 3500);
+    };
+
+    window.addEventListener("restriction-toast", handleAppToast);
+    window.addEventListener("app-toast", handleAppToast);
+    return () => {
+      window.removeEventListener("restriction-toast", handleAppToast);
+      window.removeEventListener("app-toast", handleAppToast);
+    };
+  }, []);
+
   const login = async (username, password) => {
     try {
       const res = await api.post("/signin", { username, password });
       const { token, user: returnedUser } = res.data;
       setAuthToken(token);
-      const authUser = returnedUser ?? res.data;
+      let authUser = returnedUser ?? res.data;
+
+      // Hydrate from canonical user endpoint to ensure profilePic/restrictions are current
+      try {
+        const meRes = await api.get("/me");
+        authUser = meRes.data?.user ?? meRes.data ?? authUser;
+      } catch (meErr) {
+        console.warn("/me hydration failed after login, using signin payload", meErr?.message || meErr);
+      }
+
       setUser(authUser);
       persistUser(authUser);
+      setLoading(false); // ✅ Clear loading state after successful login
       return authUser;
     } catch (err) {
+      setLoading(false); // ✅ Clear loading state on error too
       throw new Error(err.response?.data?.error || "Login failed");
     }
   };
 
-  // Logout: clear both auth session and any in-memory user
   const logout = async () => {
     try {
       await api.post("/logout");
@@ -83,27 +139,20 @@ export const UserProvider = ({ children }) => {
     setUser(null);
   };
 
-  // updateProfile: calls backend, updates session user, per-user profile store,
-  // and returns the authoritative merged user object
   const updateProfile = async (data, field = null, isFormData = false) => {
     try {
       let res;
 
       if (isFormData) {
-        // Send FormData; let axios set proper multipart boundary
         res = await api.post("/users/update-profile", data);
       } else {
         res = await api.post("/users/update-profile", data);
       }
 
-      // Backend may return { message, user } or the user directly
       const returned = res.data?.user ?? res.data;
       if (!returned) throw new Error("No user returned from update");
 
-      // Merge with current session user (prefer fields from returned)
       const mergedUser = { ...(user || {}), ...returned };
-
-      // Update session and per-user storage
       setUser(mergedUser);
       persistUser(mergedUser);
 
@@ -113,7 +162,6 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // refreshUser: re-fetch authoritative profile from the server and persist
   const refreshUser = async () => {
     try {
       const res = await api.get("/me");
@@ -128,19 +176,41 @@ export const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider
-      value={{
-        user,
-        setUser,
-        login,
-        logout,
-        updateProfile,
-        refreshUser,
-        loading,
-        error,
-      }}
-    >
-      {!loading ? children : <p className="text-center mt-10">Loading...</p>}
-    </UserContext.Provider>
+    <>
+      {appToast && (
+        <div
+          className={`fixed top-4 right-4 z-[9999] max-w-sm rounded-md px-4 py-3 text-sm text-white shadow-lg ${
+            appToast.type === "warning"
+              ? "bg-amber-600"
+              : appToast.type === "success"
+                ? "bg-green-600"
+                : "bg-red-600"
+          }`}
+        >
+          {appToast.message}
+        </div>
+      )}
+
+      <UserContext.Provider
+        value={{
+          user,
+          setUser,
+          login,
+          logout,
+          updateProfile,
+          refreshUser,
+          loading,
+          error,
+        }}
+      >
+        {!loading ? (
+          children
+        ) : (
+          <p className="text-center mt-10">
+            {error ? `Error: ${error}` : "Loading..."}
+          </p>
+        )}
+      </UserContext.Provider>
+    </>
   );
 };

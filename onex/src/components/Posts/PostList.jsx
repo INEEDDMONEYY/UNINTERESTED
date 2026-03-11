@@ -1,11 +1,8 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import PostCard from './PostCard';
-import { UserContext } from '../../context/UserContext';
 
 export default function PostList() {
-  const { user } = useContext(UserContext);
-
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);

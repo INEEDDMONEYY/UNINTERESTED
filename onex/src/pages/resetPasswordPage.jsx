@@ -35,8 +35,7 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      const res = await api.post(`/reset-password`, {
-        token,
+      const res = await api.post(`/reset-password/${token}`, {
         password,
       });
 
@@ -44,10 +43,11 @@ export default function ResetPassword() {
 
       setTimeout(() => navigate("/signin"), 2000);
     } catch (err) {
-      setError(
-        err.response?.data?.error ||
-          "Reset link is invalid or expired."
-      );
+      if (!err.response) {
+        setError("Could not reach the server. Please check your connection and try again.");
+      } else {
+        setError(err.response?.data?.error || "Reset link is invalid or expired.");
+      }
     } finally {
       setLoading(false);
     }

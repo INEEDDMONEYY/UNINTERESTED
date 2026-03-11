@@ -1,37 +1,15 @@
 import { useEffect, useState } from "react";
+import { useDevMessage } from "../context/DevMessageContext";
+import { motion } from "framer-motion";
 
 export default function Header() {
-  const [devMessage, setDevMessage] = useState(
-    localStorage.getItem("devMessage") || "Welcome to Mystery Mansion where all your naughty fantacies can be explored 🌟"
-  );
+  const { devMessage } = useDevMessage();
   const [currentDate, setCurrentDate] = useState("");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
     const today = new Date();
     setCurrentDate(today.toDateString());
-
-    const fetchDevMessage = async () => {
-      try {
-        const res = await fetch(
-          "https://uninterested.onrender.com/api/admin/settings",
-          { method: "GET", credentials: "include" }
-        );
-        if (!res.ok) throw new Error("Failed to fetch settings");
-        const data = await res.json();
-
-        // Expecting { settings: { devMessage: "..."} } or { devMessage: "..." }
-        const message = data.devMessage || data.settings?.devMessage;
-        if (message) {
-          setDevMessage(message);
-          localStorage.setItem("devMessage", message);
-        }
-      } catch (err) {
-        console.error("Error fetching dev message:", err);
-      }
-    };
-
-    fetchDevMessage();
   }, []);
 
   return (
@@ -40,9 +18,22 @@ export default function Header() {
         Welcome, <span className="text-pink-700">{user.username || "Guest"}</span>
       </div>
       <div className="text-sm text-gray-700">{currentDate}</div>
-      <div className="text-sm italic text-white text-center md:text-right border border-black rounded-sm bg-pink-600 px-2">
+
+      {/* Animated Dev Message */}
+      <motion.div
+        className="text-sm italic text-white text-center md:text-right border border-black rounded-sm bg-pink-600 px-2"
+        animate={{
+          boxShadow: [
+            "0 0 5px rgba(255,192,203,0.4)",
+            "0 0 15px rgba(255,192,203,0.8)",
+            "0 0 5px rgba(255,192,203,0.4)"
+          ],
+          scale: [1, 1.03, 1],
+        }}
+        transition={{ duration: 2, repeat: Infinity }}
+      >
         {devMessage}
-      </div>
+      </motion.div>
     </header>
   );
 }

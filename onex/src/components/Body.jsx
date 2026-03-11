@@ -124,9 +124,19 @@ export default function Body() {
         !location ||
         post.city?.toLowerCase() === location.city?.toLowerCase() ||
         statesMatch(post.state, location.state);
-      return hasNoCategory && matchesLocation;
+      return hasNoCategory || matchesLocation;
     })
     .slice(0, visibleCount);
+
+  // 🐛 Debug logging
+  useEffect(() => {
+    console.log("📊 Posts Data:", posts);
+    console.log("📍 Current Location:", location);
+    console.log("✅ Filtered Posts Count:", filteredUncategorizedPosts.length);
+    if (posts.length > 0) {
+      console.log("📌 First Post Structure:", posts[0]);
+    }
+  }, [posts, location, filteredUncategorizedPosts.length]);
 
   // --------------------------- Onboarding Steps ----------------------
   const postsRef = useRef(null);
@@ -196,7 +206,13 @@ export default function Body() {
       >
         {filteredUncategorizedPosts.length > 0 ? (
           filteredUncategorizedPosts.map((post, i) => (
-            <PostCard key={post._id || i} post={post} />
+            <PostCard
+              key={post._id || i}
+              post={post}
+              onDelete={(id) => {
+                setPosts((prev) => prev.filter((p) => p._id !== id));
+              }}
+            />
           ))
         ) : (
           <EmptyCategoryLoader />

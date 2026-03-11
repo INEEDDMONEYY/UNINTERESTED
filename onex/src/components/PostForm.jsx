@@ -1,13 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
 import CategoryList from "../components/Categories/categoryList";
 import api, { getAuthToken } from "../utils/api";
+import { UserContext } from "../context/UserContext";
 
 export default function PostForm({ onSuccess, embedded = false }) {
   const navigate = useNavigate();
+  const { user } = useContext(UserContext);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [hasActivePromo, setHasActivePromo] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -30,6 +33,21 @@ export default function PostForm({ onSuccess, embedded = false }) {
       navigate("/signin");
     }
   }, [navigate]);
+
+  // Check for active promo redemption
+  useEffect(() => {
+    if (user?.activePromoExpiry) {
+      const expiryDate = new Date(user.activePromoExpiry);
+      const now = new Date();
+      if (now < expiryDate) {
+        setHasActivePromo(true);
+      } else {
+        setHasActivePromo(false);
+      }
+    } else {
+      setHasActivePromo(false);
+    }
+  }, [user]);
 
   // ----------------------- Handlers -----------------------
   const handleCategorySelect = (category) => {
@@ -74,6 +92,12 @@ export default function PostForm({ onSuccess, embedded = false }) {
           }
         }
       });
+
+      // Add promo status if user has an active promo
+      if (hasActivePromo && user?.activePromoExpiry) {
+        fd.append("isPromo", "true");
+        fd.append("promoExpiresAt", user.activePromoExpiry);
+      }
 
       console.log("[PostForm] Sending FormData:");
       for (let pair of fd.entries()) console.log(pair[0], pair[1]);
@@ -223,14 +247,21 @@ export default function PostForm({ onSuccess, embedded = false }) {
           />
           <span>
             By acknowledging this checkbox, you are acknowledging that each post
-            will cost <strong>$13</strong>. If you have any questions, please
+            will cost <strong>$13</strong> unless a promo code is applied. If you have any questions, please
             look at our{" "}
             <a href="/terms-policy" className="text-pink-600 underline">
-              policies page
+              policy page
             </a>
             .
           </span>
         </label>
+
+        {/* Promo Post Activated Badge */}
+        {hasActivePromo && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-center">
+            ✓ Promo Post Activated
+          </div>
+        )}
 
         <button
           type="submit"

@@ -1,18 +1,14 @@
-import './index.css'
-import Home from './pages/homePage.jsx'
+import './index.css';
+import Home from './pages/homePage.jsx';
 
 function App() {
-  
-
   return (
-    <>
-     <main>
+    <main>
       <div>
         <Home />
       </div>
-     </main>
-    </>
-  )
+    </main>
+  );
 }
 
-export default App
+export default App;

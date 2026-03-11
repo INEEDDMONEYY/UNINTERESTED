@@ -1,47 +1,37 @@
-//Main.jsx file, main entry point of the React application
-import { StrictMode } from "react";
+import { StrictMode, Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import "./index.css";
 
-import App from "./App.jsx";
-import Home from "./pages/homePage.jsx";
-import SignIn from "./pages/SignInPage.jsx";
-import SignUp from "./pages/signUpPage.jsx";
-import ForgotPass from "./pages/forgotPassPage.jsx";
-import Post from "./pages/postPage";
-import AdminDashboard from "./pages/admin/dashboard.jsx";
-import AdminAnalytics from "./pages/admin/AdminAnalytics.jsx";
-import UserDashboard from "./pages/users/dashboard.jsx";
-import UserProfileSettings from "./pages/users/UserProfileSettings.jsx";
-import PromoteAccount from "./pages/promoteAccount.jsx";
-import TermsOfUsePage from './pages/policies/TermsOfUsePage.jsx';
-import PrivacyPolicy from './pages/policies/PrivacyPolicyPage.jsx';
-import ProfilePage from './pages/profiles/ProfilePage.jsx'; // ✅ Uncommented
-import Signout from "./pages/SignoutPage.jsx";
-import UserProfile from "./pages/profiles/ProfilePage.jsx"
-import PlatformUpdates from "./pages/updates/PlatformUpdatesPage.jsx";
-import ResetPassword from "./pages/resetPasswordPage.jsx";
-
+import { UserProvider } from "./context/UserContext.jsx";
+import { DevMessageProvider } from "./context/DevMessageContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
-// ✅ Import UserProvider
-import { UserProvider } from "./context/UserContext.jsx";
-
-// ✅ Import new post-related views
-import PostDetail from "./components/Posts/PostDetail.jsx";
-import UserProfileView from "./pages/users/UserProfileViewPage.jsx";
+// Lazy loaded pages
+const App = lazy(() => import("./App.jsx"));
+const Home = lazy(() => import("./pages/homePage.jsx"));
+const SignIn = lazy(() => import("./pages/SignInPage.jsx"));
+const SignUp = lazy(() => import("./pages/signUpPage.jsx"));
+const ForgotPass = lazy(() => import("./pages/forgotPassPage.jsx"));
+const Post = lazy(() => import("./pages/postPage.jsx"));
+const AdminDashboard = lazy(() => import("./pages/admin/dashboard.jsx"));
+const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics.jsx"));
+const UserDashboard = lazy(() => import("./pages/users/dashboard.jsx"));
+const UserProfileSettings = lazy(() => import("./pages/users/UserProfileSettings.jsx"));
+const PromoteAccount = lazy(() => import("./pages/promoteAccount.jsx"));
+const TermsOfUsePage = lazy(() => import("./pages/policies/TermsOfUsePage.jsx"));
+const PrivacyPolicy = lazy(() => import("./pages/policies/PrivacyPolicyPage.jsx"));
+const ProfilePage = lazy(() => import("./pages/profiles/ProfilePage.jsx"));
+const Signout = lazy(() => import("./pages/SignoutPage.jsx"));
+const PlatformUpdates = lazy(() => import("./pages/updates/PlatformUpdatesPage.jsx"));
+const ResetPassword = lazy(() => import("./pages/resetPasswordPage.jsx"));
+const PostDetail = lazy(() => import("./components/Posts/PostDetail.jsx"));
+const UserProfileView = lazy(() => import("./pages/users/UserProfileViewPage.jsx"));
 
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <App />,
-  },
-  {
-    path: "home",
-    element: <Home />,
-  },
+  { path: "/", element: <App /> },
+  { path: "home", element: <Home /> },
   {
     path: "admin",
     element: (
@@ -50,18 +40,9 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  {
-    path: "analytics",
-    element: <AdminAnalytics />,
-  },
-  {
-    path: "user/dashboard",
-    element: <UserDashboard />,
-  },
-  {
-    path: "user/profile",
-    element: <UserProfileSettings />,
-  },
+  { path: "analytics", element: <AdminAnalytics /> },
+  { path: "user/dashboard", element: <UserDashboard /> },
+  { path: "user/profile", element: <UserProfileSettings /> },
   {
     path: "user/profilepage",
     element: (
@@ -70,69 +51,35 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  {
-    path: "user/:userId",
-    element: <UserProfileView />,
-  },
-  {
-    path: "signin",
-    element: <SignIn />,
-  },
-  {
-    path: "signup",
-    element: <SignUp />,
-  },
-  {
-    path: "forgotpass",
-    element: <ForgotPass />,
-  },
-  {
-    path: "post",
-    element: <Post />,
-  },
-  {
-    path: "posts/:postId",
-    element: <PostDetail />,
-  },
-  {
-    path: "promote",
-    element: <PromoteAccount />,
-  },
-  {
-    path: "terms-policy",
-    element: <TermsOfUsePage />,
-  },
-  {
-    path: "privacy-policy",
-    element: <PrivacyPolicy />,
-  },
-  {
-    path: "platform-updates",
-    element: <PlatformUpdates />,
-  },
-  {
-    path: "reset-password/:token",
-    element: <ResetPassword />,
-  },
-  {
-    path: "/post/:postId",
-    element: <PostDetail />,
-  },
-  {
-  path: "signout",
-  element: <Signout />,
-  },
-  {
-    path: "/profile/:username",
-    element: <UserProfile />,
-  },
+  { path: "user/:userId", element: <UserProfileView /> },
+  { path: "signin", element: <SignIn /> },
+  { path: "signup", element: <SignUp /> },
+  { path: "forgotpass", element: <ForgotPass /> },
+  { path: "post", element: <Post /> },
+  { path: "posts/:postId", element: <PostDetail /> },
+  { path: "promote", element: <PromoteAccount /> },
+  { path: "terms-policy", element: <TermsOfUsePage /> },
+  { path: "privacy-policy", element: <PrivacyPolicy /> },
+  { path: "platform-updates", element: <PlatformUpdates /> },
+  { path: "reset-password/:token", element: <ResetPassword /> },
+  { path: "signout", element: <Signout /> },
+  { path: "/profile/:username", element: <ProfilePage /> },
 ]);
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    {/* ✅ Wrap entire app in UserProvider */}
     <UserProvider>
-      <RouterProvider router={router} />
+      <DevMessageProvider>
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center h-screen text-lg">
+              Loading...
+            </div>
+          }
+        >
+          <RouterProvider router={router} />
+        </Suspense>
+      </DevMessageProvider>
     </UserProvider>
   </StrictMode>
 );

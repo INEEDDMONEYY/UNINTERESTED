@@ -9,6 +9,7 @@ import {
   UserRound,
   Menu,
   X,
+  Clock,
 } from "lucide-react";
 
 import UserProfileSettings from "./UserProfileSettings.jsx";
@@ -23,10 +24,64 @@ export default function UserDashboard() {
   const [activeView, setActiveView] = useState("dashboard");
   const [profilePic, setProfilePic] = useState(user?.profilePic || "");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [promoCountdown, setPromoCountdown] = useState("");
+  const [hasActivePromo, setHasActivePromo] = useState(false);
+
+  const restrictionLabelMap = {
+    "no-posting": "Posting disabled",
+    "no-comments": "Commenting disabled",
+    "read-only": "Read-only access",
+  };
+
+  const activeRestriction = user?.roleRestriction || "";
+  const restrictionLabel = restrictionLabelMap[activeRestriction] || activeRestriction;
 
   useEffect(() => {
     setProfilePic(user?.profilePic || "");
   }, [user]);
+
+  // -------- Promo Countdown Timer --------
+  useEffect(() => {
+    if (!user?.activePromoExpiry) {
+      setHasActivePromo(false);
+      return;
+    }
+
+    const updateCountdown = () => {
+      const now = new Date();
+      const expiryDate = new Date(user.activePromoExpiry);
+      const diffMs = expiryDate.getTime() - now.getTime();
+
+      if (diffMs <= 0) {
+        setHasActivePromo(false);
+        setPromoCountdown("");
+        return;
+      }
+
+      setHasActivePromo(true);
+
+      const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+      let countdown = "";
+      if (days > 0) {
+        countdown = `${days}d ${hours}h ${minutes}m`;
+      } else if (hours > 0) {
+        countdown = `${hours}h ${minutes}m ${seconds}s`;
+      } else {
+        countdown = `${minutes}m ${seconds}s`;
+      }
+
+      setPromoCountdown(countdown);
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [user?.activePromoExpiry]);
 
   const handleSignOut = async () => {
     navigate("/signout");
@@ -170,6 +225,15 @@ export default function UserDashboard() {
           </p>
         </div>
 
+        {activeRestriction && (
+          <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900 shadow-sm">
+            <p className="text-sm font-semibold">Access restricted</p>
+            <p className="text-sm">
+              Your account currently has the following restriction: {restrictionLabel}.
+            </p>
+          </div>
+        )}
+
         {/* Breadcrumb */}
         <nav className="text-sm text-gray-500 mb-6">
           <ol className="flex items-center gap-2">
@@ -184,7 +248,6 @@ export default function UserDashboard() {
 
             {activeView !== "dashboard" && (
               <>
-                <li>/</li>
                 <li className="text-gray-800 font-medium capitalize">
                   {activeView}
                 </li>
@@ -215,6 +278,27 @@ export default function UserDashboard() {
 
         {activeView === "dashboard" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+
+            {/* Promo Status Badge */}
+            {hasActivePromo && (
+              <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl shadow border-2 border-green-400">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="bg-green-500 rounded-full p-2">
+                    <Clock size={20} className="text-white" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-green-800">Promo Code Active</h2>
+                </div>
+                <p className="text-green-700 text-sm mb-2">
+                  Your promo posts are live on the platform!
+                </p>
+                <div className="bg-green-600 text-white font-bold text-center py-3 rounded-lg text-xl">
+                  {promoCountdown || "Calculating..."}
+                </div>
+                <p className="text-green-600 text-xs mt-2 text-center">
+                  Expires at {new Date(user.activePromoExpiry).toLocaleString()}
+                </p>
+              </div>
+            )}
 
             <div className="bg-white p-6 rounded-xl shadow">
               <h2 className="text-lg font-semibold mb-2">Account Overview</h2>

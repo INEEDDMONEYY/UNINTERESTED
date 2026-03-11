@@ -2,6 +2,7 @@ import express from "express";
 import Conversation from "../models/Conversation.js";
 import User from "../models/User.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
+import { enforceRestriction } from "../middleware/restrictionMiddleware.js";
 
 const router = express.Router();
 
@@ -21,7 +22,7 @@ router.get("/", authMiddleware, async (req, res) => {
 });
 
 // POST create new conversation
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/", authMiddleware, enforceRestriction("conversation:create"), async (req, res) => {
   try {
     const { recipientId } = req.body;
     const userId = req.user.id;

@@ -1,4 +1,4 @@
-// controllers/userController.js
+// controllers/upadeProfile Controller.js
 import { v2 as cloudinary } from "cloudinary";
 import User from "../../models/User.js"; // your Mongoose user model
 

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import PostCard from "./PostCard";
 import EmptyCategoryLoader from "../Loaders/EmptyCategoryLoader";
 
@@ -9,8 +10,14 @@ export default function FilteredPosts({
   handleLoadMore,
   MAX_POSTS = 100,
 }) {
+  const [visiblePosts, setVisiblePosts] = useState(posts);
+
+  useEffect(() => {
+    setVisiblePosts(posts);
+  }, [posts]);
+
   // ------------------ Filter posts by location, category ------------------
-  const filteredPosts = posts
+  const filteredPosts = visiblePosts
     .filter((post) => {
       // ✅ Safe optional chaining for location filter
       const matchesLocation =
@@ -40,7 +47,15 @@ export default function FilteredPosts({
               profilePic: post.userId?.profilePic || null,
               bio: post.userId?.bio || "",
             };
-            return <PostCard key={post._id || i} post={postWithUsername} />;
+            return (
+              <PostCard
+                key={post._id || i}
+                post={postWithUsername}
+                onDelete={(id) => {
+                  setVisiblePosts((prev) => prev.filter((p) => p._id !== id));
+                }}
+              />
+            );
           })
         ) : (
           <EmptyCategoryLoader />

@@ -47,6 +47,11 @@ const UserSchema = new mongoose.Schema(
       enum: ["active", "suspended"],
       default: "active",
     },
+    roleRestriction: {
+      type: String,
+      enum: ["", "no-posting", "no-comments", "read-only"],
+      default: "",
+    },
     lastLogin: {
       type: Date,
       default: null,
@@ -72,6 +77,11 @@ const UserSchema = new mongoose.Schema(
     },
     resetPasswordExpires: {
       type: Date,
+    },
+    /* -------------------- Promo Expiry -------------------- */
+    activePromoExpiry: {
+      type: Date,
+      default: null,
     },
     /* ----------------------------------------------------------- */
   },

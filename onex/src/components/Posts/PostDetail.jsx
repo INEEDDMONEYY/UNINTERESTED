@@ -6,7 +6,6 @@ import { FEATURE_FLAGS } from "../../config/featureFlags";
 
 // 🌀 Loaders & Components
 import PostDetailLoader from "../Loaders/PostDetailLoader";
-//import UserProfile from '../../pages/profiles/ProfilePage';
 import UserAvailabilityDisplay from "../UserDisplay/UserAvailabilityDisplay";
 import UserMeetupDisplay from "../UserDisplay/UserMeetupDisplay";
 
@@ -15,30 +14,30 @@ export default function PostDetail() {
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // ✅ Load availability from localStorage (availability feature is disabled until future update)
-  const [availability, setAvailability] = useState(() => {
-    const saved = localStorage.getItem("availability");
-    return saved ? JSON.parse(saved) : { status: "" };
-  });
-
-  // ✅ Load meetup prices from localStorage
-  const [incallPrice, setIncallPrice] = useState(() => {
-    return localStorage.getItem("incallPrice") || "";
-  });
-  const [outcallPrice, setOutcallPrice] = useState(() => {
-    return localStorage.getItem("outcallPrice") || "";
-  });
+  const [availability, setAvailability] = useState({ status: "" });
+  const [incallPrice, setIncallPrice] = useState("");
+  const [outcallPrice, setOutcallPrice] = useState("");
 
   useEffect(() => {
     const fetchPost = async () => {
       try {
         const { data } = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/posts/${postId}`,
+          `${import.meta.env.VITE_API_URL || ""}/api/posts/${postId}`,
         );
+
+        console.log("✅ Post fetched:", data); // Debug log
+
         setPost(data);
+
+        // Set availability from populated user profile
+        setAvailability(data.userId?.availability || { status: "" });
+
+        // Set meetup prices from populated user profile
+        setIncallPrice(data.userId?.incallPrice || "");
+        setOutcallPrice(data.userId?.outcallPrice || "");
       } catch (err) {
         console.error("Failed to fetch post:", err);
+        console.error("Error response:", err.response?.data); // Debug log
         setPost(null);
       } finally {
         setLoading(false);
@@ -94,7 +93,7 @@ export default function PostDetail() {
       {/* 📝 Description */}
       <p className="text-gray-700 text-base mb-6">
         {(post.description || "No description provided.")
-          .split(/(?<=[.!?])\s+/) // split on sentence endings
+          .split(/(?<=[.!?])\s+/)
           .map((sentence, i) => (
             <span key={i}>
               {sentence}
@@ -104,11 +103,8 @@ export default function PostDetail() {
       </p>
 
       {/* 🟢 User Availability */}
-      {FEATURE_FLAGS.ENABLE_VIEW_ACTIVITY && (
+      {FEATURE_FLAGS.ENABLE_DISPLAY_AVAILABILITY && (
         <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-600 mb-1">
-            User Availability
-          </h3>
           <div className="h-auto overflow-hidden p-1">
             <UserAvailabilityDisplay availability={availability} />
           </div>

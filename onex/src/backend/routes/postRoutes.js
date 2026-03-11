@@ -3,6 +3,7 @@ import express from 'express';
 import multer from 'multer';
 import * as postController from '../controllers/postController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
+import { enforceRestriction } from '../middleware/restrictionMiddleware.js';
 
 const router = express.Router();
 
@@ -21,6 +22,7 @@ router.use('/', (req, res, next) => {
 router.post(
   '/',
   authMiddleware,
+  enforceRestriction('post:create'),
   upload.array('pictures', 5), // field name must match frontend
   postController.createPost
 );
@@ -32,9 +34,9 @@ router.get('/', postController.getPosts);
 router.get('/:id', postController.getPostById);
 
 // Update post
-router.put('/:id', authMiddleware, postController.updatePost);
+router.put('/:id', authMiddleware, enforceRestriction('post:update'), postController.updatePost);
 
 // Delete post
-router.delete('/:id', authMiddleware, postController.deletePost);
+router.delete('/:id', authMiddleware, enforceRestriction('post:delete'), postController.deletePost);
 
 export default router;

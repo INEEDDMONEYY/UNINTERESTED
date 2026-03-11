@@ -12,8 +12,15 @@ export default function AvailabilitySettings({
 
   const apiBase = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE || '');
 
-  // Per-user localStorage key
-  const storageKey = userId ? `availability_${userId}` : "availability";
+  // Per-user localStorage key. If no userId yet, skip storage to avoid cross-user bleed.
+  const storageKey = userId ? `availability_${userId}` : null;
+
+  const normalizeAvailabilityStatus = (rawAvailability) => {
+    if (!rawAvailability) return "";
+    if (typeof rawAvailability === "string") return rawAvailability;
+    if (typeof rawAvailability === "object") return rawAvailability.status || "";
+    return "";
+  };
 
   // ✅ Load availability from backend first (true cross-device persistence)
   useEffect(() => {
@@ -27,14 +34,14 @@ export default function AvailabilitySettings({
 
         const data = await res.json();
 
-        if (data?.availability) {
-          setAvailability({ status: data.availability });
+        const normalizedStatus = normalizeAvailabilityStatus(data?.availability);
+        if (normalizedStatus) {
+          setAvailability({ status: normalizedStatus });
 
           // Sync to localStorage
-          localStorage.setItem(
-            storageKey,
-            JSON.stringify({ status: data.availability })
-          );
+          if (storageKey) {
+            localStorage.setItem(storageKey, JSON.stringify({ status: normalizedStatus }));
+          }
 
           return; // stop here if backend had data
         }
@@ -44,6 +51,7 @@ export default function AvailabilitySettings({
 
       // Fallback: load from localStorage
       try {
+        if (!storageKey) return;
         const raw = localStorage.getItem(storageKey);
         if (raw) {
           const saved = JSON.parse(raw);
@@ -51,19 +59,23 @@ export default function AvailabilitySettings({
             setAvailability(saved);
           }
         }
-      } catch {}
+      } catch (err) {
+        console.error("Failed to read availability from localStorage", err);
+      }
     }
 
     loadFromBackend();
-  }, [userId]);
+  }, [apiBase, userId, setAvailability, storageKey]);
   
 
   // Persist to localStorage whenever availability changes
   useEffect(() => {
-    if (!availability) return;
+    if (!availability || !storageKey) return;
     try {
       localStorage.setItem(storageKey, JSON.stringify(availability));
-    } catch {}
+    } catch (err) {
+      console.error("Failed to persist availability", err);
+    }
   }, [availability, storageKey]);
 
 
@@ -93,11 +105,21 @@ export default function AvailabilitySettings({
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
-          availability: availability.status,
+          availability: { status: availability.status },
         }),
       });
 
-      await res.json();
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to save availability");
+      }
+
+      const savedStatus = normalizeAvailabilityStatus(data?.user?.availability) || availability.status;
+      setAvailability({ status: savedStatus });
+
+      if (storageKey) {
+        localStorage.setItem(storageKey, JSON.stringify({ status: savedStatus }));
+      }
 
       setToast({
         type: "success",
@@ -106,7 +128,7 @@ export default function AvailabilitySettings({
     } catch (err) {
       setToast({
         type: "error",
-        message: "Failed to save availability",
+        message: err.message || "Failed to save availability",
       });
     }
 
@@ -135,7 +157,7 @@ export default function AvailabilitySettings({
         </div>
       )}
 
-      <div className="bg-white shadow rounded-lg p-6 flex flex-col items-center justify-center space-y-4 max-w-md mx-auto text-center">
+      <div className="bg-white rounded-lg p-6 flex flex-col items-center justify-center space-y-4 max-w-md mx-auto text-center">
         <label className="block text-pink-600 font-medium">Availability</label>
 
         <select

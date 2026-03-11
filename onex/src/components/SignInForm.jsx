@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '../context/useUser.jsx';
 
 export default function SigninForm({ setLoading }) {
   const [error, setError] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-
-  const apiBase = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE || '');
+  const { login } = useUser();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -24,27 +24,12 @@ export default function SigninForm({ setLoading }) {
     setLoading(true); // 🔥 Trigger loader in parent
 
     try {
-      const response = await fetch(`${apiBase}/api/signin`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-        credentials: 'include',
-      });
+      const authUser = await login(username, password);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        if (data.token) localStorage.setItem('token', data.token);
-        if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
-
-        if (data.user?.role === 'admin') navigate('/admin');
-        else navigate('/home');
-      } else {
-        setError(data.error || 'Sign in failed');
-        setLoading(false); // ❌ Stop loader on failure
-      }
+      if (authUser?.role === 'admin') navigate('/admin');
+      else navigate('/home');
     } catch (err) {
-      setError('Error connecting to server: ' + (err?.message || ''));
+      setError(err?.message || 'Sign in failed');
       setLoading(false); // ❌ Stop loader on error
     }
 

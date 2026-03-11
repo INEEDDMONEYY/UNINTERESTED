@@ -1,141 +1,310 @@
-import AdminSettings from "../models/AdminSettings.js";
 import User from "../models/User.js";
+import AdminSettings from "../models/AdminSettings.js";
+import cloudinary from "../utils/cloudinary.js";
+import streamifier from "streamifier";
 import bcrypt from "bcrypt";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 
-/* --------------------------- 📄 Get Admin Settings --------------------------- */
+/* --------------------------- ⚙️ Get Admin Settings --------------------------- */
 export const getSettings = async (req, res) => {
   try {
     let settings = await AdminSettings.findOne();
     if (!settings) {
       settings = await AdminSettings.create({});
-      console.log("🆕 Created new default settings document");
     }
-
-    res.json({ success: true, settings });
+    res.json({ success: true, data: settings });
   } catch (err) {
     console.error("❌ Error fetching settings:", err);
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: "Failed to fetch settings" });
   }
 };
 
-/* --------------------------- 🛠 Update Admin Settings --------------------------- */
+/* --------------------------- ⚙️ Update Admin Settings --------------------------- */
 export const updateSettings = async (req, res) => {
-  try {
-    let updates = {};
-
-    if (req.body.field && req.body.value !== undefined) {
-      updates[req.body.field] = req.body.value;
-    } else {
-      updates = req.body;
-    }
-
-    const settings = await AdminSettings.findOneAndUpdate({}, updates, {
-      new: true,
-      upsert: true,
-      setDefaultsOnInsert: true,
-    });
-
-    res.json({ success: true, settings, message: "Settings updated successfully" });
-  } catch (err) {
-    console.error("❌ Error updating settings:", err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-};
-
-/* --------------------------- 👥 Get All Users --------------------------- */
-export const getAllUsers = async (req, res) => {
-  try {
-    const users = await User.find({}, "-password");
-    res.json({ success: true, users });
-  } catch (err) {
-    console.error("❌ Error fetching users:", err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-};
-
-/* --------------------------- 🔑 Update Admin Credentials --------------------------- */
-export const updateAdminCredentials = async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    const adminId = req.user?.id || req.user?._id;
-
-    if (!adminId) {
-      console.warn("⚠️ No adminId found in token payload:", req.user);
-      return res.status(401).json({ success: false, error: "Unauthorized or invalid token" });
-    }
-
-    if (!username && !password) {
-      return res.status(400).json({ success: false, error: "No fields provided for update" });
-    }
-
-    const updates = {};
-    if (username) updates.username = username.trim();
-    if (password) updates.password = await bcrypt.hash(password, 10);
-
-    const updatedAdmin = await User.findByIdAndUpdate(adminId, updates, { new: true }).select("-password");
-
-    if (!updatedAdmin) {
-      console.error("❌ Admin not found in DB:", adminId);
-      return res.status(404).json({ success: false, error: "Admin not found" });
-    }
-
-    console.log(`✅ Admin credentials updated for ${updatedAdmin.username} (ID: ${adminId})`);
-
-    return res.status(200).json({
-      success: true,
-      message: "Admin credentials updated successfully.",
-      admin: {
-        username: updatedAdmin.username,
-        profilePic: updatedAdmin.profilePic,
-        role: updatedAdmin.role,
-      },
-    });
-  } catch (err) {
-    console.error("❌ Error updating admin credentials:", err);
-    return res.status(500).json({ success: false, error: err.message });
-  }
-};
-
-/* --------------------------- 🖼 Upload Profile Picture --------------------------- */
-export const uploadProfilePicture = async (req, res) => {
   try {
     const adminId = req.user?.id || req.user?._id;
     if (!adminId) return res.status(401).json({ success: false, error: "Unauthorized" });
-    if (!req.file) return res.status(400).json({ success: false, error: "No file uploaded" });
 
-    const filePath = path.join(__dirname, `../uploads/${req.file.filename}`);
-    if (!fs.existsSync(filePath)) {
-      return res.status(400).json({ success: false, error: "File save failed" });
+    const { field, value } = req.body;
+
+    if (field === "roleRestriction") {
+      const userId = value?.userId;
+      const restriction = value?.restriction;
+      const allowedRestrictions = ["no-posting", "no-comments", "read-only"];
+
+      if (!userId || !restriction) {
+        return res.status(400).json({ success: false, error: "User and restriction are required" });
+      }
+
+      if (!allowedRestrictions.includes(restriction)) {
+        return res.status(400).json({ success: false, error: "Invalid restriction value" });
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { roleRestriction: restriction },
+        { new: true }
+      ).select("-password");
+
+      if (!updatedUser) {
+        return res.status(404).json({ success: false, error: "User not found" });
+      }
+
+      return res.json({
+        success: true,
+        data: updatedUser,
+        appliedRestriction: updatedUser.roleRestriction,
+        message: `Restriction applied: ${restriction}`,
+      });
     }
 
-    // ✅ Build public URL for Render/Vercel
-    const baseUrl = process.env.BACKEND_URL || "https://your-render-backend-url.onrender.com";
-    const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+    if (field === "roleUnrestriction") {
+      const userId = value?.userId;
 
-    const updatedUser = await User.findByIdAndUpdate(adminId, { profilePic: imageUrl }, { new: true });
+      if (!userId) {
+        return res.status(400).json({ success: false, error: "User is required" });
+      }
 
-    if (!updatedUser) return res.status(404).json({ success: false, error: "Admin not found" });
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { roleRestriction: "" },
+        { new: true }
+      ).select("-password");
 
-    res.json({ success: true, url: imageUrl, message: "Profile picture updated" });
+      if (!updatedUser) {
+        return res.status(404).json({ success: false, error: "User not found" });
+      }
+
+      return res.json({
+        success: true,
+        data: updatedUser,
+        message: "Restriction removed",
+      });
+    }
+
+    if (field === "suspendUserId") {
+      const userId = value;
+
+      if (!userId) {
+        return res.status(400).json({ success: false, error: "User is required" });
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { status: "suspended" },
+        { new: true }
+      ).select("-password");
+
+      if (!updatedUser) {
+        return res.status(404).json({ success: false, error: "User not found" });
+      }
+
+      return res.json({
+        success: true,
+        data: updatedUser,
+        message: "User suspended",
+      });
+    }
+
+    if (field && value !== undefined) {
+      req.body[field] = value;
+    }
+
+    const {
+      siteName,
+      maintenanceMode,
+      supportEmail,
+      maxUploadSize,
+      allowedFileTypes,
+      customSettings,
+      devMessage,
+      roleRestriction,
+      suspendUserId,
+    } = req.body;
+
+    let settings = await AdminSettings.findOne();
+    if (!settings) {
+      settings = await AdminSettings.create({});
+    }
+
+    // Update only provided fields
+    if (siteName !== undefined) settings.siteName = siteName;
+    if (maintenanceMode !== undefined) settings.maintenanceMode = maintenanceMode;
+    if (supportEmail !== undefined) settings.supportEmail = supportEmail;
+    if (maxUploadSize !== undefined) settings.maxUploadSize = maxUploadSize;
+    if (allowedFileTypes !== undefined) settings.allowedFileTypes = allowedFileTypes;
+    if (customSettings !== undefined) settings.customSettings = customSettings;
+    if (devMessage !== undefined) settings.devMessage = devMessage;
+    if (roleRestriction !== undefined) settings.roleRestriction = roleRestriction;
+    if (suspendUserId !== undefined) settings.suspendUserId = suspendUserId;
+
+    settings.lastUpdatedBy = adminId;
+    await settings.save();
+
+    res.json({ success: true, data: settings, message: "Settings updated" });
   } catch (err) {
-    console.error("❌ Upload error:", err);
-    res.status(500).json({ success: false, error: "Failed to upload profile picture" });
+    console.error("❌ Error updating settings:", err);
+    res.status(500).json({ success: false, error: "Failed to update settings" });
   }
 };
 
-/* --------------------------- 🗑 Delete User --------------------------- */
+/* --------------------------- 🔐 Update Admin Credentials --------------------------- */
+export const updateAdminCredentials = async (req, res) => {
+  try {
+    const adminId = req.user?.id || req.user?._id;
+    if (!adminId) return res.status(401).json({ success: false, error: "Unauthorized" });
+
+    const { username, currentPassword, newPassword } = req.body;
+
+    // Fetch admin user
+    const admin = await User.findById(adminId);
+    if (!admin) return res.status(404).json({ success: false, error: "Admin not found" });
+
+    // Verify current password if changing password
+    if (newPassword) {
+      const isPasswordValid = await bcrypt.compare(currentPassword || "", admin.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ success: false, error: "Current password is incorrect" });
+      }
+      admin.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    // Update username if provided
+    if (username) {
+      const existingUser = await User.findOne({ username, _id: { $ne: adminId } });
+      if (existingUser) {
+        return res.status(400).json({ success: false, error: "Username already taken" });
+      }
+      admin.username = username;
+    }
+
+    await admin.save();
+    res.json({ success: true, message: "Credentials updated" });
+  } catch (err) {
+    console.error("❌ Error updating credentials:", err);
+    res.status(500).json({ success: false, error: "Failed to update credentials" });
+  }
+};
+
+/* --------------------------- � Get All Users (Admin) --------------------------- */
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    res.json({ success: true, data: users });
+  } catch (err) {
+    console.error("❌ Error fetching users:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch users" });
+  }
+};
+
+/* --------------------------- 🗑️ Delete User (Admin) --------------------------- */
 export const deleteUser = async (req, res) => {
   try {
-    const deleted = await User.findByIdAndDelete(req.params.id);
-    if (!deleted) {
-      return res.status(404).json({ success: false, error: "User not found" });
+    const { id } = req.params;
+    const adminId = req.user?.id || req.user?._id;
+
+    if (!adminId) return res.status(401).json({ success: false, error: "Unauthorized" });
+    if (id === adminId.toString()) {
+      return res.status(400).json({ success: false, error: "Cannot delete yourself" });
     }
+
+    const deletedUser = await User.findByIdAndDelete(id);
+    if (!deletedUser) return res.status(404).json({ success: false, error: "User not found" });
 
     res.json({ success: true, message: "User deleted successfully" });
   } catch (err) {
     console.error("❌ Error deleting user:", err);
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: "Failed to delete user" });
+  }
+};
+
+/* --------------------------- �🖼 Upload Profile Picture --------------------------- */
+/* --------------------------- 🖼 Upload Profile Picture to Cloudinary --------------------------- */
+export const uploadProfilePicture = async (req, res) => {
+  try {
+    console.log("📸 [uploadProfilePicture] Request received");
+    console.log("📸 [uploadProfilePicture] req.user:", req.user);
+    console.log("📸 [uploadProfilePicture] req.file:", req.file ? { fieldname: req.file.fieldname, size: req.file.size, mimetype: req.file.mimetype } : null);
+
+    const adminId = req.user?.id || req.user?._id;
+    console.log("📸 [uploadProfilePicture] adminId:", adminId);
+
+    if (!adminId) {
+      console.error("❌ [uploadProfilePicture] No admin ID found");
+      return res.status(401).json({ success: false, error: "Unauthorized - no admin ID" });
+    }
+
+    if (!req.file) {
+      console.error("❌ [uploadProfilePicture] No file uploaded");
+      return res.status(400).json({ success: false, error: "No file uploaded" });
+    }
+
+    console.log("📸 [uploadProfilePicture] Starting Cloudinary upload...");
+
+    let responseSent = false;
+
+    // Upload to Cloudinary using the file buffer
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "mystery-mansion/profiles",
+        public_id: `admin_${adminId}_profile`,
+        overwrite: true,
+        resource_type: "auto",
+      },
+      async (error, result) => {
+        if (responseSent) return; // Prevent double response
+        responseSent = true;
+
+        if (error) {
+          console.error("❌ [uploadProfilePicture] Cloudinary error:", error);
+          return res.status(500).json({ success: false, error: `Cloudinary upload failed: ${error.message}` });
+        }
+
+        console.log("📸 [uploadProfilePicture] Cloudinary upload success, updating database...");
+
+        try {
+          const imageUrl = result.secure_url;
+          console.log("📸 [uploadProfilePicture] Image URL:", imageUrl);
+
+          const updatedUser = await User.findByIdAndUpdate(
+            adminId,
+            { profilePic: imageUrl },
+            { new: true }
+          ).select("-password");
+
+          if (!updatedUser) {
+            console.error("❌ [uploadProfilePicture] Admin user not found");
+            return res.status(404).json({ success: false, error: "Admin not found" });
+          }
+
+          console.log("📸 [uploadProfilePicture] Database updated successfully");
+          res.json({ success: true, url: imageUrl, message: "Profile picture updated" });
+        } catch (dbErr) {
+          console.error("❌ [uploadProfilePicture] Database error:", dbErr);
+          if (!responseSent) {
+            responseSent = true;
+            res.status(500).json({ success: false, error: `Database error: ${dbErr.message}` });
+          }
+        }
+      }
+    );
+
+    // Handle stream errors
+    uploadStream.on('error', (error) => {
+      console.error("❌ [uploadProfilePicture] Upload stream error:", error);
+      if (!responseSent) {
+        responseSent = true;
+        res.status(500).json({ success: false, error: `Stream error: ${error.message}` });
+      }
+    });
+
+    // Stream the file buffer to Cloudinary
+    console.log("📸 [uploadProfilePicture] Creating read stream and piping to upload stream...");
+    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+  } catch (err) {
+    console.error("❌ [uploadProfilePicture] Outer catch error:", err);
+    res.status(500).json({ success: false, error: `Upload error: ${err.message}` });
   }
 };

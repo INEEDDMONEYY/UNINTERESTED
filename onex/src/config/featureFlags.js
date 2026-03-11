@@ -1,9 +1,11 @@
 export const FEATURE_FLAGS = {
     //User Dashboard flags
-  AVAILABILITY_SETTINGS: true,        // Disable for launch
+  AVAILABILITY_SETTINGS: false,        // Disable for launch
   MEETUP_SERVICE_SETTINGS: false,      // Disable for launch
   SETTINGS_OVERVIEW: false,            // Optional, you can enable too
   ENABLE_VIEW_ACTIVITY: true,
+  ENABLE_DISPLAY_AVAILABILITY: false,
+  PROMO_REDEMPTION: true,
   ENABLE_PUBLIC_PROFILE: false,
   ENABLE_PROFILE_PIC_UPDATE: true,
   ENABLE_PROFILE_BIO_UPDATE: false,

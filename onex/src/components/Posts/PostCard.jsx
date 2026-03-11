@@ -1,10 +1,21 @@
 import { Link } from "react-router-dom";
 import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../utils/api";
 
 export default function PostCard({ post, onDelete }) {
-  if (!post) return null;
+  // -------------------- Carousel State --------------------
+  const [currentImage, setCurrentImage] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
+  const totalImages = post?.pictures?.length || 0;
+
+  // Reset carousel when images change
+  useEffect(() => {
+    setCurrentImage(0);
+  }, [post?.pictures]);
+
+  if (!post || isDeleted) return null;
 
   // -------------------- User Info --------------------
   const username = post.userId?.username || "Unknown";
@@ -14,14 +25,21 @@ export default function PostCard({ post, onDelete }) {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isOwner = user._id && post.userId?._id === user._id;
 
-  // -------------------- Carousel State --------------------
-  const [currentImage, setCurrentImage] = useState(0);
-  const totalImages = post.pictures?.length || 0;
+  // -------------------- Promo Status --------------------
+  const getPostStatus = () => {
+    if (post.isPromo) {
+      const expiryDate = post.promoExpiresAt ? new Date(post.promoExpiresAt) : null;
+      const now = new Date();
+      if (expiryDate && now < expiryDate) {
+        return { type: "promo", label: "PROMO", color: "bg-blue-500" };
+      } else {
+        return { type: "promo-expired", label: "PROMO EXPIRED", color: "bg-gray-500" };
+      }
+    }
+    return { type: "paid", label: "PAID", color: "bg-purple-500" };
+  };
 
-  // Reset carousel when images change
-  useEffect(() => {
-    setCurrentImage(0);
-  }, [post.pictures]);
+  const postStatus = getPostStatus();
 
   const prevImage = (e) => {
     e.stopPropagation();
@@ -34,14 +52,39 @@ export default function PostCard({ post, onDelete }) {
   };
 
   // -------------------- Delete Post --------------------
-  const handleDelete = (e) => {
-  e.preventDefault();
-  e.stopPropagation();
+  const handleDelete = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-  if (!window.confirm("Remove this post from your feed?")) return;
+    if (!window.confirm("Delete this post from UI and database?")) return;
+    if (isDeleting) return;
 
-  onDelete(post._id); // UI-only delete
-};
+    setIsDeleting(true);
+
+    try {
+      await api.delete(`/posts/${post._id}`);
+
+      window.dispatchEvent(
+        new CustomEvent("app-toast", {
+          detail: {
+            type: "success",
+            message: "Post deleted successfully.",
+          },
+        })
+      );
+
+      if (typeof onDelete === "function") {
+        onDelete(post._id);
+      }
+
+      setIsDeleted(true);
+    } catch (err) {
+      console.error("Failed to delete post:", err?.response?.data || err.message);
+      alert(err?.response?.data?.error || "Failed to delete post");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
 
   return (
@@ -102,7 +145,16 @@ export default function PostCard({ post, onDelete }) {
         </div>
 
         {/* -------------------- Link wraps only content -------------------- */}
-        <Link to={`/post/${post._id}`} className="block hover:shadow-xl transition">
+        <Link to={`/posts/${post._id}`} className="block hover:shadow-xl transition">
+
+          {/* Status Tags */}
+          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1">
+            <div
+              className={`${postStatus.color} text-white text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full shadow-md`}
+            >
+              {postStatus.label}
+            </div>
+          </div>
 
           {/* Visibility Badge */}
           {post.visibility && (
@@ -160,7 +212,8 @@ export default function PostCard({ post, onDelete }) {
         {isOwner && (
           <button
             onClick={handleDelete}
-            className="absolute bottom-2 right-2 p-1 rounded-full bg-red-500 hover:bg-red-600 text-white transition"
+            disabled={isDeleting}
+            className="absolute bottom-2 right-2 p-1 rounded-full bg-red-500 hover:bg-red-600 text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
             title="Delete Post"
           >
             <Trash2 size={18} />

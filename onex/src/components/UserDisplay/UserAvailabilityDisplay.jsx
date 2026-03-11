@@ -1,19 +1,12 @@
 //User Availability Display
 
-import { useEffect, useState } from "react";
 import { CalendarDays, Clock } from "lucide-react";
 
 export default function UserAvailabilityDisplay({ availability }) {
-  const [status, setStatus] = useState("");
-
-  // Whenever availability changes, update local state
-  useEffect(() => {
-    if (availability?.status) {
-      setStatus(availability.status);
-    } else {
-      setStatus("Not Available");
-    }
-  }, [availability]);
+  const status =
+    typeof availability === "string"
+      ? availability
+      : availability?.status || "Not Available";
 
   return (
     <section className="w-full px-4 py-4 md:px-6 lg:px-8">
@@ -25,10 +18,6 @@ export default function UserAvailabilityDisplay({ availability }) {
       {/* ✅ Flex layout instead of grid */}
       <div className="flex flex-col items-center justify-center">
         <div className="bg-white shadow rounded-lg p-4 flex flex-col items-center justify-center text-center space-y-2 w-full max-w-sm">
-          <div className="flex items-center gap-2 text-pink-600 text-sm font-medium">
-            <CalendarDays size={16} />
-            <span>Status</span>
-          </div>
           <div className="flex items-center gap-2 text-gray-700 text-sm">
             <Clock size={14} className="text-pink-500" />
             <span>{status}</span>

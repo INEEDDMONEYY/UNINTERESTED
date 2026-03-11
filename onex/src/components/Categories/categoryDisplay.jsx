@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import UserSearch from "../../components/Searchbar/UserSearch";
 import CategoryPostsLoader from "../Loaders/CategoryPostsLoader";
 import PostCard from "../Posts/PostCard";
@@ -12,9 +12,14 @@ export default function CategoryDisplay({ selectedCategory, users = [], posts = 
   const [query, setQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedPostId, setSelectedPostId] = useState(null);
+  const [visiblePosts, setVisiblePosts] = useState(posts);
+
+  useEffect(() => {
+    setVisiblePosts(posts);
+  }, [posts]);
 
   // Filter posts by category, location, and optionally user
-  const categoryPosts = posts.filter((post) => {
+  const categoryPosts = visiblePosts.filter((post) => {
     const matchesCategory = post.category?.trim().toLowerCase() === category?.trim().toLowerCase();
     const matchesLocation =
       !location ||
@@ -54,13 +59,25 @@ export default function CategoryDisplay({ selectedCategory, users = [], posts = 
             >
               ← Back to category posts
             </button>
-            <PostCard post={selectedPost} />
+            <PostCard
+              post={selectedPost}
+              onDelete={(id) => {
+                setVisiblePosts((prev) => prev.filter((p) => p._id !== id));
+                setSelectedPostId(null);
+              }}
+            />
           </div>
         ) : category ? (
           categoryPosts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {categoryPosts.map((post, i) => (
-                <PostCard key={post._id || i} post={post} />
+                <PostCard
+                  key={post._id || i}
+                  post={post}
+                  onDelete={(id) => {
+                    setVisiblePosts((prev) => prev.filter((p) => p._id !== id));
+                  }}
+                />
               ))}
             </div>
           ) : (

@@ -4,6 +4,7 @@ import { UserContext } from "../../context/UserContext";
 import AvailabilitySettings from "../../components/Settings/UserDashboardSettings/AvailabilitySettings";
 import UpdateProfileSettings from "../../components/Settings/UserDashboardSettings/UpdateProfileSettings";
 import MeetupServiceSettings from "../../components/Settings/UserDashboardSettings/MeetupServiceSettings";
+import RedeemPromoSettings from "../../components/Settings/UserDashboardSettings/RedeemPromoSettings.jsx";
 import UserAvailabilityDisplay from "../../components/UserDisplay/UserAvailabilityDisplay";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
 import { DollarSign } from "lucide-react";
@@ -11,41 +12,63 @@ import { DollarSign } from "lucide-react";
 export default function UserProfileSettings({ onProfileUpdate }) {
   const { user } = useContext(UserContext);
 
+  const normalizeAvailability = (raw) => {
+    if (!raw) return { status: "" };
+    if (typeof raw === "string") return { status: raw };
+    if (typeof raw === "object") return { status: raw.status || "" };
+    return { status: "" };
+  };
+
   // ✅ Stable userId for namespacing localStorage keys
   const userId = useMemo(() => user?._id || user?.id || null, [user]);
 
   // ✅ Per-user keys
   const incallKey = useMemo(
-    () => (userId ? `incallPrice_${userId}` : "incallPrice"),
-    [userId]
+    () => (userId ? `incallPrice_${userId}` : null),
+    [userId],
   );
   const outcallKey = useMemo(
-    () => (userId ? `outcallPrice_${userId}` : "outcallPrice"),
-    [userId]
+    () => (userId ? `outcallPrice_${userId}` : null),
+    [userId],
   );
   const availabilityKey = useMemo(
-    () => (userId ? `availability_${userId}` : "availability"),
-    [userId]
+    () => (userId ? `availability_${userId}` : null),
+    [userId],
   );
 
   // ✅ Lifted state with per-user persistence (hydrate by user)
   const [incallPrice, setIncallPrice] = useState(() => {
+    if (!incallKey) return "";
     const saved = localStorage.getItem(incallKey);
     return saved ?? "";
   });
 
   const [outcallPrice, setOutcallPrice] = useState(() => {
+    if (!outcallKey) return "";
     const saved = localStorage.getItem(outcallKey);
     return saved ?? "";
   });
 
   const [availability, setAvailability] = useState(() => {
+    if (!availabilityKey) return { status: "" };
     const saved = localStorage.getItem(availabilityKey);
-    return saved ? JSON.parse(saved) : { status: "" };
+    if (!saved) return { status: "" };
+    try {
+      return normalizeAvailability(JSON.parse(saved));
+    } catch {
+      return normalizeAvailability(saved);
+    }
   });
 
   // ✅ Rehydrate when the user changes (avoid cross-user bleed)
   useEffect(() => {
+    if (!userId || !incallKey || !outcallKey || !availabilityKey) {
+      setIncallPrice("");
+      setOutcallPrice("");
+      setAvailability({ status: "" });
+      return;
+    }
+
     const savedIncall = localStorage.getItem(incallKey);
     setIncallPrice(savedIncall ?? "");
 
@@ -53,27 +76,44 @@ export default function UserProfileSettings({ onProfileUpdate }) {
     setOutcallPrice(savedOutcall ?? "");
 
     const savedAvailability = localStorage.getItem(availabilityKey);
-    setAvailability(savedAvailability ? JSON.parse(savedAvailability) : { status: "" });
-  }, [incallKey, outcallKey, availabilityKey]);
+    if (!savedAvailability) {
+      setAvailability({ status: "" });
+    } else {
+      try {
+        setAvailability(normalizeAvailability(JSON.parse(savedAvailability)));
+      } catch {
+        setAvailability(normalizeAvailability(savedAvailability));
+      }
+    }
+  }, [userId, incallKey, outcallKey, availabilityKey]);
 
   // ✅ Persist per-user availability changes
   useEffect(() => {
+    if (!availabilityKey) return;
     try {
       localStorage.setItem(availabilityKey, JSON.stringify(availability));
-    } catch {}
+    } catch (err) {
+      console.error("Failed to persist availability", err);
+    }
   }, [availability, availabilityKey]);
 
   // ✅ Persist per-user prices
   useEffect(() => {
+    if (!incallKey) return;
     try {
       localStorage.setItem(incallKey, incallPrice ?? "");
-    } catch {}
+    } catch (err) {
+      console.error("Failed to persist incall price", err);
+    }
   }, [incallPrice, incallKey]);
 
   useEffect(() => {
+    if (!outcallKey) return;
     try {
       localStorage.setItem(outcallKey, outcallPrice ?? "");
-    } catch {}
+    } catch (err) {
+      console.error("Failed to persist outcall price", err);
+    }
   }, [outcallPrice, outcallKey]);
 
   return (
@@ -99,6 +139,17 @@ export default function UserProfileSettings({ onProfileUpdate }) {
               setAvailability={setAvailability}
               userId={userId} // pass userId to namespace storage
             />
+          </div>
+        </section>
+      )}
+
+      {/* =====================================================================================
+    PROMO CODE SETTINGS
+   ===================================================================================== */}
+      {FEATURE_FLAGS.PROMO_REDEMPTION && (
+        <section className="space-y-3">
+          <div className="border border-pink-100 rounded-lg p-4 bg-white shadow-sm">
+            <RedeemPromoSettings userId={userId} />
           </div>
         </section>
       )}
@@ -134,7 +185,6 @@ export default function UserProfileSettings({ onProfileUpdate }) {
 
           {/* Meetup Prices */}
           <div className="w-full flex flex-col md:flex-row justify-center items-center gap-6 px-4">
-
             {/* Incall Card */}
             <div
               className="w-[130px] h-[130px] flex flex-col justify-center items-center 

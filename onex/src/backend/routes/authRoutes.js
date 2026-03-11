@@ -75,6 +75,9 @@ router.post("/signin", async (req, res) => {
         _id: user._id,
         username: user.username,
         role: user.role,
+        profilePic: user.profilePic,
+        roleRestriction: user.roleRestriction,
+        status: user.status,
       },
     });
   } catch (err) {
