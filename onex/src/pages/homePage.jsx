@@ -12,6 +12,15 @@ export default function HomePage() {
   const [showAgeToast, setShowAgeToast] = useState(false);
 
   useEffect(() => {
+    document.title = 'Mystery Mansion | Home';
+    const description = document.querySelector('meta[name="description"]');
+    if (description) {
+      description.setAttribute(
+        'content',
+        'Mystery Mansion helps users discover posts, connect with profiles, and browse categorized updates in one place.'
+      );
+    }
+
     // ✅ Load user info from localStorage
     const storedUser = localStorage.getItem('user');
     if (storedUser) {

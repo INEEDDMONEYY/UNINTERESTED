@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useUser } from '../context/useUser.jsx';
 
 export default function SignupForm() {
   const [username, setUsername] = useState('');
@@ -7,6 +8,7 @@ export default function SignupForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useUser();
 
   // Role removed from public signup — admins will have a separate form
   const role = "user";
@@ -42,6 +44,7 @@ export default function SignupForm() {
       }
 
       if (response.ok) {
+        await login(username, password);
         navigate('/home');
       } else {
         setError(data.error || 'Signup failed');
