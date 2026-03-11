@@ -6,7 +6,7 @@ let API_BASE = import.meta.env.DEV
   : import.meta.env.VITE_BACKEND_URL ||
     import.meta.env.VITE_API_BASE?.trim() ||
     import.meta.env.VITE_API_URL?.trim() ||
-    "";
+    "https://uninterested.onrender.com";
 
 API_BASE = API_BASE.replace(/\/+$/, "");
 

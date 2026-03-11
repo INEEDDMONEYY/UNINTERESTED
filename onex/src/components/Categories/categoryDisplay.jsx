@@ -4,6 +4,7 @@ import UserSearch from "../../components/Searchbar/UserSearch";
 import CategoryPostsLoader from "../Loaders/CategoryPostsLoader";
 import PostCard from "../Posts/PostCard";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
+import { statesMatch } from "../../utils/stateNormalizer";
 
 export default function CategoryDisplay({ selectedCategory, users = [], posts = [], location = null }) {
   const { categoryName } = useParams();
@@ -21,10 +22,16 @@ export default function CategoryDisplay({ selectedCategory, users = [], posts = 
   // Filter posts by category, location, and optionally user
   const categoryPosts = visiblePosts.filter((post) => {
     const matchesCategory = post.category?.trim().toLowerCase() === category?.trim().toLowerCase();
+    const locationCity = location?.city?.trim()?.toLowerCase();
+    const locationState = location?.state?.trim();
+    const hasLocationCity = !!locationCity && !locationCity.includes("unknown");
+    const hasLocationState = !!locationState && !locationState.toLowerCase().includes("unknown");
+
     const matchesLocation =
       !location ||
-      post.city?.toLowerCase() === location.city?.toLowerCase() ||
-      post.state?.toLowerCase() === location.state?.toLowerCase();
+      (hasLocationCity && post.city?.trim()?.toLowerCase() === locationCity) ||
+      (hasLocationState && statesMatch(post.state, locationState)) ||
+      (!hasLocationCity && !hasLocationState);
     const matchesUser = selectedUser ? post.userId?.username === selectedUser : true;
 
     return matchesCategory && matchesLocation && matchesUser;

@@ -12,6 +12,12 @@ import PostCard from "../components/Posts/PostCard";
 import { FEATURE_FLAGS } from "../config/featureFlags";
 import { statesMatch } from "../utils/stateNormalizer";
 
+const API_BASE =
+  import.meta.env.VITE_BACKEND_URL ||
+  import.meta.env.VITE_API_BASE ||
+  import.meta.env.VITE_API_URL ||
+  "https://uninterested.onrender.com";
+
 // ------------------ Onboarding Guide Component ------------------
 function OnboardingGuide({ steps, onFinish }) {
   const [currentStep, setCurrentStep] = useState(0);
@@ -82,7 +88,7 @@ export default function Body() {
   const fetchPosts = async () => {
     try {
       const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL || ""}/api/posts`
+        `${API_BASE}/api/posts`
       );
       setPosts(Array.isArray(data) ? data.slice(0, MAX_POSTS) : []);
     } catch (err) {
@@ -95,7 +101,7 @@ export default function Body() {
   const fetchUsers = async () => {
     try {
       const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL || ""}/api/users`
+        `${API_BASE}/api/users`
       );
       setUsers(Array.isArray(data) ? data : []);
     } catch (err) {
