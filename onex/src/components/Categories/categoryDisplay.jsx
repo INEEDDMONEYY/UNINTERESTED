@@ -19,19 +19,29 @@ export default function CategoryDisplay({ selectedCategory, users = [], posts = 
     setVisiblePosts(posts);
   }, [posts]);
 
+  const locationMatchesPost = (post) => {
+    if (!location) return true;
+
+    const locationCity = location?.city?.trim()?.toLowerCase();
+    const locationState = location?.state?.trim();
+    const locationCountry = location?.country?.trim()?.toLowerCase();
+
+    const hasCity = !!locationCity && !locationCity.includes("unknown");
+    const hasState = !!locationState && !locationState.toLowerCase().includes("unknown");
+    const hasCountry = !!locationCountry;
+
+    const cityMatch = hasCity && post.city?.trim()?.toLowerCase() === locationCity;
+    const stateMatch = hasState && statesMatch(post.state, locationState);
+    const countryMatch = hasCountry && post.country?.trim()?.toLowerCase() === locationCountry;
+
+    if (!hasCity && !hasState && !hasCountry) return true;
+    return cityMatch || stateMatch || countryMatch;
+  };
+
   // Filter posts by category, location, and optionally user
   const categoryPosts = visiblePosts.filter((post) => {
     const matchesCategory = post.category?.trim().toLowerCase() === category?.trim().toLowerCase();
-    const locationCity = location?.city?.trim()?.toLowerCase();
-    const locationState = location?.state?.trim();
-    const hasLocationCity = !!locationCity && !locationCity.includes("unknown");
-    const hasLocationState = !!locationState && !locationState.toLowerCase().includes("unknown");
-
-    const matchesLocation =
-      !location ||
-      (hasLocationCity && post.city?.trim()?.toLowerCase() === locationCity) ||
-      (hasLocationState && statesMatch(post.state, locationState)) ||
-      (!hasLocationCity && !hasLocationState);
+    const matchesLocation = locationMatchesPost(post);
     const matchesUser = selectedUser ? post.userId?.username === selectedUser : true;
 
     return matchesCategory && matchesLocation && matchesUser;

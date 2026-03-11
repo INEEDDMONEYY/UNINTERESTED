@@ -121,16 +121,33 @@ export default function Body() {
   };
 
   // --------------------------- Filter Posts --------------------------
+  const locationMatchesPost = (post, selectedLocation) => {
+    if (!selectedLocation) return true;
+
+    const locationCity = selectedLocation?.city?.trim()?.toLowerCase();
+    const locationState = selectedLocation?.state?.trim();
+    const locationCountry = selectedLocation?.country?.trim()?.toLowerCase();
+
+    const hasCity = !!locationCity && !locationCity.includes("unknown");
+    const hasState = !!locationState && !locationState.toLowerCase().includes("unknown");
+    const hasCountry = !!locationCountry;
+
+    const cityMatch = hasCity && post.city?.trim()?.toLowerCase() === locationCity;
+    const stateMatch = hasState && statesMatch(post.state, locationState);
+    const countryMatch =
+      hasCountry && post.country?.trim()?.toLowerCase() === locationCountry;
+
+    if (!hasCity && !hasState && !hasCountry) return true;
+    return cityMatch || stateMatch || countryMatch;
+  };
+
   const filteredUncategorizedPosts = (
     searchResults && searchResults.length > 0 ? searchResults : posts
   )
     .filter((post) => {
       const hasNoCategory = !post.category || post.category.trim() === "";
-      const matchesLocation =
-        !location ||
-        post.city?.toLowerCase() === location.city?.toLowerCase() ||
-        statesMatch(post.state, location.state);
-      return hasNoCategory || matchesLocation;
+      const matchesLocation = locationMatchesPost(post, location);
+      return hasNoCategory && matchesLocation;
     })
     .slice(0, visibleCount);
 

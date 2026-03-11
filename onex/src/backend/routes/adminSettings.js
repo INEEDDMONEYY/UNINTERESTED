@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getSettings,
+  getStats,
   updateSettings,
   updateAdminCredentials,
 } from "../controllers/AdminSettingsController.js";
@@ -9,6 +10,7 @@ const router = express.Router();
 
 /* ----------------------------- ⚙️ Admin Settings Routes ----------------------------- */
 // ✅ Core site and admin settings
+router.get("/stats", getStats);        // GET /api/admin/settings/stats
 router.get("/", getSettings);             // GET /api/admin/settings
 router.put("/", updateSettings);          // PUT /api/admin/settings
 

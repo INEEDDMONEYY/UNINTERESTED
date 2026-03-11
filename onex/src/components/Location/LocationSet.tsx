@@ -83,6 +83,12 @@ export default function LocationSet({ onLocationChange }) {
 
   const handleChange = (selected) => {
     setManualLocation(selected);
+    if (!selected) {
+      localStorage.removeItem("userLocation");
+      if (onLocationChange) onLocationChange(null);
+      return;
+    }
+
     localStorage.setItem("userLocation", JSON.stringify(selected.value));
     if (onLocationChange) onLocationChange(selected.value);
   };
@@ -109,10 +115,10 @@ export default function LocationSet({ onLocationChange }) {
             />
           </div>
 
-          {location && (
+          {(manualLocation || location) && (
             <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
               <MapPin className="w-4 h-4 text-pink-400" />
-              Current: {location.label}
+              Current: {(manualLocation || location)?.label}
             </p>
           )}
         </>

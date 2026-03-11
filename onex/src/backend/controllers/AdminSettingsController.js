@@ -7,6 +7,32 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 
+/* --------------------------- 📊 Get Admin Stats --------------------------- */
+export const getStats = async (req, res) => {
+  try {
+    const [totalUsers, totalAdmins, totalPosts, restrictedAccounts] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ role: "admin" }),
+      // Lazy import to avoid circular dependencies and keep controller focused.
+      (await import("../models/Post.js")).default.countDocuments(),
+      User.countDocuments({ roleRestriction: { $in: ["no-posting", "no-comments", "read-only"] } }),
+    ]);
+
+    return res.json({
+      success: true,
+      data: {
+        totalUsers,
+        totalAdmins,
+        totalPosts,
+        restrictedAccounts,
+      },
+    });
+  } catch (err) {
+    console.error("❌ Error fetching stats:", err);
+    return res.status(500).json({ success: false, error: "Failed to fetch stats" });
+  }
+};
+
 /* --------------------------- ⚙️ Get Admin Settings --------------------------- */
 export const getSettings = async (req, res) => {
   try {

@@ -23,6 +23,12 @@ import AdminUserManagement from "./AdminUserManagement";
 import AdminCreateUserForm from "./AdminCreateUserForm";
 import { useUser } from "../../context/useUser";
 
+const API_BASE =
+  import.meta.env.VITE_BACKEND_URL ||
+  import.meta.env.VITE_API_BASE ||
+  import.meta.env.VITE_API_URL ||
+  "https://uninterested.onrender.com";
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { user, setUser } = useUser();
@@ -61,72 +67,67 @@ export default function AdminDashboard() {
 
     const fetchData = async () => {
       try {
-        const statsRes = await fetch(
-          "https://uninterested.onrender.com/api/admin/settings/stats",
-          { headers, credentials: "include" },
-        );
+        const [statsRes, usersRes, postsRes, restrictedRes, messagesRes, settingsRes, promoCodesRes] =
+          await Promise.allSettled([
+            fetch(`${API_BASE}/api/admin/settings/stats`, { headers, credentials: "include" }),
+            fetch(`${API_BASE}/api/admin/users`, { headers, credentials: "include" }),
+            fetch(`${API_BASE}/api/posts`, { headers, credentials: "include" }),
+            fetch(`${API_BASE}/api/admin/users/restricted`, { headers, credentials: "include" }),
+            fetch(`${API_BASE}/api/admin/messages`, { headers, credentials: "include" }),
+            fetch(`${API_BASE}/api/admin/settings`, { headers, credentials: "include" }),
+            fetch(`${API_BASE}/api/admin/promo-codes`, { headers, credentials: "include" }),
+          ]);
 
-        if (!statsRes.ok) throw new Error("Failed to fetch stats");
+        if (statsRes.status === "fulfilled" && statsRes.value.ok) {
+          const statsData = await statsRes.value.json();
+          const payload = statsData?.data || statsData;
+          setStats({
+            totalUsers: payload?.totalUsers || 0,
+            totalAdmins: payload?.totalAdmins || 0,
+          });
+        } else if (usersRes.status === "fulfilled" && usersRes.value.ok) {
+          // Fallback when canonical stats endpoint is unavailable.
+          const usersData = await usersRes.value.json();
+          const userList = Array.isArray(usersData)
+            ? usersData
+            : Array.isArray(usersData?.data)
+              ? usersData.data
+              : [];
+          const totalAdmins = userList.filter((u) => u?.role === "admin").length;
+          setStats({ totalUsers: userList.length, totalAdmins });
+        }
 
-        const statsData = await statsRes.json();
-        setStats(statsData);
-
-        const postsRes = await fetch(
-          "https://uninterested.onrender.com/api/posts",
-          { headers, credentials: "include" },
-        );
-
-        if (postsRes.ok) {
-          const postsData = await postsRes.json();
+        if (postsRes.status === "fulfilled" && postsRes.value.ok) {
+          const postsData = await postsRes.value.json();
           setPosts(Array.isArray(postsData) ? postsData : []);
         }
 
-        const restrictedRes = await fetch(
-          "https://uninterested.onrender.com/api/admin/users/restricted",
-          { headers, credentials: "include" },
-        );
-
-        if (restrictedRes.ok) {
-          const restrictedData = await restrictedRes.json();
-          setRestrictedAccounts(restrictedData);
+        if (restrictedRes.status === "fulfilled" && restrictedRes.value.ok) {
+          const restrictedData = await restrictedRes.value.json();
+          setRestrictedAccounts(Array.isArray(restrictedData) ? restrictedData : []);
         }
 
-        const messagesRes = await fetch(
-          "https://uninterested.onrender.com/api/admin/messages",
-          { headers, credentials: "include" },
-        );
-
-        if (messagesRes.ok) {
-          const messagesData = await messagesRes.json();
-          setMessages(messagesData);
+        if (messagesRes.status === "fulfilled" && messagesRes.value.ok) {
+          const messagesData = await messagesRes.value.json();
+          setMessages(Array.isArray(messagesData) ? messagesData : []);
         }
 
-        const settingsRes = await fetch(
-          "https://uninterested.onrender.com/api/admin/settings",
-          { headers, credentials: "include" },
-        );
+        if (settingsRes.status === "fulfilled" && settingsRes.value.ok) {
+          const settingsData = await settingsRes.value.json();
+          const payload = settingsData?.data || settingsData;
+          setSettings(payload);
 
-        if (settingsRes.ok) {
-          const settingsData = await settingsRes.json();
-          setSettings(settingsData);
-
-          if (settingsData?.profilePicture) {
-            localStorage.setItem("profilePicture", settingsData.profilePicture);
-
+          if (payload?.profilePicture) {
+            localStorage.setItem("profilePicture", payload.profilePicture);
             setUser((prev) => ({
               ...prev,
-              profilePic: settingsData.profilePicture,
+              profilePic: payload.profilePicture,
             }));
           }
         }
 
-        const promoCodesRes = await fetch(
-          "https://uninterested.onrender.com/api/admin/promo-codes",
-          { headers, credentials: "include" },
-        );
-
-        if (promoCodesRes.ok) {
-          const promoCodesData = await promoCodesRes.json();
+        if (promoCodesRes.status === "fulfilled" && promoCodesRes.value.ok) {
+          const promoCodesData = await promoCodesRes.value.json();
           const normalized = Array.isArray(promoCodesData)
             ? promoCodesData
             : Array.isArray(promoCodesData?.data)
