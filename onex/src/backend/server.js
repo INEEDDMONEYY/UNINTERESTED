@@ -31,6 +31,7 @@ import platformUpdatesRoutes from './routes/PlatformUpdatesRoutes.js';
 import forgotPasswordRoutes from './routes/forgotPasswordRoutes.js';
 import adminPromoCodeRoutes from './routes/adminPromoCodes.js';
 import promoCodeRoutes from './routes/promoCodeRoutes.js';
+import publicSettingsRoutes from './routes/publicSettings.js';
 
 // 🛡️ Middleware
 import { authMiddleware, adminOnlyMiddleware } from './middleware/authMiddleware.js';
@@ -132,6 +133,9 @@ app.use('/api/promo-codes', authMiddleware, promoCodeRoutes);
 
 /* -------------------------- 🔐 Auth Routes -------------------------- */
 app.use('/api', authRoutes);
+
+/* ----------------------- 🌍 Public Settings Routes ----------------------- */
+app.use('/api/public/settings', publicSettingsRoutes);
 
 /* -------------------------- 🔑 Forgot Password Routes -------------------------- */
 app.use('/api', forgotPasswordRoutes);

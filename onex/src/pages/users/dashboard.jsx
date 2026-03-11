@@ -300,25 +300,20 @@ export default function UserDashboard() {
               </div>
             )}
 
-            <div className="bg-white p-6 rounded-xl shadow">
-              <h2 className="text-lg font-semibold mb-2">Account Overview</h2>
-              <p className="text-gray-600 text-sm">
-                Manage your profile, activity, and platform interactions.
+            <div className="bg-white p-6 rounded-xl shadow border border-pink-200 sm:col-span-2 xl:col-span-3">
+              <h2 className="text-lg font-semibold mb-2">Platform Development Notice</h2>
+              <p className="text-gray-700 text-sm mb-3">
+                Mystery Mansion is in the early stages of development. New features, fixes, and improvements are often shipped daily or weekly.
               </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl shadow">
-              <h2 className="text-lg font-semibold mb-2">Profile Status</h2>
-              <p className="text-gray-600 text-sm">
-                Keep your profile updated to stay visible to others.
+              <p className="text-gray-700 text-sm mb-4">
+                For the latest changes, announcements, and rollout details, please check the updates page.
               </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl shadow">
-              <h2 className="text-lg font-semibold mb-2">Platform Activity</h2>
-              <p className="text-gray-600 text-sm">
-                View your posts and interactions across the platform.
-              </p>
+              <Link
+                to="/platform-updates"
+                className="inline-flex items-center rounded-md bg-pink-600 px-4 py-2 text-sm font-medium text-white hover:bg-pink-700 transition"
+              >
+                View Platform Updates
+              </Link>
             </div>
 
           </div>

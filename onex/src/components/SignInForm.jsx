@@ -12,19 +12,16 @@ export default function SigninForm({ setLoading }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      setError(
-        'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
-      );
+    const normalizedUsername = username.trim();
+    if (!normalizedUsername || !password) {
+      setError('Username and password are required.');
       return;
     }
 
     setLoading(true); // 🔥 Trigger loader in parent
 
     try {
-      const authUser = await login(username, password);
+      const authUser = await login(normalizedUsername, password);
 
       if (authUser?.role === 'admin') navigate('/admin');
       else navigate('/home');
@@ -45,6 +42,10 @@ export default function SigninForm({ setLoading }) {
         className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+        autoComplete="username"
         required
       />
       <input
@@ -53,6 +54,9 @@ export default function SigninForm({ setLoading }) {
         className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        autoCapitalize="none"
+        autoCorrect="off"
+        autoComplete="current-password"
         required
       />
 

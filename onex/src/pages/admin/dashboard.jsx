@@ -3,10 +3,10 @@ import { useNavigate } from "react-router";
 import {
   Users,
   Settings,
-  BarChart2,
+  // BarChart2,
   LogOut,
   Home,
-  Mail,
+  // Mail,
   ArrowLeftCircle,
   ImageIcon,
   UserPlus,
@@ -16,9 +16,9 @@ import {
   Ticket,
 } from "lucide-react";
 
-import AdminAnalytics from "./AdminAnalytics";
+// import AdminAnalytics from "./AdminAnalytics";
 import AdminSettings from "./AdminSettings";
-import AdminMessages from "./AdminMessages";
+// import AdminMessages from "./AdminMessages";
 import AdminUserManagement from "./AdminUserManagement";
 import AdminCreateUserForm from "./AdminCreateUserForm";
 import { useUser } from "../../context/useUser";
@@ -38,7 +38,7 @@ export default function AdminDashboard() {
 
   const [stats, setStats] = useState({ totalUsers: 0, totalAdmins: 0 });
   const [restrictedAccounts, setRestrictedAccounts] = useState([]);
-  const [messages, setMessages] = useState([]);
+  // const [messages, setMessages] = useState([]);
   const [settings, setSettings] = useState(null);
   const [posts, setPosts] = useState([]);
   const [promoCodes, setPromoCodes] = useState([]);
@@ -67,13 +67,12 @@ export default function AdminDashboard() {
 
     const fetchData = async () => {
       try {
-        const [statsRes, usersRes, postsRes, restrictedRes, messagesRes, settingsRes, promoCodesRes] =
+        const [statsRes, usersRes, postsRes, restrictedRes, settingsRes, promoCodesRes] =
           await Promise.allSettled([
             fetch(`${API_BASE}/api/admin/settings/stats`, { headers, credentials: "include" }),
             fetch(`${API_BASE}/api/admin/users`, { headers, credentials: "include" }),
             fetch(`${API_BASE}/api/posts`, { headers, credentials: "include" }),
             fetch(`${API_BASE}/api/admin/users/restricted`, { headers, credentials: "include" }),
-            fetch(`${API_BASE}/api/admin/messages`, { headers, credentials: "include" }),
             fetch(`${API_BASE}/api/admin/settings`, { headers, credentials: "include" }),
             fetch(`${API_BASE}/api/admin/promo-codes`, { headers, credentials: "include" }),
           ]);
@@ -107,10 +106,7 @@ export default function AdminDashboard() {
           setRestrictedAccounts(Array.isArray(restrictedData) ? restrictedData : []);
         }
 
-        if (messagesRes.status === "fulfilled" && messagesRes.value.ok) {
-          const messagesData = await messagesRes.value.json();
-          setMessages(Array.isArray(messagesData) ? messagesData : []);
-        }
+        // Messages fetch is temporarily disabled until the messages view is re-enabled.
 
         if (settingsRes.status === "fulfilled" && settingsRes.value.ok) {
           const settingsData = await settingsRes.value.json();
@@ -257,12 +253,14 @@ export default function AdminDashboard() {
               view="create-users"
             />
             <SidebarButton icon={Settings} label="Settings" view="settings" />
+            {/*
             <SidebarButton
               icon={BarChart2}
               label="Site Analytics"
               view="analytics"
             />
             <SidebarButton icon={Mail} label="Messages" view="messages" />
+            */}
           </nav>
         </div>
 
@@ -336,7 +334,7 @@ export default function AdminDashboard() {
           />
         )}
 
-        {activeView === "analytics" && <AdminAnalytics />}
+        {/* {activeView === "analytics" && <AdminAnalytics />} */}
 
         {activeView === "dashboard" && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -405,11 +403,13 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/*
         {activeView === "messages" && (
           <div className="bg-gradient-to-br from-black via-gray-900 to-pink-800 min-h-[80vh] rounded-lg p-6 shadow-lg border border-pink-400">
             <AdminMessages messages={messages} />
           </div>
         )}
+        */}
       </main>
     </div>
   );

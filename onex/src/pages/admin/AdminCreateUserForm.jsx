@@ -1,4 +1,5 @@
 import { useState } from "react";
+import api from "../../utils/api";
 
 export default function AdminCreateUserForm() {
   const [username, setUsername] = useState("");
@@ -8,39 +9,26 @@ export default function AdminCreateUserForm() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const API_BASE =
-    import.meta.env.VITE_API_URL ||
-    import.meta.env.VITE_API_BASE ||
-    "";
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
     try {
-      const res = await fetch(`${API_BASE}/api/admin/create-user`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password, role })
+      const { data } = await api.post("/admin/create-user", {
+        username,
+        email,
+        password,
+        role,
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setMessage(data.error || "Failed to create user.");
-      } else {
-        setMessage(data.message || "User created successfully.");
-
-        setUsername("");
-        setEmail("");
-        setPassword("");
-        setRole("user");
-      }
+      setMessage(data?.message || "User created successfully.");
+      setUsername("");
+      setEmail("");
+      setPassword("");
+      setRole("user");
     } catch (err) {
       console.error(err);
-      setMessage("Server error. Please try again.");
+      setMessage(err?.response?.data?.error || "Server error. Please try again.");
     }
 
     setLoading(false);

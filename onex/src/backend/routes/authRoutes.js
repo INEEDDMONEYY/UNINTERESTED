@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import env from "../config/env.js";
+import sendWelcomeEmail from "../utils/sendWelcomeEmail.js";
 
 // 🔐 NEW: import combined middleware
 import { authMiddleware, adminOnlyMiddleware } from "../middleware/authMiddleware.js";
@@ -37,6 +38,13 @@ router.post("/signup", async (req, res) => {
     });
 
     await user.save();
+
+    // Send welcome email after successful signup. Do not fail signup if email service has issues.
+    if (user.email) {
+      sendWelcomeEmail({ to: user.email, username: user.username }).catch((mailErr) => {
+        console.warn("Welcome email failed:", mailErr?.message || mailErr);
+      });
+    }
 
     res.status(201).json({ message: "User registered successfully", user });
   } catch (err) {

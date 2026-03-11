@@ -4,10 +4,12 @@ import PlatformUpdate from "../models/PlatformUpdate.js";
 // Create a new update
 export const createUpdate = async (req, res) => {
   try {
-    const { title, description } = req.body;
+    const { title, description, type } = req.body;
+    const safeType = type === "feature" ? "feature" : "platform";
     const newUpdate = await PlatformUpdate.create({
       title,
       description,
+      type: safeType,
       createdBy: req.user._id, // assume user is authenticated
     });
     res.status(201).json(newUpdate);

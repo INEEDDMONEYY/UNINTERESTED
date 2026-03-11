@@ -47,6 +47,26 @@ export const getSettings = async (req, res) => {
   }
 };
 
+/* --------------------- 📢 Get Public Developer Message --------------------- */
+export const getPublicDevMessage = async (req, res) => {
+  try {
+    let settings = await AdminSettings.findOne();
+    if (!settings) {
+      settings = await AdminSettings.create({});
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        devMessage: settings.devMessage || "",
+      },
+    });
+  } catch (err) {
+    console.error("❌ Error fetching public dev message:", err);
+    return res.status(500).json({ success: false, error: "Failed to fetch developer message" });
+  }
+};
+
 /* --------------------------- ⚙️ Update Admin Settings --------------------------- */
 export const updateSettings = async (req, res) => {
   try {

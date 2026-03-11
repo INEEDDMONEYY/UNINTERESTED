@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import api from "../utils/api";
 
 // 1️⃣ Create Context
 const DevMessageContext = createContext();
@@ -14,13 +15,9 @@ export const DevMessageProvider = ({ children }) => {
   useEffect(() => {
     const fetchDevMessage = async () => {
       try {
-        const res = await fetch(
-          "https://uninterested.onrender.com/api/admin/settings",
-          { method: "GET", credentials: "include" }
-        );
-        if (!res.ok) throw new Error("Failed to fetch dev message");
-        const data = await res.json();
-        const message = data.data?.devMessage;
+        const { data } = await api.get("/public/settings/dev-message");
+        const payload = data?.data || data;
+        const message = payload?.devMessage;
         if (message) setDevMessage(message);
       } catch (err) {
         console.error("Error fetching dev message:", err);
@@ -34,19 +31,7 @@ export const DevMessageProvider = ({ children }) => {
   // Function to update message
   const updateDevMessage = async (newMessage) => {
     try {
-      const res = await fetch(
-        "https://uninterested.onrender.com/api/admin/settings",
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({ field: "devMessage", value: newMessage }),
-        }
-      );
-
-      if (!res.ok) throw new Error("Failed to update dev message");
+      await api.put("/admin/settings", { field: "devMessage", value: newMessage });
       setDevMessage(newMessage); // Update context state
       return true;
     } catch (err) {

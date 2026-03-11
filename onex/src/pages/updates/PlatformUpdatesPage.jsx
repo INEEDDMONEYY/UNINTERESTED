@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../../utils/api";
 
 export default function PlatformUpdatesPage() {
   const [updates, setUpdates] = useState([]);
@@ -10,26 +11,12 @@ export default function PlatformUpdatesPage() {
 
   const fetchUpdates = async () => {
     setLoading(true);
+    setError("");
     try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL ||
-          import.meta.env.VITE_API_BASE ||
-          import.meta.env.VITE_API_URL ||
-          ""
-        }/api/updates`,
-        {
-          credentials: "include",
-        }
-      );
-      const data = await response.json();
-      if (response.ok) {
-        setUpdates(Array.isArray(data) ? data : []);
-      } else {
-        setError(data.error || "Failed to load updates");
-      }
+      const { data } = await api.get("/updates");
+      setUpdates(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError("Server error: " + (err?.message || ""));
+      setError(err?.response?.data?.error || "Failed to load updates");
     } finally {
       setLoading(false);
     }
@@ -53,23 +40,34 @@ export default function PlatformUpdatesPage() {
     const diffDays = (now - updateDate) / (1000 * 60 * 60 * 24);
     return diffDays <= 7;
   };
+  const platformUpdates = updates.filter((update) => update.type !== "feature");
+  const featureUpdates = updates.filter((update) => update.type === "feature");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-pink-900/70 px-4 sm:px-6 py-10">
       {/* Updates List */}
       <div className="mt-4 max-w-4xl mx-auto space-y-5">
+        {/* Platform Updates Header */}
         <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 text-center">
           Platform Updates
         </h2>
+
+        <p className="text-gray-300 text-center text-sm mb-6 max-w-2xl mx-auto">
+          Here are a list of recent updates and improvements we've made to the
+          platform. We're committed to continuously enhancing your experience,
+          and these updates reflect our dedication to growth and innovation.
+          Stay tuned for more exciting features and improvements in the near
+          future!
+        </p>
 
         {loading ? (
           <p className="text-gray-300 text-center">Loading updates...</p>
         ) : error ? (
           <p className="text-red-400 text-center">{error}</p>
-        ) : updates.length === 0 ? (
+        ) : platformUpdates.length === 0 ? (
           <p className="text-gray-300 text-center">No updates found.</p>
         ) : (
-          updates.map((update) => (
+          platformUpdates.map((update) => (
             <div
               key={update._id}
               className="bg-white rounded-xl p-5 shadow-md border border-pink-200"
@@ -99,6 +97,46 @@ export default function PlatformUpdatesPage() {
             </div>
           ))
         )}
+
+        {/* =====================================================
+           Upcoming Features Section
+        ===================================================== */}
+
+        <div className="pt-10">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 text-center">
+            Upcoming Features
+          </h2>
+
+          <p className="text-gray-300 text-center text-sm mb-6 max-w-2xl mx-auto">
+            Here's a preview of some features we're actively working on. These
+            improvements are part of our ongoing effort to grow and enhance the
+            platform experience.
+          </p>
+
+          <div className="space-y-4">
+            {featureUpdates.length === 0 ? (
+              <p className="text-gray-300 text-center">
+                No feature updates posted yet.
+              </p>
+            ) : (
+              featureUpdates.map((feature) => (
+                <div
+                  key={feature._id}
+                  className="bg-white rounded-xl p-5 shadow-md border border-pink-200"
+                >
+                  <h3 className="text-pink-700 font-semibold text-lg mb-2">
+                    {feature.title}
+                  </h3>
+
+                  <p className="text-black text-sm">{feature.description}</p>
+                  <p className="text-gray-500 text-xs mt-2">
+                    Posted on {new Date(feature.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
 
         {/* Return Home Button */}
         <div className="flex justify-center pt-6">
