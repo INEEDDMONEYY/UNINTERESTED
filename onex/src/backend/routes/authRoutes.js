@@ -62,15 +62,20 @@ router.post("/signup", async (req, res) => {
 /* -------------------------- 🔓 Signin -------------------------- */
 router.post("/signin", async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const normalizedUsername = (username || "").trim();
+    const { username, email, password } = req.body;
+    const identifier = (username || email || "").trim();
 
-    if (!normalizedUsername || !password) {
-      return res.status(400).json({ error: "Username and password are required" });
+    if (!identifier || !password) {
+      return res.status(400).json({ error: "Username/email and password are required" });
     }
 
+    const identifierLower = identifier.toLowerCase();
+
     const user = await User.findOne({
-      username: { $regex: `^${escapeRegex(normalizedUsername)}$`, $options: "i" },
+      $or: [
+        { email: identifierLower },
+        { username: { $regex: `^${escapeRegex(identifier)}$`, $options: "i" } },
+      ],
     });
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
 

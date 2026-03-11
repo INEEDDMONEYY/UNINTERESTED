@@ -12,16 +12,16 @@ export default function SigninForm({ setLoading }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const normalizedUsername = username.trim();
-    if (!normalizedUsername || !password) {
-      setError('Username and password are required.');
+    const normalizedIdentifier = username.trim();
+    if (!normalizedIdentifier || !password) {
+      setError('Username/email and password are required.');
       return;
     }
 
     setLoading(true); // 🔥 Trigger loader in parent
 
     try {
-      const authUser = await login(normalizedUsername, password);
+      const authUser = await login(normalizedIdentifier, password);
 
       if (authUser?.role === 'admin') navigate('/admin');
       else navigate('/home');
@@ -38,7 +38,7 @@ export default function SigninForm({ setLoading }) {
     <form onSubmit={handleSubmit} className="flex flex-col w-96">
       <input
         type="text"
-        placeholder="Enter your username"
+        placeholder="Enter your username or email"
         className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
