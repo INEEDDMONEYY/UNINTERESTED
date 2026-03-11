@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { X, Send } from "lucide-react";
+import api from "../../utils/api";
 
 export default function NewConversationModal({ onClose, onCreated }) {
   const [users, setUsers] = useState([]);
@@ -10,14 +11,8 @@ export default function NewConversationModal({ onClose, onCreated }) {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/users`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        if (!res.ok) throw new Error("Failed to fetch users");
-        const data = await res.json();
-        setUsers(data);
+        const { data } = await api.get("/admin/users");
+        setUsers(data?.data || data?.users || []);
       } catch (err) {
         console.error("Error loading users:", err);
       }
@@ -30,16 +25,7 @@ export default function NewConversationModal({ onClose, onCreated }) {
     if (!selectedUser) return;
     setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/conversations`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({ recipientId: selectedUser }),
-      });
-      if (!res.ok) throw new Error("Failed to create conversation");
-      const newConv = await res.json();
+      const { data: newConv } = await api.post("/conversations", { recipientId: selectedUser });
       onCreated(newConv);
       onClose();
     } catch (err) {

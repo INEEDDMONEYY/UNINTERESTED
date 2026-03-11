@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import api from "../../utils/api";
 import RestrictUserSetting from "../../components/Settings/AdminDashboardSettings/RestrictUserSettings.jsx";
 import UnrestrictUserSetting from "../../components/Settings/AdminDashboardSettings/UnrestrictUserSettings.jsx";
 import SuspendUserSetting from "../../components/Settings/AdminDashboardSettings/SuspendUserSettings.jsx";
@@ -14,15 +15,8 @@ export default function AdminSettings({ onProfileUpdate, settingsData }) {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await fetch("/api/admin/users", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          credentials: "include",
-        });
-
-        const data = await res.json();
-        setUsers(data.data || data.users || []);
+        const { data } = await api.get("/admin/users");
+        setUsers(data?.data || data?.users || []);
       } catch (err) {
         console.error("Error fetching users:", err);
       }
