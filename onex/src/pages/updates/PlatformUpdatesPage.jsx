@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../utils/api";
+import { useUser } from "../../context/useUser";
 
 export default function PlatformUpdatesPage() {
   const [updates, setUpdates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { user } = useUser();
 
   const navigate = useNavigate();
+  const isAdmin = user?.role === "admin";
 
   const fetchUpdates = async () => {
     setLoading(true);
@@ -25,6 +28,18 @@ export default function PlatformUpdatesPage() {
   useEffect(() => {
     fetchUpdates();
   }, []);
+
+  const handleDeleteUpdate = async (updateId) => {
+    if (!isAdmin) return;
+    if (!window.confirm("Delete this update?")) return;
+
+    try {
+      await api.delete(`/updates/${updateId}`);
+      setUpdates((prev) => prev.filter((update) => update._id !== updateId));
+    } catch (err) {
+      alert(err?.response?.data?.error || "Failed to delete update");
+    }
+  };
 
   const toBulletItems = (description = "") => {
     return description
@@ -77,12 +92,21 @@ export default function PlatformUpdatesPage() {
                   {update.title}
                 </h3>
 
-                {/* New Update Badge */}
-                {isNewUpdate(update.createdAt) && (
-                  <span className="text-xs bg-pink-600 text-white px-2 py-1 rounded-full">
-                    NEW
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {isNewUpdate(update.createdAt) && (
+                    <span className="text-xs bg-pink-600 text-white px-2 py-1 rounded-full">
+                      NEW
+                    </span>
+                  )}
+                  {isAdmin && (
+                    <button
+                      onClick={() => handleDeleteUpdate(update._id)}
+                      className="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 transition"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
               </div>
 
               <ul className="list-disc pl-5 text-black text-sm mb-2 space-y-1">
@@ -124,11 +148,25 @@ export default function PlatformUpdatesPage() {
                   key={feature._id}
                   className="bg-white rounded-xl p-5 shadow-md border border-pink-200"
                 >
-                  <h3 className="text-pink-700 font-semibold text-lg mb-2">
-                    {feature.title}
-                  </h3>
+                  <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                    <h3 className="text-pink-700 font-semibold text-lg">
+                      {feature.title}
+                    </h3>
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleDeleteUpdate(feature._id)}
+                        className="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 transition"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
 
-                  <p className="text-black text-sm">{feature.description}</p>
+                  <ul className="list-disc pl-5 text-black text-sm mb-2 space-y-1">
+                    {toBulletItems(feature.description).map((item, idx) => (
+                      <li key={`${feature._id}-feature-${idx}`}>{item}</li>
+                    ))}
+                  </ul>
                   <p className="text-gray-500 text-xs mt-2">
                     Posted on {new Date(feature.createdAt).toLocaleString()}
                   </p>

@@ -27,3 +27,19 @@ export const getUpdates = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch updates", details: err.message });
   }
 };
+
+// Delete update (admin only)
+export const deleteUpdate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await PlatformUpdate.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({ error: "Update not found" });
+    }
+
+    return res.json({ success: true, message: "Update deleted successfully" });
+  } catch (err) {
+    return res.status(500).json({ error: "Failed to delete update", details: err.message });
+  }
+};

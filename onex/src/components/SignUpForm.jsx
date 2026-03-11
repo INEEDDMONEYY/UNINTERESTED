@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useUser } from '../context/useUser.jsx';
+import api from '../utils/api';
 
 export default function SignupForm() {
   const [username, setUsername] = useState('');
@@ -13,10 +14,14 @@ export default function SignupForm() {
   // Role removed from public signup — admins will have a separate form
   const role = "user";
 
-  const apiBase = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE || '');
-
   const handleSignup = async (e) => {
     e.preventDefault();
+
+    const normalizedUsername = username.trim();
+    if (!normalizedUsername || !email.trim() || !password) {
+      setError('Username, email, and password are required.');
+      return;
+    }
 
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -29,28 +34,16 @@ export default function SignupForm() {
     }
 
     try {
-      const response = await fetch(`${apiBase}/api/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password, role }),
-        credentials: 'include',
+      await api.post('/signup', {
+        username: normalizedUsername,
+        email: email.trim(),
+        password,
+        role,
       });
-
-      let data = {};
-      try {
-        data = await response.json();
-      } catch {
-        data = {};
-      }
-
-      if (response.ok) {
-        await login(username, password);
-        navigate('/home');
-      } else {
-        setError(data.error || 'Signup failed');
-      }
+      await login(normalizedUsername, password);
+      navigate('/home');
     } catch (err) {
-      setError('Server error: ' + (err?.message || ''));
+      setError(err?.response?.data?.error || 'Server error: ' + (err?.message || ''));
     }
   };
 
@@ -64,6 +57,10 @@ export default function SignupForm() {
         className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+        autoComplete="username"
         required
       />
 
@@ -74,6 +71,10 @@ export default function SignupForm() {
         className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+        autoComplete="email"
         required
       />
 
@@ -84,6 +85,9 @@ export default function SignupForm() {
         className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        autoCapitalize="none"
+        autoCorrect="off"
+        autoComplete="new-password"
         required
       />
 

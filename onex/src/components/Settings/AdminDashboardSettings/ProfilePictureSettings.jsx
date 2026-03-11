@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Image, Upload } from "lucide-react";
+import api from "../../../utils/api";
 
 export default function ProfilePictureSetting({ onProfileUpdate, currentProfile }) {
   const [profilePic, setProfilePic] = useState(null);
@@ -15,21 +16,7 @@ export default function ProfilePictureSetting({ onProfileUpdate, currentProfile 
     setUploading(true);
 
     try {
-      const res = await fetch("/api/admin/profile/picture", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: formData,
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || "Upload failed");
-      }
-
-      const data = await res.json();
+      const { data } = await api.post("/admin/profile/picture", formData);
 
       // Update preview immediately
       setPreview(data.url);
@@ -45,7 +32,8 @@ export default function ProfilePictureSetting({ onProfileUpdate, currentProfile 
       alert("Profile picture updated!");
     } catch (err) {
       console.error("Upload error:", err);
-      alert("Failed to upload profile picture.");
+      const backendError = err?.response?.data?.error;
+      alert(backendError || "Failed to upload profile picture.");
     } finally {
       setUploading(false);
       setProfilePic(null);

@@ -11,28 +11,34 @@ import { authMiddleware, adminOnlyMiddleware } from "../middleware/authMiddlewar
 
 const router = express.Router();
 
+const escapeRegex = (value = "") => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 /* -------------------------- 🔑 Signup -------------------------- */
 router.post("/signup", async (req, res) => {
   try {
     const { username, email, password, role = "user" } = req.body;
+    const normalizedUsername = (username || "").trim();
+    const normalizedEmail = (email || "").trim().toLowerCase();
 
-    if (!username || !email || !password) {
+    if (!normalizedUsername || !normalizedEmail || !password) {
       return res.status(400).json({
         error: "Username, email, and password are required"
       });
     }
 
-    const existingUser = await User.findOne({ username });
+    const existingUser = await User.findOne({
+      username: { $regex: `^${escapeRegex(normalizedUsername)}$`, $options: "i" },
+    });
     if (existingUser) return res.status(409).json({ error: "Username already exists" });
 
-    const existingEmail = await User.findOne({ email });
+    const existingEmail = await User.findOne({ email: normalizedEmail });
     if (existingEmail) return res.status(409).json({ error: "Email already registered" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = new User({
-      username,
-      email,
+      username: normalizedUsername,
+      email: normalizedEmail,
       password: hashedPassword,
       role
     });
@@ -57,8 +63,15 @@ router.post("/signup", async (req, res) => {
 router.post("/signin", async (req, res) => {
   try {
     const { username, password } = req.body;
+    const normalizedUsername = (username || "").trim();
 
-    const user = await User.findOne({ username });
+    if (!normalizedUsername || !password) {
+      return res.status(400).json({ error: "Username and password are required" });
+    }
+
+    const user = await User.findOne({
+      username: { $regex: `^${escapeRegex(normalizedUsername)}$`, $options: "i" },
+    });
     if (!user) return res.status(404).json({ error: "User not found" });
 
     const isMatch = await bcrypt.compare(password, user.password);
