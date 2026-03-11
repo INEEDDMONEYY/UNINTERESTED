@@ -145,7 +145,8 @@ export default function Body() {
     searchResults && searchResults.length > 0 ? searchResults : posts
   )
     .filter((post) => {
-      const hasNoCategory = !post.category || post.category.trim() === "";
+      const categoryValue = post.category?.trim()?.toLowerCase() || "";
+      const hasNoCategory = !categoryValue || categoryValue === "uncategorized";
       const matchesLocation = locationMatchesPost(post, location);
       return hasNoCategory && matchesLocation;
     })

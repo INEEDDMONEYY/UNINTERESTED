@@ -18,6 +18,14 @@ export default function PostDetail() {
   const [availability, setAvailability] = useState({ status: "" });
   const [incallPrice, setIncallPrice] = useState("");
   const [outcallPrice, setOutcallPrice] = useState("");
+  const mediaItems = [
+    ...(Array.isArray(post?.pictures)
+      ? post.pictures.map((url) => ({ type: "image", url }))
+      : []),
+    ...(Array.isArray(post?.videos)
+      ? post.videos.map((url) => ({ type: "video", url }))
+      : []),
+  ];
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -70,15 +78,24 @@ export default function PostDetail() {
     <div className="max-w-3xl mx-auto px-6 py-10 bg-white rounded-xl shadow-md m-5 relative">
       {/* 🖼️ Post Images Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        {Array.isArray(post.pictures) && post.pictures.length > 0 ? (
-          post.pictures.map((pic, idx) => (
-            <img
-              key={idx}
-              src={pic}
-              alt={`Post image ${idx + 1}`}
-              className="w-full h-auto object-cover rounded-md"
-            />
-          ))
+        {mediaItems.length > 0 ? (
+          mediaItems.map((media, idx) =>
+            media.type === "video" ? (
+              <video
+                key={`video-${idx}`}
+                src={media.url}
+                controls
+                className="w-full h-auto object-cover rounded-md"
+              />
+            ) : (
+              <img
+                key={`image-${idx}`}
+                src={media.url}
+                alt={`Post image ${idx + 1}`}
+                className="w-full h-auto object-cover rounded-md"
+              />
+            )
+          )
         ) : post.picture ? (
           <img
             src={post.picture}
@@ -87,12 +104,12 @@ export default function PostDetail() {
           />
         ) : (
           <div className="w-full h-32 bg-gray-200 flex items-center justify-center text-gray-500 text-sm rounded-md col-span-full">
-            No Image Available
+            No Media Available
           </div>
         )}
       </div>
 
-      {/* 🧑 Username + Title */}
+      {/* 🧑 Username + Title + Age*/}
       <div className="mb-4">
         <h2 className="text-2xl font-bold text-pink-600">
           {post.title || "Untitled Post"}
@@ -100,6 +117,11 @@ export default function PostDetail() {
         <p className="text-sm text-gray-500 mt-1">
           by {post.userId?.username || "Anonymous"}
         </p>
+        {post.userId?.age && (
+          <p className="text-sm text-gray-500 mt-1">
+            Age: {post.userId.age}
+          </p>
+        )}
       </div>
 
       {/* 📝 Description */}

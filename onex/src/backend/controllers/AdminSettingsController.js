@@ -58,6 +58,7 @@ export const updateSettings = async (req, res) => {
     if (field === "roleRestriction") {
       const userId = value?.userId;
       const restriction = value?.restriction;
+      const isAllUsers = userId === "__ALL_USERS__";
       const allowedRestrictions = ["no-posting", "no-comments", "read-only"];
 
       if (!userId || !restriction) {
@@ -66,6 +67,20 @@ export const updateSettings = async (req, res) => {
 
       if (!allowedRestrictions.includes(restriction)) {
         return res.status(400).json({ success: false, error: "Invalid restriction value" });
+      }
+
+      if (isAllUsers) {
+        const result = await User.updateMany(
+          { role: { $ne: "admin" } },
+          { roleRestriction: restriction }
+        );
+
+        return res.json({
+          success: true,
+          affectedCount: result.modifiedCount,
+          appliedRestriction: restriction,
+          message: `Restriction applied to all non-admin users: ${restriction}`,
+        });
       }
 
       const updatedUser = await User.findByIdAndUpdate(
@@ -88,9 +103,23 @@ export const updateSettings = async (req, res) => {
 
     if (field === "roleUnrestriction") {
       const userId = value?.userId;
+      const isAllUsers = userId === "__ALL_USERS__";
 
       if (!userId) {
         return res.status(400).json({ success: false, error: "User is required" });
+      }
+
+      if (isAllUsers) {
+        const result = await User.updateMany(
+          { role: { $ne: "admin" } },
+          { roleRestriction: "" }
+        );
+
+        return res.json({
+          success: true,
+          affectedCount: result.modifiedCount,
+          message: "Restriction removed for all non-admin users",
+        });
       }
 
       const updatedUser = await User.findByIdAndUpdate(

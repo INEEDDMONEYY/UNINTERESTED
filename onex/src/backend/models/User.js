@@ -35,6 +35,12 @@ const UserSchema = new mongoose.Schema(
       maxlength: 500,
       default: "",
     },
+    age: {
+      type: Number,
+      min: 18,
+      max: 100,
+      default: null,
+    },
     availability: {
       status: {
         type: String,

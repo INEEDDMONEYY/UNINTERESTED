@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ShieldCheck, Save } from "lucide-react";
+import api from "../../../utils/api";
 
 export default function RestrictUserSetting({ users }) {
   const [userId, setUserId] = useState("");
@@ -11,29 +12,25 @@ export default function RestrictUserSetting({ users }) {
     }
 
     try {
-      const res = await fetch("/api/admin/settings", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          field: "roleRestriction",
-          value: { userId, restriction },
-        }),
-        credentials: "include",
+      const { data } = await api.put("/admin/settings", {
+        field: "roleRestriction",
+        value: { userId, restriction },
       });
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
-        throw new Error(errorData?.error || "Failed to restrict user");
+      if (!data?.success) {
+        throw new Error(data?.error || "Failed to restrict user");
       }
 
-      alert(`Restriction applied: ${restriction}`);
+      const successMsg =
+        userId === "__ALL_USERS__"
+          ? `Restriction applied to all non-admin users: ${restriction}`
+          : `Restriction applied: ${restriction}`;
+
+      alert(successMsg);
       setUserId("");
       setRestriction("");
     } catch (err) {
-      alert(err.message || "Failed to restrict user");
+      alert(err?.response?.data?.error || err.message || "Failed to restrict user");
     }
   };
 
@@ -50,6 +47,7 @@ export default function RestrictUserSetting({ users }) {
           className="flex-1 border border-gray-300 rounded px-3 py-2"
         >
           <option value="">Select a user</option>
+          <option value="__ALL_USERS__">All Users (non-admin)</option>
           {users.map((u) => (
             <option key={u._id} value={u._id}>
               {u.username}

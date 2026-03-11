@@ -8,12 +8,20 @@ export default function PostCard({ post, onDelete }) {
   const [currentImage, setCurrentImage] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
-  const totalImages = post?.pictures?.length || 0;
+  const mediaItems = [
+    ...(Array.isArray(post?.pictures)
+      ? post.pictures.map((url) => ({ type: "image", url }))
+      : []),
+    ...(Array.isArray(post?.videos)
+      ? post.videos.map((url) => ({ type: "video", url }))
+      : []),
+  ];
+  const totalImages = mediaItems.length;
 
   // Reset carousel when images change
   useEffect(() => {
     setCurrentImage(0);
-  }, [post?.pictures]);
+  }, [post?.pictures, post?.videos]);
 
   if (!post || isDeleted) return null;
 
@@ -95,15 +103,21 @@ export default function PostCard({ post, onDelete }) {
         <div className="mb-4 relative">
           {totalImages > 0 ? (
             <>
-              {post.pictures[currentImage] ? (
+              {mediaItems[currentImage]?.type === "video" ? (
+                <video
+                  src={mediaItems[currentImage]?.url}
+                  controls
+                  className="w-full h-48 sm:h-40 md:h-52 lg:h-48 rounded-md object-cover border border-pink-300"
+                />
+              ) : mediaItems[currentImage]?.url ? (
                 <img
-                  src={post.pictures[currentImage]}
+                  src={mediaItems[currentImage]?.url}
                   alt={`Post image ${currentImage + 1}`}
                   className="w-full h-48 sm:h-40 md:h-52 lg:h-48 rounded-md object-cover border border-pink-300"
                 />
               ) : (
                 <div className="w-full h-48 sm:h-40 md:h-52 lg:h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-sm rounded-md">
-                  No Image
+                  No Media
                 </div>
               )}
 
@@ -125,7 +139,7 @@ export default function PostCard({ post, onDelete }) {
                   </button>
 
                   <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
-                    {post.pictures.map((_, idx) => (
+                    {mediaItems.map((_, idx) => (
                       <span
                         key={idx}
                         className={`w-2 h-2 rounded-full ${
@@ -139,7 +153,7 @@ export default function PostCard({ post, onDelete }) {
             </>
           ) : (
             <div className="w-full h-48 sm:h-40 md:h-52 lg:h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-sm rounded-md">
-              No Image
+              No Media
             </div>
           )}
         </div>

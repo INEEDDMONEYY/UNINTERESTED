@@ -69,7 +69,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
     setToast(null);
 
     if (!acknowledged) {
-      setToast({ type: "error", msg: "Please acknowledge the cost before submitting." });
+      setToast({ type: "error", msg: "Please acknowledge the posting terms before submitting." });
       return;
     }
 
@@ -79,11 +79,22 @@ export default function PostForm({ onSuccess, embedded = false }) {
       return;
     }
 
+    if (!hasActivePromo) {
+      setToast({
+        type: "error",
+        msg: "An active promo code is required before you can create a post.",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const fd = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
+      const effectiveCategory = formData.category?.trim() || "uncategorized";
+      const payload = { ...formData, category: effectiveCategory };
+
+      Object.entries(payload).forEach(([key, value]) => {
         if (value !== null) {
           if (key === "pictures") {
             value.forEach((file) => fd.append("pictures", file)); // MUST match multer field name
@@ -109,7 +120,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
       if (onSuccess) onSuccess();
 
       // reset form
-      const category = formData.category;
+      const category = effectiveCategory;
       setFormData({
         title: "",
         description: "",
@@ -124,7 +135,11 @@ export default function PostForm({ onSuccess, embedded = false }) {
 
       if (!embedded) {
         setTimeout(() => {
-          navigate(category ? `/category/${category}` : "/home");
+          navigate(
+            category && category.toLowerCase() !== "uncategorized"
+              ? `/category/${category}`
+              : "/home",
+          );
         }, 1200);
       }
     } catch (err) {
@@ -158,8 +173,13 @@ export default function PostForm({ onSuccess, embedded = false }) {
         <div className="overflow-x-auto">
           <CategoryList onSelect={handleCategorySelect} />
         </div>
+        <p className="text-xs sm:text-sm text-gray-500 mt-2 text-center sm:text-center">
+          {hasActivePromo
+            ? "Leave category blank to post to uncategorized, or select one to place your post there."
+            : "You need an active promo code to publish a post. Submitting without one will show an error."}
+        </p>
         {formData.category && (
-          <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1 text-center sm:text-left">
+          <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1 text-center sm:text-center">
             Selected:{" "}
             <span className="font-medium text-gray-800">{formData.category}</span>
           </p>
@@ -217,7 +237,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
         <input
           type="file"
           name="pictures"
-          accept="image/*"
+          accept="image/*,video/*"
           multiple
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg text-sm sm:text-base md:text-lg"
@@ -246,9 +266,10 @@ export default function PostForm({ onSuccess, embedded = false }) {
             className="mt-1 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-pink-500 border-gray-300 rounded focus:ring-pink-400"
           />
           <span>
-            By acknowledging this checkbox, you are acknowledging that each post
-            will cost <strong>$13</strong> unless a promo code is applied. If you have any questions, please
-            look at our{" "}
+            {hasActivePromo
+              ? "By acknowledging this checkbox, you confirm this post uses your active promo code. Leave category blank for uncategorized, or choose a category to place it there."
+              : "By acknowledging this checkbox, you understand an active promo code is required before posting and submission will fail without one."}{" "}
+            If you have any questions, please look at our{" "}
             <a href="/terms-policy" className="text-pink-600 underline">
               policy page
             </a>
@@ -265,10 +286,20 @@ export default function PostForm({ onSuccess, embedded = false }) {
 
         <button
           type="submit"
-          disabled={loading}
-          className="w-full bg-gradient-to-r from-pink-500 to-yellow-400 text-white py-2 sm:py-3 md:py-4 rounded-lg text-sm sm:text-base md:text-lg font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition"
+          disabled={loading || !hasActivePromo}
+          className={`w-full py-2 sm:py-3 md:py-4 rounded-lg text-sm sm:text-base md:text-lg font-semibold flex items-center justify-center gap-2 transition ${
+            !hasActivePromo
+              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+              : "bg-gradient-to-r from-pink-500 to-yellow-400 text-white hover:opacity-90"
+          }`}
         >
-          {loading ? <Loader2 className="animate-spin" /> : "Post"}
+          {loading ? (
+            <Loader2 className="animate-spin" />
+          ) : !hasActivePromo ? (
+            "Promo Code Required To Post"
+          ) : (
+            "Post"
+          )}
         </button>
 
         <button

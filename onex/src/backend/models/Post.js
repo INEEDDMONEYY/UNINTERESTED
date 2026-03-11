@@ -6,6 +6,7 @@ const PostSchema = new mongoose.Schema(
     title: { type: String, required: true },
     description: { type: String, required: true },
     pictures: [{ type: String }], // <-- Changed to an array for multiple images
+    videos: [{ type: String }],
     city: { type: String },
     state: { type: String },
     country: { type: String },

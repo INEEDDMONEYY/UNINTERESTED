@@ -9,6 +9,7 @@ export const FEATURE_FLAGS = {
   ENABLE_PUBLIC_PROFILE: false,
   ENABLE_PROFILE_PIC_UPDATE: true,
   ENABLE_PROFILE_BIO_UPDATE: false,
+  AGE_SETTINGS: true,
   //Navbar flag
   ENABLE_PROMOTE_ACCOUNT: false,
   //Post Details comment flag

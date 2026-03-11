@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ShieldCheck, Save } from "lucide-react";
+import api from "../../../utils/api";
 
 export default function UnrestrictUserSetting({ users }) {
   const [selectedUser, setSelectedUser] = useState("");
@@ -11,32 +12,27 @@ export default function UnrestrictUserSetting({ users }) {
     }
 
     try {
-      const res = await fetch("/api/admin/settings", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+      const { data } = await api.put("/admin/settings", {
+        field: "roleUnrestriction",
+        value: {
+          userId: selectedUser,
         },
-        body: JSON.stringify({
-          field: "roleUnrestriction",
-          value: {
-            userId: selectedUser,
-          },
-        }),
-        credentials: "include",
       });
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
-        throw new Error(errorData?.error || "Failed to update role");
+      if (!data?.success) {
+        throw new Error(data?.error || "Failed to update role");
       }
 
-      alert("User access updated successfully!");
+      alert(
+        selectedUser === "__ALL_USERS__"
+          ? "Restrictions removed for all non-admin users"
+          : "User access updated successfully!"
+      );
       setSelectedUser("");
       setRole("");
     } catch (err) {
       console.error("Failed to unrestrict user:", err);
-      alert("Failed to update role.");
+      alert(err?.response?.data?.error || err.message || "Failed to update role.");
     }
   };
 
@@ -55,6 +51,7 @@ export default function UnrestrictUserSetting({ users }) {
           className="flex-1 border border-gray-300 rounded px-3 py-2"
         >
           <option value="">Select a user</option>
+          <option value="__ALL_USERS__">All Users (non-admin)</option>
           {users.map((user) => (
             <option key={user._id} value={user._id}>
               {user.username}

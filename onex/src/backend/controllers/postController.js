@@ -2,7 +2,6 @@
 import Post from '../models/Post.js';
 import cloudinary from '../utils/cloudinary.js';
 import streamifier from 'streamifier';
-import { v4 as uuidv4 } from 'uuid';
 import { normalizeState } from '../utils/stateNormalizer.js';
 
 // ---------------- Create a new post ----------------
@@ -10,29 +9,44 @@ export async function createPost(req, res) {
   try {
     if (!req.user?._id) return res.status(401).json({ error: 'Unauthorized' });
 
-    const { title, description, city, state, category, visibility, isPromo, promoExpiresAt } = req.body;
+    const { title, description, city, state, category, visibility } = req.body;
     if (!title || !description)
       return res.status(400).json({ error: 'Title and description required' });
 
-    let imageUrls = [];
+    const promoExpiry = req.user.activePromoExpiry ? new Date(req.user.activePromoExpiry) : null;
+    const hasActivePromo = Boolean(promoExpiry && !Number.isNaN(promoExpiry.getTime()) && promoExpiry > new Date());
+    if (!hasActivePromo) {
+      return res.status(403).json({ error: 'Active promo code required to create a post' });
+    }
+    const effectiveCategory = category?.trim() || 'uncategorized';
 
-    // Upload files to Cloudinary
+    let imageUrls = [];
+    let videoUrls = [];
+
+    // Upload files to Cloudinary and split by media type.
     if (req.files && req.files.length > 0) {
       const uploadPromises = req.files.map((file) =>
         new Promise((resolve, reject) => {
+          const isVideo = file.mimetype?.startsWith('video/');
           const stream = cloudinary.uploader.upload_stream(
-            { folder: 'posts' },
+            { folder: 'posts', resource_type: 'auto' },
             (error, result) => {
               if (error) return reject(error);
-              resolve(result.secure_url);
+              resolve({
+                url: result.secure_url,
+                type: isVideo ? 'video' : 'image',
+              });
             }
           );
           streamifier.createReadStream(file.buffer).pipe(stream);
         })
       );
 
-      imageUrls = await Promise.all(uploadPromises);
+      const uploadedMedia = await Promise.all(uploadPromises);
+      imageUrls = uploadedMedia.filter((m) => m.type === 'image').map((m) => m.url);
+      videoUrls = uploadedMedia.filter((m) => m.type === 'video').map((m) => m.url);
       console.log('✅ Uploaded images to Cloudinary:', imageUrls);
+      console.log('✅ Uploaded videos to Cloudinary:', videoUrls);
     }
 
     const newPost = new Post({
@@ -41,18 +55,19 @@ export async function createPost(req, res) {
       description,
       city,
       state: normalizeState(state), // Normalize state abbreviations to full names
-      category,
+      category: effectiveCategory,
       visibility,
       pictures: imageUrls,
-      isPromo: isPromo === 'true' || isPromo === true,
-      promoExpiresAt: promoExpiresAt || null,
+      videos: videoUrls,
+      isPromo: true,
+      promoExpiresAt: promoExpiry,
     });
 
     const savedPost = await newPost.save();
 
     const populatedPost = await Post.findById(savedPost._id).populate({
       path: 'userId',
-      select: 'username bio profilePic availability incallPrice outcallPrice',
+      select: 'username bio profilePic age availability incallPrice outcallPrice',
     });
 
     res.status(201).json(populatedPost);
@@ -75,7 +90,7 @@ export async function getPosts(req, res) {
 
     const posts = await Post.find(filter)
       .sort({ createdAt: -1 })
-      .populate({ path: 'userId', select: 'username bio profilePic availability incallPrice outcallPrice' });
+      .populate({ path: 'userId', select: 'username bio profilePic age availability incallPrice outcallPrice' });
 
     res.json(posts);
   } catch (err) {
@@ -89,7 +104,7 @@ export async function getPostById(req, res) {
   try {
     const post = await Post.findById(req.params.id).populate({
       path: 'userId',
-      select: 'username bio profilePic availability incallPrice outcallPrice',
+      select: 'username bio profilePic age availability incallPrice outcallPrice',
     });
 
     if (!post) return res.status(404).json({ error: 'Post not found' });
@@ -113,7 +128,7 @@ export async function updatePost(req, res) {
 
     const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate({
       path: 'userId',
-      select: 'username bio profilePic availability incallPrice outcallPrice',
+      select: 'username bio profilePic age availability incallPrice outcallPrice',
     });
 
     res.json(updatedPost);

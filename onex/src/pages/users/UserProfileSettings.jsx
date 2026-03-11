@@ -1,13 +1,14 @@
 // ✅ UserProfileSettings.jsx (integrated with Availability + Meetup display + per-user persistence)
 import { useContext, useState, useEffect, useMemo } from "react";
 import { UserContext } from "../../context/UserContext";
+import AgeSettings from "../../components/Settings/UserDashboardSettings/AgeSettings";
 import AvailabilitySettings from "../../components/Settings/UserDashboardSettings/AvailabilitySettings";
 import UpdateProfileSettings from "../../components/Settings/UserDashboardSettings/UpdateProfileSettings";
 import MeetupServiceSettings from "../../components/Settings/UserDashboardSettings/MeetupServiceSettings";
 import RedeemPromoSettings from "../../components/Settings/UserDashboardSettings/RedeemPromoSettings.jsx";
 import UserAvailabilityDisplay from "../../components/UserDisplay/UserAvailabilityDisplay";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
-import { DollarSign } from "lucide-react";
+import { DollarSign, Cake } from "lucide-react";
 
 export default function UserProfileSettings({ onProfileUpdate }) {
   const { user } = useContext(UserContext);
@@ -139,6 +140,22 @@ export default function UserProfileSettings({ onProfileUpdate }) {
               setAvailability={setAvailability}
               userId={userId} // pass userId to namespace storage
             />
+          </div>
+        </section>
+      )}
+
+      {/* =====================================================================================
+    AGE SETTINGS — controlled by FEATURE_FLAGS.AGE_SETTINGS
+   ===================================================================================== */}
+      {FEATURE_FLAGS.AGE_SETTINGS && (
+        <section className="space-y-3">
+          <h2 className="flex items-center gap-2 font-medium text-gray-700">
+            <Cake size={18} className="text-pink-600" />
+            Age Settings
+          </h2>
+
+          <div className="border border-pink-100 rounded-lg p-4 bg-white shadow-sm">
+            <AgeSettings userId={userId} user={user} />
           </div>
         </section>
       )}

@@ -2,10 +2,20 @@ import { useContext, useState } from "react";
 import { Ticket, Gift } from "lucide-react";
 import { UserContext } from "../../../context/UserContext";
 import api from "../../../utils/api";
+import confetti from "canvas-confetti";
 
 const emitAppToast = (type, message) => {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent("app-toast", { detail: { type, message } }));
+};
+
+// 🎉 Confetti animation
+const fireConfetti = () => {
+  confetti({
+    particleCount: 120,
+    spread: 70,
+    origin: { y: 0.6 },
+  });
 };
 
 export default function RedeemPromoSettings() {
@@ -38,7 +48,9 @@ export default function RedeemPromoSettings() {
       const updatedUser = res.data?.user;
 
       const successMessage = durationDays
-        ? `Promo accepted. Active for ${durationDays} day${durationDays === 1 ? "" : "s"}${expiryText ? ` (until ${expiryText})` : ""}.`
+        ? `Promo accepted. Active for ${durationDays} day${
+            durationDays === 1 ? "" : "s"
+          }${expiryText ? ` (until ${expiryText})` : ""}.`
         : res.data?.message || "Promo code accepted.";
 
       // Update user context with new activePromoExpiry
@@ -49,12 +61,18 @@ export default function RedeemPromoSettings() {
 
       setStatusMessage(successMessage);
       emitAppToast("success", successMessage);
+
+      // 🎉 Trigger confetti on success
+      fireConfetti();
+
       setPromoCode("");
     } catch (err) {
       console.error("Failed to redeem promo code", err);
+
       const message =
         err.response?.data?.error ||
         "Failed to redeem promo code. Please try again.";
+
       setStatusMessage(message);
       emitAppToast("error", message);
     } finally {
@@ -77,7 +95,9 @@ export default function RedeemPromoSettings() {
       </p>
 
       {user?.username && (
-        <p className="text-xs text-gray-400">Redeeming as @{user.username}</p>
+        <p className="text-xs text-gray-400">
+          Redeeming as @{user.username}
+        </p>
       )}
 
       {statusMessage && (
@@ -100,7 +120,7 @@ export default function RedeemPromoSettings() {
         <button
           type="submit"
           disabled={submitting}
-          className="flex items-center justify-center gap-2 bg-pink-600 text-white px-4 py-2 rounded-md hover:bg-pink-700 transition"
+          className="flex items-center justify-center gap-2 bg-pink-600 text-white px-4 py-2 rounded-md hover:bg-pink-700 active:scale-95 transition"
         >
           <Gift size={16} />
           {submitting ? "Redeeming..." : "Redeem"}
