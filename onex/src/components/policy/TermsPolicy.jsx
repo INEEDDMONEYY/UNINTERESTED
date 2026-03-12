@@ -58,6 +58,16 @@ export default function TermsPolicy() {
           <li>We use third-party payment processors and do not store payment details.</li>
         </ul>
 
+        <h3 className="text-lg font-semibold underline">5A. Current Platform Rules and Feature Notices</h3>
+        <ul className="list-disc pl-6">
+          <li>Sign in is email-only. Users must log in with their registered email and password.</li>
+          <li>Post creation currently requires an active promo code on the account.</li>
+          <li>If no category is selected when posting, the post is placed in the uncategorized section by default.</li>
+          <li>Posts may include both image and video uploads, subject to platform moderation and file restrictions.</li>
+          <li>Platform updates and feature updates may be added or removed by administrators to correct errors and keep notices accurate.</li>
+          <li>Features and rules may change as the platform evolves. Users should review the updates page regularly for current behavior.</li>
+        </ul>
+
         <h3 className="text-lg font-semibold underline">6. Privacy</h3>
         <p>
           Your privacy is important to us. Please review our <a href="/privacy-policy" className="text-blue-600 underline">Privacy Policy</a> for details on how we collect and use your data.
