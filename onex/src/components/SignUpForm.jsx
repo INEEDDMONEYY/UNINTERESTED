@@ -48,7 +48,7 @@ export default function SignupForm() {
         password,
         role,
       });
-      await login(normalizedUsername, password);
+      await login(email.trim().toLowerCase(), password);
       navigate('/home');
     } catch (err) {
       setError(err?.response?.data?.error || 'Server error: ' + (err?.message || ''));

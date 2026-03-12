@@ -104,9 +104,9 @@ export const UserProvider = ({ children }) => {
     };
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     try {
-      const res = await api.post("/signin", { username, password });
+      const res = await api.post("/signin", { email: email?.trim()?.toLowerCase(), password });
       const { token, user: returnedUser } = res.data;
       setAuthToken(token);
       let authUser = returnedUser ?? res.data;

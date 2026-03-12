@@ -4,32 +4,24 @@ import { useUser } from '../context/useUser.jsx';
 
 export default function SigninForm({ setLoading }) {
   const [error, setError] = useState('');
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const { login } = useUser();
 
-  const normalizeUsernameInput = (value = '') =>
-    value
-      .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
-      .replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"')
-      .replace(/\u00A0/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const normalizedIdentifier = normalizeUsernameInput(username);
-    if (!normalizedIdentifier || !password) {
-      setError('Username/email and password are required.');
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !password) {
+      setError('Email and password are required.');
       return;
     }
 
     setLoading(true); // 🔥 Trigger loader in parent
 
     try {
-      const authUser = await login(normalizedIdentifier, password);
+      const authUser = await login(normalizedEmail, password);
 
       if (authUser?.role === 'admin') navigate('/admin');
       else navigate('/home');
@@ -38,22 +30,22 @@ export default function SigninForm({ setLoading }) {
       setLoading(false); // ❌ Stop loader on error
     }
 
-    setUsername('');
+    setEmail('');
     setPassword('');
   };
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col w-96">
       <input
-        type="text"
-        placeholder="Enter your username or email"
+        type="email"
+        placeholder="Enter your email"
         className="border-2 border-pink-600 m-2 px-1 text-[1rem] text-black rounded-lg"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
         autoCapitalize="none"
         autoCorrect="off"
         spellCheck={false}
-        autoComplete="username"
+        autoComplete="email"
         required
       />
       <input

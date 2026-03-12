@@ -17,7 +17,7 @@ export default function HomePage() {
     if (description) {
       description.setAttribute(
         'content',
-        'Mystery Mansion helps users discover posts, connect with profiles, and browse categorized updates in one place.'
+        'Mystery Mansion is an escort ad platform where users can discover listings, connect with profiles, and browse categorized updates.'
       );
     }
 

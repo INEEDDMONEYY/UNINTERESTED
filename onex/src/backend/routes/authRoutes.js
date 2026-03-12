@@ -69,22 +69,14 @@ router.post("/signup", async (req, res) => {
 /* -------------------------- 🔓 Signin -------------------------- */
 router.post("/signin", async (req, res) => {
   try {
-    const { username, email, password } = req.body;
-    const rawIdentifier = username || email || "";
-    const identifier = normalizeUsername(rawIdentifier);
+    const { email, password } = req.body;
+    const normalizedEmail = (email || "").trim().toLowerCase();
 
-    if (!identifier || !password) {
-      return res.status(400).json({ error: "Username/email and password are required" });
+    if (!normalizedEmail || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
     }
 
-    const identifierLower = identifier.toLowerCase();
-
-    const user = await User.findOne({
-      $or: [
-        { email: identifierLower },
-        { username: { $regex: `^${escapeRegex(identifier)}$`, $options: "i" } },
-      ],
-    });
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, user.password);
