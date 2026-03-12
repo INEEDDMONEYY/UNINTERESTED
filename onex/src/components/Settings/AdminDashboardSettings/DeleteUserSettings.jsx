@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
+import api from "../../../utils/api";
 
 export default function DeleteUserSetting({ users }) {
   const [userId, setUserId] = useState("");
@@ -10,20 +11,12 @@ export default function DeleteUserSetting({ users }) {
     if (!window.confirm("Are you sure?")) return;
 
     try {
-      await fetch(
-        `https://uninterested.onrender.com/api/admin/user/${userId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const { data } = await api.delete(`/admin/users/${userId}`);
 
-      alert("User deleted");
+      alert(data?.message || "User deleted");
       setUserId("");
-    } catch {
-      alert("Failed to delete user");
+    } catch (err) {
+      alert(err?.response?.data?.error || "Failed to delete user");
     }
   };
 
