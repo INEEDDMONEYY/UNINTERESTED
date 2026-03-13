@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import User from '../models/User.js';
 import PromoCode from '../models/PromoCode.js';
 
@@ -57,6 +58,24 @@ router.get('/promoted', async (req, res) => {
   } catch (err) {
     console.error('\u274c Failed to fetch promoted users', err);
     return res.status(500).json({ error: 'Failed to fetch promoted users' });
+  }
+});
+
+// GET user by id (public, no auth)
+router.get('/id/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+    const user = await User.findById(userId).select(
+      '-password -resetPasswordToken -resetPasswordExpires -email'
+    );
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    return res.status(200).json(user);
+  } catch (err) {
+    console.error('\u274c Failed to fetch user by id', err);
+    return res.status(500).json({ error: 'Failed to fetch user' });
   }
 });
 

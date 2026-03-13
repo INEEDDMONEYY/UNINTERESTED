@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext, useRef } from "react";
 import { UserContext } from "../../context/UserContext";
 import { Camera, Pencil } from "lucide-react";
+import api from "../../utils/api";
 
 /*
   UserProfileHeader
@@ -23,6 +24,7 @@ export default function UserProfileHeader({
   });
 
   const [banner, setBanner] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [editingBio, setEditingBio] = useState(false);
   const [bioInput, setBioInput] = useState("");
   const [savingBanner, setSavingBanner] = useState(false);
@@ -52,20 +54,10 @@ export default function UserProfileHeader({
   };
 
   useEffect(() => {
-    let profileData = null;
+    let cancelled = false;
 
-    if (propUser) {
-      profileData = propUser;
-    } else if (displayUserId) {
-      profileData = readProfileFromStorage(displayUserId);
-      if (!profileData && ctxUser && String(ctxUser._id) === String(displayUserId)) {
-        profileData = ctxUser;
-      }
-    } else if (ctxUser && !displayUserId) {
-      profileData = ctxUser;
-    }
-
-    if (profileData) {
+    const applyProfile = (profileData) => {
+      if (!profileData || cancelled) return;
       setUser({
         username: profileData.username || "",
         bio: profileData.bio || "",
@@ -73,17 +65,52 @@ export default function UserProfileHeader({
         bannerPic: profileData.bannerPic || null,
       });
       setBioInput(profileData.bio || "");
-      if (profileData.bannerPic) {
-        setBanner(profileData.bannerPic);
+      if (profileData.bannerPic) setBanner(profileData.bannerPic);
+    };
+
+    if (propUser) {
+      applyProfile(propUser);
+      return;
+    }
+
+    if (!displayUserId) {
+      if (ctxUser) applyProfile(ctxUser);
+      return;
+    }
+
+    // Owner: use context + localStorage for optimistic updates
+    if (isOwner) {
+      const cached = readProfileFromStorage(displayUserId);
+      applyProfile(cached || ctxUser);
+      if (!(cached || ctxUser)?.bannerPic) {
+        const savedBanner = readBannerFromStorage(displayUserId);
+        if (savedBanner) setBanner(savedBanner);
       }
+      return;
     }
 
-    if (!profileData?.bannerPic) {
-      const savedBanner = readBannerFromStorage(displayUserId);
-      if (savedBanner) setBanner(savedBanner);
-    }
+    // Non-owner viewer: always fetch from backend
+    const cached = readProfileFromStorage(displayUserId);
+    if (cached) applyProfile(cached); // show cached instantly, then refresh below
 
-  }, [refreshKey, propUser, displayUserId, ctxUser]);
+    setLoading(true);
+    api
+      .get(`/public/users/id/${displayUserId}`)
+      .then((res) => {
+        if (cancelled) return;
+        const data = res.data;
+        applyProfile(data);
+        localStorage.setItem(`userProfile_${displayUserId}`, JSON.stringify(data));
+      })
+      .catch((err) => {
+        console.error('Failed to fetch profile for user', displayUserId, err);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [refreshKey, propUser, displayUserId, ctxUser, isOwner]);
 
   const handleBannerClick = () => {
     if (!isOwner) return;
@@ -146,6 +173,18 @@ export default function UserProfileHeader({
       setSavingBio(false);
     }
   };
+
+  if (loading && !user.username) {
+    return (
+      <div className="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden animate-pulse">
+        <div className="h-36 md:h-44 bg-gray-200" />
+        <div className="px-6 pb-6 pt-16">
+          <div className="h-6 w-40 bg-gray-200 rounded mb-3" />
+          <div className="h-4 w-64 bg-gray-100 rounded" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
