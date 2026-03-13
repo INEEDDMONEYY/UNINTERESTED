@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../utils/api';
 import PostCard from './PostCard';
 
 export default function PostList({ authorId = "" }) {
@@ -17,24 +17,34 @@ export default function PostList({ authorId = "" }) {
 
     const fetchAllPosts = async () => {
       try {
-        const query = new URLSearchParams({ userId: authorId }).toString();
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_API_URL || ""}/api/posts?${query}`
-        );
+        const { data } = await api.get('/posts', {
+          params: { userId: authorId },
+        });
 
-        if (!Array.isArray(data)) {
+        const normalizedPosts = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+            ? data.data
+            : Array.isArray(data?.posts)
+              ? data.posts
+              : null;
+
+        if (!normalizedPosts) {
           setErrorMessage("Unexpected response format from server.");
           setPosts([]);
-        } else if (data.length === 0) {
+        } else if (normalizedPosts.length === 0) {
           setErrorMessage("No posts found.");
           setPosts([]);
         } else {
-          setPosts(data);
+          setPosts(normalizedPosts);
           setErrorMessage(null);
         }
       } catch (err) {
         console.error("Failed to fetch posts:", err);
-        setErrorMessage("Error fetching posts. Please try again later.");
+        setErrorMessage(
+          err?.response?.data?.error ||
+            "Error fetching posts. Please try again later."
+        );
         setPosts([]);
       } finally {
         setLoading(false);
