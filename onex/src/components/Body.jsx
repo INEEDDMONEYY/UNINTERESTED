@@ -141,14 +141,20 @@ export default function Body() {
     return cityMatch || stateMatch || countryMatch;
   };
 
-  const filteredUncategorizedPosts = (
-    searchResults && searchResults.length > 0 ? searchResults : posts
-  )
+  const hasSearchQuery = typeof searchQuery === "string" && searchQuery.trim().length > 0;
+  const sourcePosts = hasSearchQuery
+    ? Array.isArray(searchResults)
+      ? searchResults
+      : []
+    : posts;
+
+  const filteredUncategorizedPosts = sourcePosts
     .filter((post) => {
       const categoryValue = post.category?.trim()?.toLowerCase() || "";
       const hasNoCategory = !categoryValue || categoryValue === "uncategorized";
-      const matchesLocation = locationMatchesPost(post, location);
-      return hasNoCategory && matchesLocation;
+      const matchesLocation = hasSearchQuery ? true : locationMatchesPost(post, location);
+      const matchesCategory = hasSearchQuery ? true : hasNoCategory;
+      return matchesCategory && matchesLocation;
     })
     .slice(0, visibleCount);
 
@@ -217,6 +223,7 @@ export default function Body() {
         {FEATURE_FLAGS.ENABLE_USER_SEARCH && (
           <UserSearch
             users={users}
+            posts={posts}
             onResults={setSearchResults}
             query={searchQuery}
             onQueryChange={setSearchQuery}

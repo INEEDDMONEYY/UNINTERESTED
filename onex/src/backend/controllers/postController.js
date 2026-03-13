@@ -15,9 +15,6 @@ export async function createPost(req, res) {
 
     const promoExpiry = req.user.activePromoExpiry ? new Date(req.user.activePromoExpiry) : null;
     const hasActivePromo = Boolean(promoExpiry && !Number.isNaN(promoExpiry.getTime()) && promoExpiry > new Date());
-    if (!hasActivePromo) {
-      return res.status(403).json({ error: 'Active promo code required to create a post' });
-    }
     const effectiveCategory = category?.trim() || 'uncategorized';
 
     let imageUrls = [];
@@ -59,15 +56,15 @@ export async function createPost(req, res) {
       visibility,
       pictures: imageUrls,
       videos: videoUrls,
-      isPromo: true,
-      promoExpiresAt: promoExpiry,
+      isPromo: hasActivePromo,
+      promoExpiresAt: hasActivePromo ? promoExpiry : null,
     });
 
     const savedPost = await newPost.save();
 
     const populatedPost = await Post.findById(savedPost._id).populate({
       path: 'userId',
-      select: 'username bio profilePic age availability incallPrice outcallPrice',
+      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice',
     });
 
     res.status(201).json(populatedPost);
@@ -90,7 +87,7 @@ export async function getPosts(req, res) {
 
     const posts = await Post.find(filter)
       .sort({ createdAt: -1 })
-      .populate({ path: 'userId', select: 'username bio profilePic age availability incallPrice outcallPrice' });
+      .populate({ path: 'userId', select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice' });
 
     res.json(posts);
   } catch (err) {
@@ -104,7 +101,7 @@ export async function getPostById(req, res) {
   try {
     const post = await Post.findById(req.params.id).populate({
       path: 'userId',
-      select: 'username bio profilePic age availability incallPrice outcallPrice',
+      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice',
     });
 
     if (!post) return res.status(404).json({ error: 'Post not found' });
@@ -128,7 +125,7 @@ export async function updatePost(req, res) {
 
     const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate({
       path: 'userId',
-      select: 'username bio profilePic age availability incallPrice outcallPrice',
+      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice',
     });
 
     res.json(updatedPost);

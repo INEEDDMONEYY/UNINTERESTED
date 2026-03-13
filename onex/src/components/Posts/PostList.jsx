@@ -2,16 +2,24 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import PostCard from './PostCard';
 
-export default function PostList() {
+export default function PostList({ authorId = "" }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
+    if (!authorId) {
+      setPosts([]);
+      setLoading(false);
+      setErrorMessage("No profile selected.");
+      return;
+    }
+
     const fetchAllPosts = async () => {
       try {
+        const query = new URLSearchParams({ userId: authorId }).toString();
         const { data } = await axios.get(
-          `${import.meta.env.VITE_API_URL || ""}/api/posts`
+          `${import.meta.env.VITE_API_URL || ""}/api/posts?${query}`
         );
 
         if (!Array.isArray(data)) {
@@ -34,7 +42,7 @@ export default function PostList() {
     };
 
     fetchAllPosts();
-  }, []);
+  }, [authorId]);
 
   if (loading) {
     return (

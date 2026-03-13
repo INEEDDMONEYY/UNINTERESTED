@@ -110,6 +110,13 @@ export const redeemPromoCode = async (req, res) => {
     );
 
     if (existingActive) {
+      // Keep user promo expiry in sync in case historical data drifted.
+      await User.findByIdAndUpdate(
+        userId,
+        { activePromoExpiry: existingActive.expiresAt },
+        { new: true },
+      );
+
       const msLeft = new Date(existingActive.expiresAt).getTime() - now.getTime();
       const daysLeft = Math.max(1, Math.ceil(msLeft / (24 * 60 * 60 * 1000)));
       return res.json({
@@ -154,5 +161,105 @@ export const redeemPromoCode = async (req, res) => {
   } catch (err) {
     console.error("❌ [redeemPromoCode]", err);
     return res.status(500).json({ success: false, error: "Failed to redeem promo code" });
+  }
+};
+
+export const redeemPromoCodeForUser = async (req, res) => {
+  try {
+    const code = normalizeCode(req.body?.code);
+    const userInput = (req.body?.userId || "").trim();
+
+    if (!code) {
+      return res.status(400).json({ success: false, error: "Promo code is required" });
+    }
+
+    const promo = await PromoCode.findOne({ code, isActive: true }).populate("assignedUser", "_id username email");
+    if (!promo) {
+      return res.status(404).json({ success: false, error: "That promo code is invalid" });
+    }
+
+    let targetUser = null;
+    if (userInput) {
+      targetUser = await resolveAssignedUser(userInput);
+      if (!targetUser) {
+        return res.status(404).json({ success: false, error: "Target user not found" });
+      }
+    } else if (promo.assignedUser?._id) {
+      targetUser = promo.assignedUser;
+    }
+
+    if (!targetUser?._id) {
+      return res.status(400).json({
+        success: false,
+        error: "No target user found. Provide a user ID/username or assign this promo to a user first.",
+      });
+    }
+
+    if (promo.assignedUser?._id && promo.assignedUser._id.toString() !== targetUser._id.toString()) {
+      return res.status(403).json({ success: false, error: "This promo code is assigned to a different user" });
+    }
+
+    if ((promo.usageCount || 0) >= promo.maxUses) {
+      return res.status(409).json({ success: false, error: "This promo code has reached its max usage limit" });
+    }
+
+    const now = new Date();
+    const existingActive = promo.redemptions.find(
+      (entry) =>
+        entry.userId?.toString() === targetUser._id.toString() &&
+        new Date(entry.expiresAt).getTime() > now.getTime(),
+    );
+
+    if (existingActive) {
+      await User.findByIdAndUpdate(
+        targetUser._id,
+        { activePromoExpiry: existingActive.expiresAt },
+        { new: true },
+      );
+
+      return res.json({
+        success: true,
+        alreadyActive: true,
+        data: {
+          code: promo.code,
+          durationDays: promo.durationDays,
+          expiresAt: existingActive.expiresAt,
+          userId: targetUser._id,
+          username: targetUser.username,
+        },
+        message: `${targetUser.username || "User"} already has this promo active. Expiry was synchronized.`,
+      });
+    }
+
+    const expiresAt = new Date(now.getTime() + promo.durationDays * 24 * 60 * 60 * 1000);
+
+    promo.usageCount += 1;
+    promo.redemptions.push({
+      userId: targetUser._id,
+      redeemedAt: now,
+      expiresAt,
+    });
+    await promo.save();
+
+    await User.findByIdAndUpdate(
+      targetUser._id,
+      { activePromoExpiry: expiresAt },
+      { new: true },
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        code: promo.code,
+        durationDays: promo.durationDays,
+        expiresAt,
+        userId: targetUser._id,
+        username: targetUser.username,
+      },
+      message: `${targetUser.username || "User"} is now promoted for ${promo.durationDays} day${promo.durationDays === 1 ? "" : "s"}.`,
+    });
+  } catch (err) {
+    console.error("❌ [redeemPromoCodeForUser]", err);
+    return res.status(500).json({ success: false, error: "Failed to redeem promo code for user" });
   }
 };

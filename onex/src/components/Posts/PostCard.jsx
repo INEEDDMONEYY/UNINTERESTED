@@ -36,15 +36,21 @@ export default function PostCard({ post, onDelete }) {
   // -------------------- Promo Status --------------------
   const getPostStatus = () => {
     if (post.isPromo) {
-      const expiryDate = post.promoExpiresAt ? new Date(post.promoExpiresAt) : null;
+      const expiryDate = post.promoExpiresAt
+        ? new Date(post.promoExpiresAt)
+        : null;
       const now = new Date();
       if (expiryDate && now < expiryDate) {
         return { type: "promo", label: "PROMO", color: "bg-blue-500" };
       } else {
-        return { type: "promo-expired", label: "PROMO EXPIRED", color: "bg-gray-500" };
+        return {
+          type: "promo-expired",
+          label: "PROMO EXPIRED",
+          color: "bg-gray-500",
+        };
       }
     }
-    return { type: "paid", label: "PAID", color: "bg-purple-500" };
+    return { type: "free", label: "FREE", color: "bg-purple-500" };
   };
 
   const postStatus = getPostStatus();
@@ -78,7 +84,7 @@ export default function PostCard({ post, onDelete }) {
             type: "success",
             message: "Post deleted successfully.",
           },
-        })
+        }),
       );
 
       if (typeof onDelete === "function") {
@@ -87,18 +93,19 @@ export default function PostCard({ post, onDelete }) {
 
       setIsDeleted(true);
     } catch (err) {
-      console.error("Failed to delete post:", err?.response?.data || err.message);
+      console.error(
+        "Failed to delete post:",
+        err?.response?.data || err.message,
+      );
       alert(err?.response?.data?.error || "Failed to delete post");
     } finally {
       setIsDeleting(false);
     }
   };
 
-
   return (
     <div className="relative bg-gradient-to-r from-pink-500 via-black to-yellow-500 p-[2px] rounded-lg shadow-lg max-w-sm sm:max-w-md md:max-w-lg lg:max-w-sm mx-auto sm:mx-0 transition-transform hover:scale-[1.02]">
       <div className="bg-white rounded-lg p-4 relative">
-
         {/* -------------------- Image Carousel -------------------- */}
         <div className="mb-4 relative">
           {totalImages > 0 ? (
@@ -159,25 +166,28 @@ export default function PostCard({ post, onDelete }) {
         </div>
 
         {/* -------------------- Link wraps only content -------------------- */}
-        <Link to={`/posts/${post._id}`} className="block hover:shadow-xl transition">
-
-          {/* Status Tags */}
-          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1">
+        <Link
+          to={`/posts/${post._id}`}
+          className="block hover:shadow-xl transition"
+        >
+          {/* Badges Container */}
+          <div className="absolute top-2 left-2 right-2 flex justify-between items-start gap-2 flex-wrap pointer-events-none">
+            {/* Status Badge */}
             <div
-              className={`${postStatus.color} text-white text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full shadow-md`}
+              className={`${postStatus.color} text-white text-[10px] sm:text-xs md:text-sm font-bold px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 rounded-full shadow-md`}
             >
               {postStatus.label}
             </div>
-          </div>
 
-          {/* Visibility Badge */}
-          {post.visibility && (
-            <div className="absolute top-2 right-2 bg-pink-600 text-white text-xs sm:text-sm font-semibold px-2 py-1 rounded-full shadow-md">
-              {post.visibility === "Both"
-                ? "See's Both"
-                : `See's Only: ${post.visibility}`}
-            </div>
-          )}
+            {/* Visibility Badge */}
+            {post.visibility && (
+              <div className="bg-pink-600 text-white text-[10px] sm:text-xs md:text-sm font-semibold px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 rounded-full shadow-md">
+                {post.visibility === "Both"
+                  ? "See's Both"
+                  : `See's Only: ${post.visibility}`}
+              </div>
+            )}
+          </div>
 
           {/* User Info */}
           <div className="flex items-center gap-2 mb-1">

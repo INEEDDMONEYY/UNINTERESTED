@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import SignInForm from '../components/SignInForm.jsx';
+import SignInForm from '../components/Forms/SignInForm.jsx';
 import SigninLogo from '../assets/Logo.png';
 import SigninLoader from '../components/Loaders/SigninLoader.jsx';
 

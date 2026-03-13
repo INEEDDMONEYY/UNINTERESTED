@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useUser } from '../context/useUser.jsx';
-import api from '../utils/api';
+import { useUser } from '../../context/useUser.jsx';
+import api from '../../utils/api';
 
 export default function SignupForm() {
   const [username, setUsername] = useState('');

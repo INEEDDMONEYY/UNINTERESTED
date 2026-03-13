@@ -11,7 +11,10 @@ const router = express.Router();
 const upload = multer({ dest: "uploads/" });
 
 // ✅ Update-profile route with Cloudinary integration
-router.post("/update-profile", enforceRestriction("profile:update"), upload.single("profilePic"), async (req, res) => {
+router.post("/update-profile", enforceRestriction("profile:update"), upload.fields([
+  { name: "profilePic", maxCount: 1 },
+  { name: "bannerPic", maxCount: 1 },
+]), async (req, res) => {
   try {
     console.log("🔹 [UserRoutes] Incoming request to /update-profile");
     console.log("🔹 [UserRoutes] req.user:", req.user ? req.user._id : "No user attached");
@@ -23,14 +26,25 @@ router.post("/update-profile", enforceRestriction("profile:update"), upload.sing
     }
 
     let updateData = { ...req.body };
+    const profilePicFile = req.files?.profilePic?.[0] || null;
+    const bannerPicFile = req.files?.bannerPic?.[0] || null;
 
     // ✅ Handle profilePic upload if file is present
-    if (req.file) {
+    if (profilePicFile) {
       console.log("🔹 [UserRoutes] Uploading profilePic to Cloudinary...");
-      const result = await cloudinary.uploader.upload(req.file.path, {
+      const result = await cloudinary.uploader.upload(profilePicFile.path, {
         folder: "profile_pics",
       });
       updateData.profilePic = result.secure_url; // ✅ hosted Cloudinary URL
+    }
+
+    // ✅ Handle bannerPic upload if file is present
+    if (bannerPicFile) {
+      console.log("🔹 [UserRoutes] Uploading bannerPic to Cloudinary...");
+      const result = await cloudinary.uploader.upload(bannerPicFile.path, {
+        folder: "profile_banners",
+      });
+      updateData.bannerPic = result.secure_url;
     }
 
     // ✅ Perform update

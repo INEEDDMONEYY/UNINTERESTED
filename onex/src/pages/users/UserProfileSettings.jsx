@@ -7,8 +7,9 @@ import UpdateProfileSettings from "../../components/Settings/UserDashboardSettin
 import MeetupServiceSettings from "../../components/Settings/UserDashboardSettings/MeetupServiceSettings";
 import RedeemPromoSettings from "../../components/Settings/UserDashboardSettings/RedeemPromoSettings.jsx";
 import UserAvailabilityDisplay from "../../components/UserDisplay/UserAvailabilityDisplay";
+import PhoneNumberSettings from "../../components/Settings/UserDashboardSettings/PhoneNumberSettings.jsx";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
-import { DollarSign, Cake } from "lucide-react";
+import { DollarSign, Cake, Phone } from "lucide-react";
 
 export default function UserProfileSettings({ onProfileUpdate }) {
   const { user } = useContext(UserContext);
@@ -156,6 +157,23 @@ export default function UserProfileSettings({ onProfileUpdate }) {
 
           <div className="border border-pink-100 rounded-lg p-4 bg-white shadow-sm">
             <AgeSettings userId={userId} user={user} />
+          </div>
+        </section>
+      )}
+
+
+      {/* =====================================================================================
+    PHONE NUMBER SETTINGS — controlled by FEATURE_FLAGS.PHONE_NUMBER_SETTINGS
+   ===================================================================================== */}
+      {FEATURE_FLAGS.PHONE_NUMBER_SETTINGS && (
+        <section className="space-y-3">
+          <h2 className="flex items-center gap-2 font-medium text-gray-700">
+            <Phone size={18} className="text-pink-600" />
+            Phone Number Settings
+          </h2>
+
+          <div className="border border-pink-100 rounded-lg p-4 bg-white shadow-sm">
+            <PhoneNumberSettings userId={userId} user={user} />
           </div>
         </section>
       )}

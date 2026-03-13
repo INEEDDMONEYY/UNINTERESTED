@@ -1,9 +1,14 @@
 import express from "express";
-import { createPromoCode, listPromoCodes } from "../controllers/promoCodeController.js";
+import {
+	createPromoCode,
+	listPromoCodes,
+	redeemPromoCodeForUser,
+} from "../controllers/promoCodeController.js";
 
 const router = express.Router();
 
 router.get("/", listPromoCodes);
 router.post("/", createPromoCode);
+router.post("/redeem", redeemPromoCodeForUser);
 
 export default router;

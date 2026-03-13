@@ -17,15 +17,19 @@ import ProfilePage from "../profiles/ProfilePage.jsx";
 import UserActivity from "./UserActivity.jsx";
 import { UserContext } from "../../context/UserContext";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
+import api from "../../utils/api";
 
 export default function UserDashboard() {
   const navigate = useNavigate();
-  const { user, logout } = useContext(UserContext);
+  const { user, logout, refreshUser } = useContext(UserContext);
   const [activeView, setActiveView] = useState("dashboard");
   const [profilePic, setProfilePic] = useState(user?.profilePic || "");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [promoCountdown, setPromoCountdown] = useState("");
   const [hasActivePromo, setHasActivePromo] = useState(false);
+  const [promoInput, setPromoInput] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoMessage, setPromoMessage] = useState(null);
 
   const restrictionLabelMap = {
     "no-posting": "Posting disabled",
@@ -82,6 +86,34 @@ export default function UserDashboard() {
 
     return () => clearInterval(interval);
   }, [user?.activePromoExpiry]);
+
+  const handleActivatePromo = async (e) => {
+    e.preventDefault();
+    const code = promoInput.trim();
+    if (!code) return;
+    setPromoLoading(true);
+    setPromoMessage(null);
+    try {
+      const { data } = await api.post("/promo-codes/redeem", { code });
+      if (data.success) {
+        await refreshUser();
+        setPromoInput("");
+        setPromoMessage({
+          type: "success",
+          text: data.message || "Promo code activated! You're now featured in promoted accounts.",
+        });
+      } else {
+        setPromoMessage({ type: "error", text: data.error || "Failed to activate promo code." });
+      }
+    } catch (err) {
+      setPromoMessage({
+        type: "error",
+        text: err.response?.data?.error || "Invalid or expired promo code.",
+      });
+    } finally {
+      setPromoLoading(false);
+    }
+  };
 
   const handleSignOut = async () => {
     navigate("/signout");
@@ -272,12 +304,43 @@ export default function UserDashboard() {
 
         {FEATURE_FLAGS.ENABLE_PUBLIC_PROFILE && activeView === "publicProfile" && (
           <div className="bg-white p-6 rounded-xl shadow">
-            <ProfilePage />
+            <ProfilePage userId={user?._id || user?.id || null} disableActionButtons />
           </div>
         )}
 
         {activeView === "dashboard" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+
+            {/* Activate Promo Code — shown only when no promotion is active */}
+            {!hasActivePromo && (
+              <div className="bg-white p-6 rounded-xl shadow border border-gray-200">
+                <h2 className="text-lg font-semibold mb-1">Activate Promo Code</h2>
+                <p className="text-gray-500 text-sm mb-4">
+                  Have a promo code? Enter it here to get featured in the promoted accounts section.
+                </p>
+                <form onSubmit={handleActivatePromo} className="flex flex-col gap-3">
+                  <input
+                    type="text"
+                    placeholder="Enter your promo code"
+                    value={promoInput}
+                    onChange={(e) => setPromoInput(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  />
+                  <button
+                    type="submit"
+                    disabled={promoLoading || !promoInput.trim()}
+                    className="bg-pink-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-pink-700 disabled:opacity-50 transition"
+                  >
+                    {promoLoading ? "Activating..." : "Activate"}
+                  </button>
+                </form>
+                {promoMessage && (
+                  <p className={`text-sm mt-3 ${promoMessage.type === "success" ? "text-green-700" : "text-red-600"}`}>
+                    {promoMessage.text}
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Promo Status Badge */}
             {hasActivePromo && (

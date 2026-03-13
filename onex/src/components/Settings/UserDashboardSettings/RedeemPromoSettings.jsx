@@ -9,6 +9,11 @@ const emitAppToast = (type, message) => {
   window.dispatchEvent(new CustomEvent("app-toast", { detail: { type, message } }));
 };
 
+const emitPromoRefresh = () => {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent("promo-updated"));
+};
+
 // 🎉 Confetti animation
 const fireConfetti = () => {
   confetti({
@@ -61,6 +66,7 @@ export default function RedeemPromoSettings() {
 
       setStatusMessage(successMessage);
       emitAppToast("success", successMessage);
+      emitPromoRefresh();
 
       // 🎉 Trigger confetti on success
       fireConfetti();

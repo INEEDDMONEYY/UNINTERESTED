@@ -28,6 +28,7 @@ const PlatformUpdates = lazy(() => import("./pages/updates/PlatformUpdatesPage.j
 const ResetPassword = lazy(() => import("./pages/resetPasswordPage.jsx"));
 const PostDetail = lazy(() => import("./components/Posts/PostDetail.jsx"));
 const UserProfileView = lazy(() => import("./pages/users/UserProfileViewPage.jsx"));
+const ReviewsPage = lazy(() => import('./pages/Reviews/ReviewsPage.jsx')) ;
 
 const router = createBrowserRouter([
   { path: "/", element: <App /> },
@@ -64,6 +65,7 @@ const router = createBrowserRouter([
   { path: "reset-password/:token", element: <ResetPassword /> },
   { path: "signout", element: <Signout /> },
   { path: "/profile/:username", element: <ProfilePage /> },
+  { path: "reviews/:userId", element: <ReviewsPage /> },
 ]);
 
 createRoot(document.getElementById("root")).render(

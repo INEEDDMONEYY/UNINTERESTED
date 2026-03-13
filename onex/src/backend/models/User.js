@@ -29,10 +29,19 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    bannerPic: {
+      type: String,
+      default: "",
+    },
     bio: {
       type: String,
       trim: true,
       maxlength: 500,
+      default: "",
+    },
+    phoneNumber: {
+      type: String,
+      trim: true,
       default: "",
     },
     age: {

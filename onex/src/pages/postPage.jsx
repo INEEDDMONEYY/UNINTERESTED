@@ -1,4 +1,4 @@
-import PostForm from "../components/PostForm";
+import PostForm from "../components/Forms/PostForm";
 import Logo from "../assets/Logo.png";
 
 export default function PostPage() {

@@ -1,9 +1,9 @@
 import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
-import CategoryList from "../components/Categories/categoryList";
-import api, { getAuthToken } from "../utils/api";
-import { UserContext } from "../context/UserContext";
+import CategoryList from "../Categories/categoryList";
+import api, { getAuthToken } from "../../utils/api";
+import { UserContext } from "../../context/UserContext";
 
 export default function PostForm({ onSuccess, embedded = false }) {
   const navigate = useNavigate();
@@ -11,6 +11,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [hasActivePromo, setHasActivePromo] = useState(false);
+  const [promoExpiryAt, setPromoExpiryAt] = useState("");
 
   const [formData, setFormData] = useState({
     title: "",
@@ -21,6 +22,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
     category: "",
     pictures: [],
     visibility: "",
+    promoCode: "",
   });
 
   const [acknowledged, setAcknowledged] = useState(false);
@@ -41,11 +43,14 @@ export default function PostForm({ onSuccess, embedded = false }) {
       const now = new Date();
       if (now < expiryDate) {
         setHasActivePromo(true);
+        setPromoExpiryAt(user.activePromoExpiry);
       } else {
         setHasActivePromo(false);
+        setPromoExpiryAt("");
       }
     } else {
       setHasActivePromo(false);
+      setPromoExpiryAt("");
     }
   }, [user]);
 
@@ -79,17 +84,28 @@ export default function PostForm({ onSuccess, embedded = false }) {
       return;
     }
 
-    if (!hasActivePromo) {
-      setToast({
-        type: "error",
-        msg: "An active promo code is required before you can create a post.",
-      });
-      return;
-    }
-
     setLoading(true);
 
     try {
+      let effectivePromoExpiry = hasActivePromo ? promoExpiryAt : "";
+      const enteredPromoCode = formData.promoCode?.trim();
+
+      if (enteredPromoCode) {
+        const { data: redeemData } = await api.post("/promo-codes/redeem", {
+          code: enteredPromoCode,
+        });
+
+        effectivePromoExpiry =
+          redeemData?.data?.expiresAt ||
+          redeemData?.user?.activePromoExpiry ||
+          effectivePromoExpiry;
+
+        if (effectivePromoExpiry) {
+          setHasActivePromo(true);
+          setPromoExpiryAt(effectivePromoExpiry);
+        }
+      }
+
       const fd = new FormData();
       const effectiveCategory = formData.category?.trim() || "uncategorized";
       const payload = { ...formData, category: effectiveCategory };
@@ -98,16 +114,18 @@ export default function PostForm({ onSuccess, embedded = false }) {
         if (value !== null) {
           if (key === "pictures") {
             value.forEach((file) => fd.append("pictures", file)); // MUST match multer field name
+          } else if (key === "promoCode") {
+            // promo code is handled by redeem endpoint and is not part of post payload
           } else {
             fd.append(key, value);
           }
         }
       });
 
-      // Add promo status if user has an active promo
-      if (hasActivePromo && user?.activePromoExpiry) {
+      // Add promo status only when promo is active/redeemed.
+      if (effectivePromoExpiry) {
         fd.append("isPromo", "true");
-        fd.append("promoExpiresAt", user.activePromoExpiry);
+        fd.append("promoExpiresAt", effectivePromoExpiry);
       }
 
       console.log("[PostForm] Sending FormData:");
@@ -130,6 +148,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
         category: "",
         pictures: [],
         visibility: "",
+        promoCode: "",
       });
       setAcknowledged(false);
 
@@ -174,9 +193,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
           <CategoryList onSelect={handleCategorySelect} />
         </div>
         <p className="text-xs sm:text-sm text-gray-500 mt-2 text-center sm:text-center">
-          {hasActivePromo
-            ? "Leave category blank to post to uncategorized, or select one to place your post there."
-            : "You need an active promo code to publish a post. Submitting without one will show an error."}
+          Leave category blank to post to uncategorized, or select one to place your post there.
         </p>
         {formData.category && (
           <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1 text-center sm:text-center">
@@ -235,6 +252,15 @@ export default function PostForm({ onSuccess, embedded = false }) {
         />
 
         <input
+          type="text"
+          name="promoCode"
+          placeholder="Promo code (optional)"
+          value={formData.promoCode}
+          onChange={handleChange}
+          className="w-full border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base md:text-lg"
+        />
+
+        <input
           type="file"
           name="pictures"
           accept="image/*,video/*"
@@ -266,18 +292,15 @@ export default function PostForm({ onSuccess, embedded = false }) {
             className="mt-1 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-pink-500 border-gray-300 rounded focus:ring-pink-400"
           />
           <span>
-            {hasActivePromo
-              ? "By acknowledging this checkbox, you confirm this post uses your active promo code. Leave category blank for uncategorized, or choose a category to place it there."
-              : "By acknowledging this checkbox, you understand an active promo code is required before posting and submission will fail without one."}{" "}
-            If you have any questions, please look at our{" "}
-            <a href="/terms-policy" className="text-pink-600 underline">
-              policy page
-            </a>
-            .
+            By acknowledging this checkbox, you confirm your post follows platform rules and understand promo codes are optional but required for promoted placement. If you have any questions, please look at our{" "}
+            <a href="/terms-policy" className="text-pink-600 underline">policy page</a>.
           </span>
         </label>
 
-        {/* Promo Post Activated Badge */}
+        <p className="text-xs sm:text-sm text-gray-600">
+          for extra exposure on the platfrom you will have to pay
+        </p>
+
         {hasActivePromo && (
           <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-center">
             ✓ Promo Post Activated
@@ -286,17 +309,15 @@ export default function PostForm({ onSuccess, embedded = false }) {
 
         <button
           type="submit"
-          disabled={loading || !hasActivePromo}
+          disabled={loading}
           className={`w-full py-2 sm:py-3 md:py-4 rounded-lg text-sm sm:text-base md:text-lg font-semibold flex items-center justify-center gap-2 transition ${
-            !hasActivePromo
+            loading
               ? "bg-gray-300 text-gray-600 cursor-not-allowed"
               : "bg-gradient-to-r from-pink-500 to-yellow-400 text-white hover:opacity-90"
           }`}
         >
           {loading ? (
             <Loader2 className="animate-spin" />
-          ) : !hasActivePromo ? (
-            "Promo Code Required To Post"
           ) : (
             "Post"
           )}

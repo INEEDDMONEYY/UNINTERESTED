@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import AdminSettings from "../models/AdminSettings.js";
+import Post from "../models/Post.js";
 import cloudinary from "../utils/cloudinary.js";
 import streamifier from "streamifier";
 import bcrypt from "bcrypt";
@@ -292,6 +293,63 @@ export const deleteUser = async (req, res) => {
   } catch (err) {
     console.error("❌ Error deleting user:", err);
     res.status(500).json({ success: false, error: "Failed to delete user" });
+  }
+};
+
+/* --------------------------- ⭐ Promote User (Admin) --------------------------- */
+const PROMO_DURATION_MAP = {
+  "24hrs": 1,
+  "2days": 2,
+  "4days": 4,
+  "1week": 7,
+};
+
+export const promoteUser = async (req, res) => {
+  try {
+    const adminId = req.user?.id || req.user?._id;
+    if (!adminId) return res.status(401).json({ success: false, error: "Unauthorized" });
+
+    const { userId, duration } = req.body || {};
+    if (!userId || !duration) {
+      return res.status(400).json({ success: false, error: "User and duration are required" });
+    }
+
+    const durationDays = PROMO_DURATION_MAP[duration] || Number(duration);
+    if (!Number.isFinite(durationDays) || durationDays < 1) {
+      return res.status(400).json({ success: false, error: "Invalid promotion duration" });
+    }
+
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+
+    const promotedUser = await User.findByIdAndUpdate(
+      userId,
+      { activePromoExpiry: expiresAt },
+      { new: true }
+    ).select("-password");
+
+    if (!promotedUser) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    const updateResult = await Post.updateMany(
+      { userId: promotedUser._id },
+      { isPromo: true, promoExpiresAt: expiresAt }
+    );
+
+    return res.json({
+      success: true,
+      message: "User promotion updated successfully",
+      data: {
+        promotedUser,
+        durationDays,
+        expiresAt,
+        updatedPosts: updateResult.modifiedCount,
+      },
+    });
+  } catch (err) {
+    console.error("❌ Error promoting user:", err);
+    return res.status(500).json({ success: false, error: "Failed to promote user" });
   }
 };
 

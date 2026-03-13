@@ -1,7 +1,7 @@
 // Front-end Forgot Password Form Component
 import { useState } from "react";
 import { Link } from "react-router";
-import api from "../utils/api";
+import api from "../../utils/api";
 
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState("");

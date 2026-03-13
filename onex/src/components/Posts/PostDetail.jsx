@@ -109,7 +109,7 @@ export default function PostDetail() {
         )}
       </div>
 
-      {/* 🧑 Username + Title + Age*/}
+      {/* 🧑 Username + Title + Age + Phone Number*/}
       <div className="mb-4">
         <h2 className="text-2xl font-bold text-pink-600">
           {post.title || "Untitled Post"}
@@ -120,6 +120,11 @@ export default function PostDetail() {
         {post.userId?.age && (
           <p className="text-sm text-gray-500 mt-1">
             Age: {post.userId.age}
+          </p>
+        )}
+        {post.userId?.phoneNumber && (
+          <p className="text-sm text-gray-500 mt-1">
+            Phone: {post.userId.phoneNumber}
           </p>
         )}
       </div>
@@ -188,7 +193,11 @@ export default function PostDetail() {
 
         {FEATURE_FLAGS.ENABLE_PUBLIC_PROFILE && (
           <button
-            onClick={() => navigate(`/profile/${post.userId?.username || ""}`)}
+            onClick={() => {
+              const creatorId = post.userId?._id || post.userId?.id;
+              if (!creatorId) return;
+              navigate(`/user/${creatorId}`);
+            }}
             className="px-4 py-2 text-[12px] text-white font-medium rounded-lg shadow-md transition-all hover:opacity-90 bg-gradient-to-r from-pink-500 via-black to-yellow-400"
           >
             View profile

@@ -11,18 +11,18 @@ export default function PromocodeSettings() {
 
   const [promoCodes, setPromoCodes] = useState([]);
 
-  useEffect(() => {
-    const fetchPromoCodes = async () => {
-      try {
-        const res = await api.get("/admin/promo-codes");
-        const codes = res.data?.data;
-        setPromoCodes(Array.isArray(codes) ? codes : []);
-      } catch (err) {
-        console.error("Failed to load promo codes", err);
-        setError(err.response?.data?.error || "Failed to load promo codes.");
-      }
-    };
+  const fetchPromoCodes = async () => {
+    try {
+      const res = await api.get("/admin/promo-codes");
+      const codes = res.data?.data;
+      setPromoCodes(Array.isArray(codes) ? codes : []);
+    } catch (err) {
+      console.error("Failed to load promo codes", err);
+      setError(err.response?.data?.error || "Failed to load promo codes.");
+    }
+  };
 
+  useEffect(() => {
     fetchPromoCodes();
   }, []);
 
@@ -77,7 +77,7 @@ export default function PromocodeSettings() {
       {/* Create Promocode Card */}
       <div className="bg-white shadow-md rounded-xl p-6 mb-8">
         <h3 className="text-lg font-semibold mb-4">
-          Grant Free Posting Period
+          Grant Free Account Promotion via Promo Code
         </h3>
 
         <form
@@ -99,7 +99,7 @@ export default function PromocodeSettings() {
 
           {/* Duration */}
           <div className="flex flex-col">
-            <label className="text-sm mb-1">Free Posting Duration</label>
+            <label className="text-sm mb-1">Promotion Duration</label>
             <select
               value={duration}
               onChange={(e) => setDuration(e.target.value)}

@@ -1,4 +1,4 @@
-import ForgotPassword from '../components/ForgotPassForm.jsx'
+import ForgotPassword from '../components/Forms/ForgotPassForm.jsx'
 import Logo from '../assets/Logo.png'
 
 export default function ForgotPasswordPage() {

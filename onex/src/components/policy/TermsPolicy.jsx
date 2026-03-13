@@ -1,14 +1,11 @@
-import React from 'react';
-import PrivacyPolicy from './PrivacyPolicy'; // Optional: for styling if needed
-
 export default function TermsPolicy() {
   return (
     <div className="terms-policy-container bg-white text-black px-6 py-10 md:px-12 lg:px-20">
       {/* Header Section */}
       <header className="mb-10 text-center">
-        <h1 className="text-3xl md:text-4xl font-bold mb-4">Mystery Mansion Policies</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mb-4">UNINTERESTED Policies</h1>
         <p className="text-lg text-gray-700 italic max-w-3xl mx-auto">
-          "Make sure to read over every policy before messaging admin(s) about issue's, certain issue's may have a fix in the policy page, Thank You!"
+          "Please review the policy page before contacting admins. Many common issues already have answers here."
         </p>
       </header>
 
@@ -61,7 +58,8 @@ export default function TermsPolicy() {
         <h3 className="text-lg font-semibold underline">5A. Current Platform Rules and Feature Notices</h3>
         <ul className="list-disc pl-6">
           <li>Sign in is email-only. Users must log in with their registered email and password.</li>
-          <li>Post creation currently requires an active promo code on the account.</li>
+          <li>Post creation is free for all users.</li>
+          <li>Promo codes are optional and can be used for promoted placement and extra exposure.</li>
           <li>If no category is selected when posting, the post is placed in the uncategorized section by default.</li>
           <li>Posts may include both image and video uploads, subject to platform moderation and file restrictions.</li>
           <li>Platform updates and feature updates may be added or removed by administrators to correct errors and keep notices accurate.</li>

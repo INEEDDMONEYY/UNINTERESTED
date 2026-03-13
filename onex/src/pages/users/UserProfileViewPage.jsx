@@ -1,13 +1,26 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import UserProfileHeader from "../../components/Users/UserProfileHeader";
 import PostList from "../../components/Posts/PostList";
 import UserAvailabilityDisplay from "../../components/UserDisplay/UserAvailabilityDisplay";
 import UserMeetupDisplay from "../../components/UserDisplay/UserMeetupDisplay";
+import { FEATURE_FLAGS } from "../../config/featureFlags";
+import ReviewButton from "../../components/Buttons/reviewButtons/ReviewButton";
 
-export default function UserProfileViewPage({ userId: propUserId = null }) {
+
+export default function UserProfileViewPage({ userId: propUserId = null, disableActionButtons = false }) {
+  const navigate = useNavigate();
   const params = useParams();
-  const userId = useMemo(() => propUserId || params?.id || null, [propUserId, params]);
+
+  const handleReturnToPost = () => {
+    navigate("/home");
+  };
+
+  const userId = useMemo(() => {
+    const routeUserId = params?.userId || params?.id || null;
+    if (propUserId) return propUserId;
+    return routeUserId || null;
+  }, [propUserId, params]);
 
   // Build per-user localStorage keys
   const availabilityKey = useMemo(() => `availability_${userId}`, [userId]);
@@ -43,7 +56,9 @@ export default function UserProfileViewPage({ userId: propUserId = null }) {
     try {
       localStorage.setItem(availabilityKey, JSON.stringify(availability));
       setRefreshKey(prev => prev + 1);
-    } catch {}
+    } catch {
+      // Ignore localStorage write failures (quota/private mode).
+    }
   }, [availability, availabilityKey]);
 
   // Persist incall price
@@ -51,7 +66,9 @@ export default function UserProfileViewPage({ userId: propUserId = null }) {
     try {
       localStorage.setItem(incallKey, incallPrice ?? "");
       setRefreshKey(prev => prev + 1);
-    } catch {}
+    } catch {
+      // Ignore localStorage write failures (quota/private mode).
+    }
   }, [incallPrice, incallKey]);
 
   // Persist outcall price
@@ -59,36 +76,63 @@ export default function UserProfileViewPage({ userId: propUserId = null }) {
     try {
       localStorage.setItem(outcallKey, outcallPrice ?? "");
       setRefreshKey(prev => prev + 1);
-    } catch {}
+    } catch {
+      // Ignore localStorage write failures (quota/private mode).
+    }
   }, [outcallPrice, outcallKey]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
-      {/* User Info */}
-      <section>
-        <UserProfileHeader refreshKey={refreshKey} userId={userId} />
-      </section>
+    <>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12 pb-36 sm:pb-10">
+        {/* User Info */}
+        <section>
+          <UserProfileHeader refreshKey={refreshKey} userId={userId} />
+        </section>
 
-      {/* Availability */}
-      <section>
-        <UserAvailabilityDisplay availability={availability} />
-      </section>
+        {/* Availability */}
+        {FEATURE_FLAGS.availability && (
+          <section>
+            <UserAvailabilityDisplay availability={availability} />
+          </section>
+        )}
 
-      {/* Meetup Prices */}
-      <section>
-        <UserMeetupDisplay
-          userId={userId}
-          incallPrice={incallPrice}
-          setIncallPrice={setIncallPrice}
-          outcallPrice={outcallPrice}
-          setOutcallPrice={setOutcallPrice}
-        />
-      </section>
+        {/* Meetup Prices */}
+        {FEATURE_FLAGS.meetupPricing && (
+          <section>
+            <UserMeetupDisplay
+              userId={userId}
+              incallPrice={incallPrice}
+              setIncallPrice={setIncallPrice}
+              outcallPrice={outcallPrice}
+              setOutcallPrice={setOutcallPrice}
+            />
+          </section>
+        )}
 
-      {/* User's Posts */}
-      <section>
-        <PostList authorId={userId} />
-      </section>
-    </div>
+        {/* User's Posts */}
+        <section>
+          <PostList authorId={userId} />
+        </section>
+      </div>
+
+      {!disableActionButtons && (
+        <div className="fixed bottom-4 left-4 right-4 z-40 sm:bottom-6 sm:right-6 sm:left-auto flex flex-col gap-2 sm:items-end">
+          <ReviewButton
+            onClick={() => {
+              if (!userId) return;
+              navigate(`/reviews/${userId}`);
+            }}
+            disabled={!userId}
+          />
+
+          <button
+            onClick={handleReturnToPost}
+            className="w-full sm:w-auto px-4 py-2 rounded-lg text-white font-semibold transition-colors bg-gray-800 hover:bg-gray-900"
+          >
+            Return to post
+          </button>
+        </div>
+      )}
+    </>
   );
 }

@@ -34,8 +34,11 @@ export default function Navbar() {
   return (
     <header className="bg-black text-white flex justify-between items-center px-4 py-3 w-full shadow-md">
       {/* Logo */}
-      <Link to="/home">
-        <img src={Logo} alt="Logo" className="h-10 w-auto" />
+      <Link to="/home" className="flex items-center gap-2 min-w-0">
+        <img src={Logo} alt="Logo" className="h-10 w-auto shrink-0" />
+        <span className="text-sm sm:text-base md:text-lg font-semibold tracking-wide whitespace-nowrap">
+          Mystery Mansion
+        </span>
       </Link>
 
       {/* Navigation Links */}
@@ -63,7 +66,7 @@ export default function Navbar() {
         </button>
 
         {/* ✔ FEATURE FLAG APPLIED HERE */}
-        {FEATURE_FLAGS.ENABLE_PROMOTE_ACCOUNT && (
+        {FEATURE_FLAGS.ENABLE_PROMOTE_ACCOUNT_NAV && (
           <Link to="/promote" className="flex items-center gap-1 hover:text-pink-400">
             <Contact size={18} /> Promote Account
           </Link>

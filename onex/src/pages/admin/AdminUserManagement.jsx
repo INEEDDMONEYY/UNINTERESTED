@@ -41,6 +41,8 @@ export default function AdminUserManagement() {
         const usersData = usersResult.value?.data;
         if (Array.isArray(usersData)) {
           setUsers(usersData);
+        } else if (Array.isArray(usersData?.data)) {
+          setUsers(usersData.data);
         } else if (Array.isArray(usersData?.users)) {
           setUsers(usersData.users);
         } else {

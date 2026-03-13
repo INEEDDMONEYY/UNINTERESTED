@@ -1,4 +1,4 @@
-import SignupForm from "../components/SignUpForm.jsx"
+import SignupForm from "../components/Forms/SignUpForm.jsx"
 import Logo from '../assets/Logo.png'
 
 export default function SignupPage() {

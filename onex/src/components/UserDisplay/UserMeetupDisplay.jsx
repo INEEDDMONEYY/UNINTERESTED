@@ -9,28 +9,36 @@ export default function UserMeetupDisplay({
   setOutcallPrice,
 }) {
   return (
-    <section className="w-full flex flex-col md:flex-row justify-center items-center gap-6 px-4">
-      {/* Incall Section */}
-      <div className="w-[130px] h-[130px] flex flex-col justify-center items-center text-center rounded-xl shadow-lg p-4 bg-gradient-to-br from-pink-500 to-red-500 bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-30 border border-white/20">
-        <h3 className="flex flex-col items-center text-base font-semibold text-white mb-2">
-          <DollarSign size={18} className="text-white mb-1" />
-          Incall
-        </h3>
-        <p className="text-white text-sm font-medium">
+    <section className="w-full flex flex-wrap justify-center items-center gap-3 px-4">
+
+      {/* Incall Button */}
+      <div
+        className="flex items-center gap-2 px-4 py-2 rounded-full 
+        bg-gradient-to-r from-pink-500 to-red-500
+        text-white text-xs sm:text-sm font-medium
+        shadow-md border border-white/20 backdrop-blur-md"
+      >
+        <DollarSign size={14} />
+        <span>Incall:</span>
+        <span className="font-semibold">
           {incallPrice ? `$${incallPrice}` : "Not set"}
-        </p>
+        </span>
       </div>
 
-      {/* Outcall Section */}
-      <div className="w-[130px] h-[130px] flex flex-col justify-center items-center text-center rounded-xl shadow-lg p-4 bg-gradient-to-br from-pink-500 to-red-500 bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-30 border border-white/20">
-        <h3 className="flex flex-col items-center text-base font-semibold text-white mb-2">
-          <DollarSign size={18} className="text-white mb-1" />
-          Outcall
-        </h3>
-        <p className="text-white text-sm font-medium">
+      {/* Outcall Button */}
+      <div
+        className="flex items-center gap-2 px-4 py-2 rounded-full 
+        bg-gradient-to-r from-pink-500 to-red-500
+        text-white text-xs sm:text-sm font-medium
+        shadow-md border border-white/20 backdrop-blur-md"
+      >
+        <DollarSign size={14} />
+        <span>Outcall:</span>
+        <span className="font-semibold">
           {outcallPrice ? `$${outcallPrice}` : "Not set"}
-        </p>
+        </span>
       </div>
+
     </section>
   );
 }
