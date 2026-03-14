@@ -45,31 +45,29 @@ export default function Header() {
         {/* Hero Content */}
         <div className="relative z-[5] mx-auto max-w-[760px] px-4 py-14 text-center sm:px-6 sm:py-24">
 
-          <p className="mb-3 text-[0.62rem] uppercase tracking-[0.18em] text-white/70 sm:mb-4 sm:text-[0.72rem] sm:tracking-[0.25em]">
-            Your sexual desires await here
-          </p>
-
-          <h1 className="mb-4 font-[Cormorant_Garamond,serif] text-[clamp(1.9rem,9vw,4.2rem)] font-bold leading-[1.1] text-white drop-shadow-lg sm:mb-6 sm:leading-[1.15]">
-            {isLoggedIn
-              ? `Welcome Back, ${user.username}.`
-              : "Unlock the Mystery. All In One Place."}
-          </h1>
-
           <p className="mx-auto mb-7 max-w-[520px] text-[0.9rem] font-light leading-[1.6] text-white/90 drop-shadow sm:mb-9 sm:text-[clamp(0.9rem,1.6vw,1.05rem)] sm:leading-[1.7]">
             {heroMessage}
           </p>
 
           {!isLoggedIn && (
             <Motion.div
-              animate={{ y: [0, 0, 0, -3, 2, -1, 0] }}
-              transition={{ duration: 7, ease: "easeInOut", repeat: Infinity, times: [0, 0.88, 0.9, 0.93, 0.96, 0.98, 1] }}
+              animate={{
+                y: [0, 0, -2, 1, -1, 0],
+                rotate: [0, 0, -1.2, 1.2, -0.7, 0],
+              }}
+              transition={{
+                duration: 3,
+                ease: "easeInOut",
+                repeat: Infinity,
+                times: [0, 0.78, 0.85, 0.91, 0.96, 1],
+              }}
               className="inline-flex w-full max-w-[260px] sm:w-auto sm:max-w-none"
             >
               <Link
                 to="/signup"
                 className="inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-3 text-[0.68rem] font-medium uppercase tracking-[0.11em] text-[#111] transition hover:-translate-y-px hover:bg-[#e8e8e8] sm:px-10 sm:text-xs sm:tracking-[0.15em]"
               >
-                Start your journey
+                Redeem Promo Code 🎁
               </Link>
             </Motion.div>
           )}

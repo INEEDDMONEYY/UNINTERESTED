@@ -2,9 +2,11 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import User from "../models/User.js";
 import env from "../config/env.js";
 import sendWelcomeEmail from "../utils/sendWelcomeEmail.js";
+import sendResetEmail from "../utils/sendResetEmail.js";
 
 // 🔐 NEW: import combined middleware
 import { authMiddleware, adminOnlyMiddleware } from "../middleware/authMiddleware.js";
@@ -168,7 +170,25 @@ router.post("/admin/create-user", authMiddleware, adminOnlyMiddleware, async (re
 
     await newUser.save();
 
-    res.status(201).json({ message: "User created by admin successfully", user: newUser });
+    if (newUser.email) {
+      const resetToken = crypto.randomBytes(32).toString("hex");
+      newUser.resetPasswordToken = resetToken;
+      newUser.resetPasswordExpires = Date.now() + 1000 * 60 * 60; // 1 hour
+      await newUser.save();
+
+      sendResetEmail({
+        to: newUser.email,
+        username: newUser.username,
+        resetToken,
+      }).catch((mailErr) => {
+        console.warn("Admin setup email failed:", mailErr?.message || mailErr);
+      });
+    }
+
+    res.status(201).json({
+      message: "User created by admin successfully. A secure password setup email has been sent.",
+      user: newUser,
+    });
   } catch (err) {
     console.error("Admin create-user error:", err.message);
     res.status(500).json({ error: "Server error creating user" });

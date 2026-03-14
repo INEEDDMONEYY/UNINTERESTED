@@ -49,6 +49,33 @@ export const getUpdates = async (req, res) => {
   }
 };
 
+// Update an existing update entry (admin only)
+export const updateUpdate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, type } = req.body;
+    const safeType = type === "feature" ? "feature" : "platform";
+
+    const updated = await PlatformUpdate.findByIdAndUpdate(
+      id,
+      {
+        ...(title !== undefined ? { title } : {}),
+        ...(description !== undefined ? { description } : {}),
+        type: safeType,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: "Update not found" });
+    }
+
+    return res.json({ success: true, data: updated, message: "Update edited successfully" });
+  } catch (err) {
+    return res.status(500).json({ error: "Failed to edit update", details: err.message });
+  }
+};
+
 // Delete update (admin only)
 export const deleteUpdate = async (req, res) => {
   try {

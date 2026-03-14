@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext, useRef } from "react";
 import { UserContext } from "../../context/UserContext";
-import { Camera, Pencil } from "lucide-react";
+import { Camera, Pencil, CheckCircle2 } from "lucide-react";
 import api from "../../utils/api";
 
 /*
@@ -21,6 +21,7 @@ export default function UserProfileHeader({
     bio: "",
     profilePic: null,
     bannerPic: null,
+    activePromoExpiry: null,
   });
 
   const [banner, setBanner] = useState(null);
@@ -63,6 +64,7 @@ export default function UserProfileHeader({
         bio: profileData.bio || "",
         profilePic: profileData.profilePic || null,
         bannerPic: profileData.bannerPic || null,
+        activePromoExpiry: profileData.activePromoExpiry || null,
       });
       setBioInput(profileData.bio || "");
       if (profileData.bannerPic) setBanner(profileData.bannerPic);
@@ -174,6 +176,10 @@ export default function UserProfileHeader({
     }
   };
 
+  const isPromotedAccount = Boolean(
+    user.activePromoExpiry && new Date(user.activePromoExpiry).getTime() > Date.now()
+  );
+
   if (loading && !user.username) {
     return (
       <div className="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden animate-pulse">
@@ -244,8 +250,13 @@ export default function UserProfileHeader({
         {/* Username + Bio */}
         <div className="pt-16 md:pt-20">
 
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">
-            {user.username || "Unnamed User"}
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 inline-flex items-center gap-2">
+            <span>{user.username || "Unnamed User"}</span>
+            <CheckCircle2
+              size={18}
+              className={isPromotedAccount ? "text-pink-500" : "text-gray-400"}
+              aria-label={isPromotedAccount ? "Promoted account" : "Standard account"}
+            />
           </h1>
 
           {/* Bio Section */}

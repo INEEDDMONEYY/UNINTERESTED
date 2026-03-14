@@ -8,6 +8,7 @@ export default function PromocodeSettings() {
   const [userId, setUserId] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [deletingId, setDeletingId] = useState("");
 
   const [promoCodes, setPromoCodes] = useState([]);
 
@@ -61,6 +62,28 @@ export default function PromocodeSettings() {
     } catch (err) {
       console.error("Failed to create promo code", err);
       setError(err.response?.data?.error || "Failed to create promo code.");
+    }
+  };
+
+  const handleDeleteCode = async (promoId, promoCode) => {
+    if (!promoId) return;
+
+    const confirmed = window.confirm(`Delete promo code ${promoCode || ""}? This cannot be undone.`);
+    if (!confirmed) return;
+
+    setError("");
+    setSuccess("");
+    setDeletingId(promoId);
+
+    try {
+      await api.delete(`/admin/promo-codes/${promoId}`);
+      setPromoCodes((prev) => prev.filter((promo) => (promo._id || promo.id) !== promoId));
+      setSuccess(`Promo code ${promoCode || ""} deleted successfully.`);
+    } catch (err) {
+      console.error("Failed to delete promo code", err);
+      setError(err.response?.data?.error || "Failed to delete promo code.");
+    } finally {
+      setDeletingId("");
     }
   };
 
@@ -198,6 +221,17 @@ export default function PromocodeSettings() {
                         promo.assignedUser?.email ||
                         "All Users"}
                     </p>
+
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCode(promo._id || promo.id, promo.code)}
+                        disabled={deletingId === (promo._id || promo.id)}
+                        className="w-full rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                      >
+                        {deletingId === (promo._id || promo.id) ? "Deleting..." : "Delete Code"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -216,6 +250,7 @@ export default function PromocodeSettings() {
                     <th className="py-2">Usage</th>
                     <th className="py-2">Assigned User</th>
                     <th className="py-2">Created</th>
+                    <th className="py-2 text-right">Actions</th>
                   </tr>
                 </thead>
 
@@ -244,6 +279,17 @@ export default function PromocodeSettings() {
                         {promo.createdAt
                           ? new Date(promo.createdAt).toLocaleString()
                           : "-"}
+                      </td>
+
+                      <td className="py-2 text-right">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCode(promo._id || promo.id, promo.code)}
+                          disabled={deletingId === (promo._id || promo.id)}
+                          className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                        >
+                          {deletingId === (promo._id || promo.id) ? "Deleting..." : "Delete"}
+                        </button>
                       </td>
                     </tr>
                   ))}

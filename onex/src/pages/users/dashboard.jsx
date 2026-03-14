@@ -364,13 +364,21 @@ export default function UserDashboard() {
             )}
 
             <div className="bg-white p-6 rounded-xl shadow border border-pink-200 sm:col-span-2 xl:col-span-3">
-              <h2 className="text-lg font-semibold mb-2">Platform Development Notice</h2>
-              <p className="text-gray-700 text-sm mb-3">
-                Mystery Mansion is in the early stages of development. New features, fixes, and improvements are often shipped daily or weekly.
-              </p>
-              <p className="text-gray-700 text-sm mb-4">
-                For the latest changes, announcements, and rollout details, please check the updates page.
-              </p>
+              <h2 className="text-lg font-semibold mb-2">First Post Tips</h2>
+              <ul className="list-disc pl-5 space-y-2 text-gray-700 text-sm mb-4">
+                <li>
+                  Edit all settings in your dashboard before posting to ensure your post shows the correct information.
+                </li>
+                <li>
+                  If profile fields like phone number, profile picture, age, or bio are not set, those areas may appear blank on your post until you update Settings.
+                </li>
+                <li>
+                  Active promo codes always display in your dashboard while live, including the countdown timer.
+                </li>
+                <li>
+                  Add clear photos/videos and a complete description to improve trust and visibility.
+                </li>
+              </ul>
               <Link
                 to="/platform-updates"
                 className="inline-flex items-center rounded-md bg-pink-600 px-4 py-2 text-sm font-medium text-white hover:bg-pink-700 transition"

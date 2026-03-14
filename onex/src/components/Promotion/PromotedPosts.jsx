@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { BadgeCheck } from "lucide-react";
 import { useEffect, useState } from "react";
+import { motion as Motion } from "framer-motion";
 import api from "../../utils/api";
 
 const PLACEHOLDER_PROFILE = {
@@ -42,7 +43,7 @@ function CountdownBadge({ expiryDate }) {
 
   if (!remaining) {
     return (
-      <span className="mt-2 inline-block text-[10px] font-semibold text-gray-400">
+      <span className="mt-2 block w-full bg-transparent text-[10px] font-semibold leading-tight text-gray-400">
         Promotion ended
       </span>
     );
@@ -57,7 +58,7 @@ function CountdownBadge({ expiryDate }) {
   );
 
   return (
-    <span className="mt-2 inline-block text-[10px] font-semibold text-pink-500 tabular-nums">
+    <span className="mt-2 block w-full bg-transparent text-[10px] font-semibold leading-tight text-pink-500 tabular-nums">
       ⏱ {parts.join(" ")}
     </span>
   );
@@ -78,17 +79,18 @@ function ProfileCard({ profile, isPlaceholder = false }) {
       : "bg-white/90 backdrop-blur-sm border-pink-100 shadow-sm hover:shadow-pink-200"
   }`;
 
+  const verifiedBadge = !isPlaceholder ? (
+    <span
+      className="absolute right-2 top-2 z-30 inline-flex h-6 w-6 items-center justify-center rounded-full bg-pink-600 shadow-md pointer-events-none"
+      aria-label="Promoted account"
+      title="Promoted account"
+    >
+      <BadgeCheck size={14} className="text-white" />
+    </span>
+  ) : null;
+
   const cardContent = (
     <>
-      {!isPlaceholder && (
-        <span
-          className="absolute top-3 right-3 inline-flex items-center justify-center"
-          aria-label="Promoted account"
-          title="Promoted account"
-        >
-          <BadgeCheck size={18} className="text-pink-500 fill-pink-100" />
-        </span>
-      )}
       <img
         src={profile.profilePic || "https://via.placeholder.com/64?text=?"}  
         alt={username || "Promoted user"}
@@ -104,16 +106,46 @@ function ProfileCard({ profile, isPlaceholder = false }) {
 
   if (!isPlaceholder && profilePath) {
     return (
-      <Link to={profilePath} className={`${cardClasses} cursor-pointer`}>
-        {cardContent}
-      </Link>
+      <Motion.div
+        animate={{
+          y: [0, 0, -2, 1, -1, 0],
+          rotate: [0, 0, -0.9, 0.9, -0.4, 0],
+          x: [0, 0, -0.8, 0.8, -0.5, 0],
+        }}
+        transition={{
+          duration: 2,
+          ease: "easeInOut",
+          repeat: Infinity,
+          times: [0, 0.72, 0.82, 0.9, 0.96, 1],
+        }}
+        className="relative"
+      >
+        {verifiedBadge}
+        <Link to={profilePath} className={`${cardClasses} cursor-pointer`}>
+          {cardContent}
+        </Link>
+      </Motion.div>
     );
   }
 
   return (
-    <article className={cardClasses}>
+    <Motion.article
+      animate={{
+        y: [0, 0, -2, 1, -1, 0],
+        rotate: [0, 0, -0.9, 0.9, -0.4, 0],
+        x: [0, 0, -0.8, 0.8, -0.5, 0],
+      }}
+      transition={{
+        duration: 2,
+        ease: "easeInOut",
+        repeat: Infinity,
+        times: [0, 0.72, 0.82, 0.9, 0.96, 1],
+      }}
+      className={cardClasses}
+    >
+      {verifiedBadge}
       {cardContent}
-    </article>
+    </Motion.article>
   );
 }
 

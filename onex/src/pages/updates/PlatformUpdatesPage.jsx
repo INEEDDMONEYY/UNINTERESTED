@@ -7,6 +7,13 @@ export default function PlatformUpdatesPage() {
   const [updates, setUpdates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    type: "platform",
+  });
   const { user } = useUser();
 
   const navigate = useNavigate();
@@ -41,6 +48,52 @@ export default function PlatformUpdatesPage() {
     }
   };
 
+  const startEditing = (update) => {
+    setEditingId(update?._id || "");
+    setEditForm({
+      title: update?.title || "",
+      description: update?.description || "",
+      type: update?.type === "feature" ? "feature" : "platform",
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingId("");
+    setSavingEdit(false);
+    setEditForm({ title: "", description: "", type: "platform" });
+  };
+
+  const handleSaveEdit = async (updateId) => {
+    if (!isAdmin || !updateId) return;
+
+    const title = editForm.title.trim();
+    const description = editForm.description.trim();
+
+    if (!title || !description) {
+      alert("Title and description are required.");
+      return;
+    }
+
+    try {
+      setSavingEdit(true);
+      const { data } = await api.put(`/updates/${updateId}`, {
+        title,
+        description,
+        type: editForm.type,
+      });
+
+      const updated = data?.data;
+      if (updated) {
+        setUpdates((prev) => prev.map((item) => (item._id === updateId ? updated : item)));
+      }
+
+      cancelEditing();
+    } catch (err) {
+      alert(err?.response?.data?.error || "Failed to edit update");
+      setSavingEdit(false);
+    }
+  };
+
   const toBulletItems = (description = "") => {
     return description
       .split(/\r?\n/)
@@ -57,6 +110,106 @@ export default function PlatformUpdatesPage() {
   };
   const platformUpdates = updates.filter((update) => update.type !== "feature");
   const featureUpdates = updates.filter((update) => update.type === "feature");
+
+  const renderUpdateCard = (update, isFeatureSection = false) => {
+    const isEditing = isAdmin && editingId === update._id;
+
+    return (
+      <div
+        key={update._id}
+        className="bg-white rounded-xl p-5 shadow-md border border-pink-200"
+      >
+        {isEditing ? (
+          <div className="space-y-3">
+            <input
+              type="text"
+              value={editForm.title}
+              onChange={(e) => setEditForm((prev) => ({ ...prev, title: e.target.value }))}
+              className="w-full border border-pink-200 rounded-md px-3 py-2 text-sm"
+              placeholder="Update title"
+            />
+
+            <textarea
+              value={editForm.description}
+              onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+              className="w-full border border-pink-200 rounded-md px-3 py-2 text-sm min-h-[110px]"
+              placeholder="Update details (one bullet per line)"
+            />
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <select
+                value={editForm.type}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, type: e.target.value }))}
+                className="border border-pink-200 rounded-md px-3 py-2 text-sm w-full sm:w-auto"
+              >
+                <option value="platform">Platform Update</option>
+                <option value="feature">Upcoming Feature</option>
+              </select>
+
+              <div className="flex gap-2 sm:ml-auto w-full sm:w-auto">
+                <button
+                  onClick={() => handleSaveEdit(update._id)}
+                  disabled={savingEdit}
+                  className="flex-1 sm:flex-none text-xs bg-pink-600 text-white px-3 py-2 rounded hover:bg-pink-700 transition disabled:opacity-60"
+                >
+                  {savingEdit ? "Saving..." : "Save"}
+                </button>
+                <button
+                  onClick={cancelEditing}
+                  disabled={savingEdit}
+                  className="flex-1 sm:flex-none text-xs bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 transition disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+              <h3 className="text-pink-700 font-semibold text-lg">
+                {update.title}
+              </h3>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                {!isFeatureSection && isNewUpdate(update.createdAt) && (
+                  <span className="text-xs bg-pink-600 text-white px-2 py-1 rounded-full">
+                    NEW
+                  </span>
+                )}
+                {isAdmin && (
+                  <>
+                    <button
+                      onClick={() => startEditing(update)}
+                      className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUpdate(update._id)}
+                      className="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 transition"
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <ul className="list-disc pl-5 text-black text-sm mb-2 space-y-1">
+              {toBulletItems(update.description).map((item, idx) => (
+                <li key={`${update._id}-${idx}`}>{item}</li>
+              ))}
+            </ul>
+
+            <p className="text-gray-500 text-xs">
+              Posted on {new Date(update.createdAt).toLocaleString()}
+            </p>
+          </>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-pink-900/70 px-4 sm:px-6 py-10">
@@ -82,44 +235,7 @@ export default function PlatformUpdatesPage() {
         ) : platformUpdates.length === 0 ? (
           <p className="text-gray-300 text-center">No updates found.</p>
         ) : (
-          platformUpdates.map((update) => (
-            <div
-              key={update._id}
-              className="bg-white rounded-xl p-5 shadow-md border border-pink-200"
-            >
-              <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-                <h3 className="text-pink-700 font-semibold text-lg">
-                  {update.title}
-                </h3>
-
-                <div className="flex items-center gap-2">
-                  {isNewUpdate(update.createdAt) && (
-                    <span className="text-xs bg-pink-600 text-white px-2 py-1 rounded-full">
-                      NEW
-                    </span>
-                  )}
-                  {isAdmin && (
-                    <button
-                      onClick={() => handleDeleteUpdate(update._id)}
-                      className="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 transition"
-                    >
-                      Delete
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <ul className="list-disc pl-5 text-black text-sm mb-2 space-y-1">
-                {toBulletItems(update.description).map((item, idx) => (
-                  <li key={`${update._id}-${idx}`}>{item}</li>
-                ))}
-              </ul>
-
-              <p className="text-gray-500 text-xs">
-                Posted on {new Date(update.createdAt).toLocaleString()}
-              </p>
-            </div>
-          ))
+          platformUpdates.map((update) => renderUpdateCard(update, false))
         )}
 
         {/* =====================================================
@@ -143,35 +259,7 @@ export default function PlatformUpdatesPage() {
                 No feature updates posted yet.
               </p>
             ) : (
-              featureUpdates.map((feature) => (
-                <div
-                  key={feature._id}
-                  className="bg-white rounded-xl p-5 shadow-md border border-pink-200"
-                >
-                  <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-                    <h3 className="text-pink-700 font-semibold text-lg">
-                      {feature.title}
-                    </h3>
-                    {isAdmin && (
-                      <button
-                        onClick={() => handleDeleteUpdate(feature._id)}
-                        className="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 transition"
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </div>
-
-                  <ul className="list-disc pl-5 text-black text-sm mb-2 space-y-1">
-                    {toBulletItems(feature.description).map((item, idx) => (
-                      <li key={`${feature._id}-feature-${idx}`}>{item}</li>
-                    ))}
-                  </ul>
-                  <p className="text-gray-500 text-xs mt-2">
-                    Posted on {new Date(feature.createdAt).toLocaleString()}
-                  </p>
-                </div>
-              ))
+              featureUpdates.map((feature) => renderUpdateCard(feature, true))
             )}
           </div>
         </div>

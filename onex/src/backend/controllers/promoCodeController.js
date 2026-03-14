@@ -263,3 +263,19 @@ export const redeemPromoCodeForUser = async (req, res) => {
     return res.status(500).json({ success: false, error: "Failed to redeem promo code for user" });
   }
 };
+
+export const deletePromoCode = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await PromoCode.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ success: false, error: "Promo code not found" });
+    }
+
+    return res.json({ success: true, message: "Promo code deleted successfully" });
+  } catch (err) {
+    console.error("❌ [deletePromoCode]", err);
+    return res.status(500).json({ success: false, error: "Failed to delete promo code" });
+  }
+};

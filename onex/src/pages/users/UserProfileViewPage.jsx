@@ -116,7 +116,7 @@ export default function UserProfileViewPage({ userId: propUserId = null, disable
       </div>
 
       {!disableActionButtons && (
-        <div className="fixed bottom-4 left-4 right-4 z-40 sm:bottom-6 sm:right-6 sm:left-auto flex flex-col gap-2 sm:items-end">
+        <div className="fixed bottom-4 left-4 right-4 z-40 flex flex-col items-stretch gap-2 pb-[max(0px,env(safe-area-inset-bottom))] sm:bottom-6 sm:left-auto sm:right-6 sm:items-end sm:pb-0">
           <ReviewButton
             onClick={() => {
               if (!userId) return;

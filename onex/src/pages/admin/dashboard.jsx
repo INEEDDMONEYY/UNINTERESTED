@@ -400,6 +400,68 @@ export default function AdminDashboard() {
                 </div>
               ))
             )}
+
+            <div className="bg-white rounded-lg p-6 shadow-md border border-pink-200 md:col-span-2 xl:col-span-3">
+              <div className="flex items-center gap-2 mb-3 text-pink-700">
+                <Ticket size={18} />
+                <h3 className="font-semibold">All Promo Codes</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">
+                Full list of all promo codes created (active, inactive, redeemed, and expired).
+              </p>
+
+              {promoCodes.length === 0 ? (
+                <p className="text-sm text-gray-500">No promo codes have been created yet.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm border border-pink-100 rounded-lg overflow-hidden">
+                    <thead className="bg-pink-50 text-pink-800">
+                      <tr>
+                        <th className="text-left px-3 py-2 font-semibold">Code</th>
+                        <th className="text-left px-3 py-2 font-semibold">Assigned To</th>
+                        <th className="text-left px-3 py-2 font-semibold">Duration</th>
+                        <th className="text-left px-3 py-2 font-semibold">Usage</th>
+                        <th className="text-left px-3 py-2 font-semibold">Status</th>
+                        <th className="text-left px-3 py-2 font-semibold">Created</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {promoCodes.map((promo) => {
+                        const assigned = promo?.assignedUser?.username || promo?.assignedUser?.email || "Any user";
+                        const usageCount = Number(promo?.usageCount || 0);
+                        const maxUses = Number(promo?.maxUses || 0);
+                        const isExhausted = maxUses > 0 && usageCount >= maxUses;
+                        const isInactive = !promo?.isActive || isExhausted;
+                        const statusText = isInactive ? "Inactive" : "Active";
+
+                        return (
+                          <tr key={promo?._id || promo?.code} className="border-t border-pink-100 even:bg-pink-50/30">
+                            <td className="px-3 py-2 font-semibold text-pink-700">{promo?.code || "-"}</td>
+                            <td className="px-3 py-2 text-gray-700">{assigned}</td>
+                            <td className="px-3 py-2 text-gray-700">{promo?.durationDays || 0} day(s)</td>
+                            <td className="px-3 py-2 text-gray-700">{usageCount}/{maxUses}</td>
+                            <td className="px-3 py-2">
+                              <span
+                                className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+                                  isInactive
+                                    ? "bg-gray-100 text-gray-600"
+                                    : "bg-green-100 text-green-700"
+                                }`}
+                              >
+                                {statusText}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2 text-gray-600">
+                              {promo?.createdAt ? new Date(promo.createdAt).toLocaleString() : "-"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

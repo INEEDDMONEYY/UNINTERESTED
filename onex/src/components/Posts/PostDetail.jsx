@@ -26,6 +26,8 @@ export default function PostDetail() {
       ? post.videos.map((url) => ({ type: "video", url }))
       : []),
   ];
+  const locationParts = [post?.city, post?.state, post?.country].filter(Boolean);
+  const displayLocation = locationParts.length > 0 ? locationParts.join(", ") : "";
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -109,7 +111,7 @@ export default function PostDetail() {
         )}
       </div>
 
-      {/* 🧑 Username + Title + Age + Phone Number*/}
+      {/* 🧑 Username + Title + Age + Phone Number + location */}
       <div className="mb-4">
         <h2 className="text-2xl font-bold text-pink-600">
           {post.title || "Untitled Post"}
@@ -127,6 +129,12 @@ export default function PostDetail() {
             Phone: {post.userId.phoneNumber}
           </p>
         )}
+        {displayLocation && (
+          <p className="text-sm text-gray-500 mt-1">
+            Location: {displayLocation}
+          </p>
+        )}
+
       </div>
 
       {/* 📝 Description */}
