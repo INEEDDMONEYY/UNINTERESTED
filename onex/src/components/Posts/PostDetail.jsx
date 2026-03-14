@@ -1,17 +1,34 @@
 // 📦 External Libraries
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { BadgeCheck } from "lucide-react";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
 import api from "../../utils/api";
+import { UserContext } from "../../context/UserContext";
 
 // 🌀 Loaders & Components
 import PostDetailLoader from "../Loaders/PostDetailLoader";
 import UserAvailabilityDisplay from "../UserDisplay/UserAvailabilityDisplay";
 import UserMeetupDisplay from "../UserDisplay/UserMeetupDisplay";
 
+const formatPhoneNumber = (value = "") => {
+  const digits = String(value).replace(/\D/g, "").slice(0, 10);
+  if (!digits) return "";
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+};
+
+const hasActivePromotion = (expiry) => {
+  if (!expiry) return false;
+  const date = new Date(expiry);
+  return !Number.isNaN(date.getTime()) && date.getTime() > Date.now();
+};
+
 export default function PostDetail() {
   const { postId } = useParams();
   const navigate = useNavigate();
+  const { user: currentUser } = useContext(UserContext);
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
@@ -26,8 +43,17 @@ export default function PostDetail() {
       ? post.videos.map((url) => ({ type: "video", url }))
       : []),
   ];
+  const postOwnerId = post?.userId?._id || post?.userId?.id || "";
+  const currentUserId = currentUser?._id || currentUser?.id || "";
+  const effectiveUser = postOwnerId && currentUserId && postOwnerId === currentUserId
+    ? { ...post?.userId, ...currentUser }
+    : post?.userId;
   const locationParts = [post?.city, post?.state, post?.country].filter(Boolean);
   const displayLocation = locationParts.length > 0 ? locationParts.join(", ") : "";
+  const displayPhoneNumber = effectiveUser?.phoneNumber
+    ? formatPhoneNumber(effectiveUser.phoneNumber)
+    : "";
+  const isPromotedUser = hasActivePromotion(effectiveUser?.activePromoExpiry);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -40,11 +66,17 @@ export default function PostDetail() {
         setPost(data);
 
         // Set availability from populated user profile
-        setAvailability(data.userId?.availability || { status: "" });
+        const fetchedOwnerId = data.userId?._id || data.userId?.id || "";
+        const loggedInUserId = currentUser?._id || currentUser?.id || "";
+        const detailUser = fetchedOwnerId && loggedInUserId && fetchedOwnerId === loggedInUserId
+          ? { ...data.userId, ...currentUser }
+          : data.userId;
+
+        setAvailability(detailUser?.availability || { status: "" });
 
         // Set meetup prices from populated user profile
-        setIncallPrice(data.userId?.incallPrice || "");
-        setOutcallPrice(data.userId?.outcallPrice || "");
+        setIncallPrice(detailUser?.incallPrice || "");
+        setOutcallPrice(detailUser?.outcallPrice || "");
       } catch (err) {
         console.error("Failed to fetch post:", err);
         console.error("Error response:", err.response?.data); // Debug log
@@ -64,7 +96,7 @@ export default function PostDetail() {
     };
 
     fetchPost();
-  }, [postId]);
+  }, [postId, currentUser]);
 
   if (loading) return <PostDetailLoader />;
   if (!post) {
@@ -78,6 +110,14 @@ export default function PostDetail() {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10 bg-white rounded-xl shadow-md m-5 relative">
+      <span
+        className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm ring-1 ring-gray-200"
+        aria-label={isPromotedUser ? "Promoted user" : "Standard user"}
+        title={isPromotedUser ? "Promoted user" : "Standard user"}
+      >
+        <BadgeCheck className={isPromotedUser ? "text-pink-500" : "text-gray-400"} size={20} />
+      </span>
+
       {/* 🖼️ Post Images Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         {mediaItems.length > 0 ? (
@@ -117,16 +157,16 @@ export default function PostDetail() {
           {post.title || "Untitled Post"}
         </h2>
         <p className="text-sm text-gray-500 mt-1">
-          by {post.userId?.username || "Anonymous"}
+          by {effectiveUser?.username || "Anonymous"}
         </p>
-        {post.userId?.age && (
+        {effectiveUser?.age && (
           <p className="text-sm text-gray-500 mt-1">
-            Age: {post.userId.age}
+            Age: {effectiveUser.age}
           </p>
         )}
-        {post.userId?.phoneNumber && (
+        {displayPhoneNumber && (
           <p className="text-sm text-gray-500 mt-1">
-            Phone: {post.userId.phoneNumber}
+            Phone: {displayPhoneNumber}
           </p>
         )}
         {displayLocation && (

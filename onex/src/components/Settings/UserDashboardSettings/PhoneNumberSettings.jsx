@@ -2,6 +2,14 @@ import { useContext, useEffect, useState } from "react";
 import { Loader2, CheckCircle, XCircle, Phone } from "lucide-react";
 import { UserContext } from "../../../context/UserContext";
 
+const formatPhoneNumber = (value = "") => {
+  const digits = String(value).replace(/\D/g, "").slice(0, 10);
+
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+};
+
 export default function PhoneNumberSettings({ user }) {
   const { updateProfile } = useContext(UserContext);
   const [phone, setPhone] = useState("");
@@ -21,7 +29,7 @@ export default function PhoneNumberSettings({ user }) {
         }
       })();
 
-    setPhone(incomingPhone);
+    setPhone(formatPhoneNumber(incomingPhone));
   }, [user?.phoneNumber]);
 
   const handleSave = async () => {
@@ -68,9 +76,9 @@ export default function PhoneNumberSettings({ user }) {
 
         <input
           type="tel"
-          placeholder="Enter your phone number"
+          placeholder="902-xxx-xxxx"
           value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
           className="w-full max-w-xs border border-pink-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400 text-center"
         />
 

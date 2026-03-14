@@ -82,7 +82,7 @@ export default function Body() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const [visibleCount, setVisibleCount] = useState(15);
-  const MAX_POSTS = 100;
+  const LOAD_MORE_STEP = 15;
 
   // --------------------------- Fetch Posts ---------------------------
   const fetchPosts = async () => {
@@ -90,7 +90,7 @@ export default function Body() {
       const { data } = await axios.get(
         `${API_BASE}/api/posts`
       );
-      setPosts(Array.isArray(data) ? data.slice(0, MAX_POSTS) : []);
+      setPosts(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch posts:", err);
       setPosts([]);
@@ -117,7 +117,7 @@ export default function Body() {
 
   // --------------------------- Load More -----------------------------
   const handleLoadMore = () => {
-    setVisibleCount((prev) => Math.min(prev + 15, MAX_POSTS));
+    setVisibleCount((prev) => prev + LOAD_MORE_STEP);
   };
 
   // --------------------------- Filter Posts --------------------------
@@ -148,7 +148,7 @@ export default function Body() {
       : []
     : posts;
 
-  const filteredUncategorizedPosts = sourcePosts
+  const filteredUncategorizedPool = sourcePosts
     .filter((post) => {
       const categoryValue = post.category?.trim()?.toLowerCase() || "";
       const hasNoCategory = !categoryValue || categoryValue === "uncategorized";
@@ -156,7 +156,9 @@ export default function Body() {
       const matchesCategory = hasSearchQuery ? true : hasNoCategory;
       return matchesCategory && matchesLocation;
     })
-    .slice(0, visibleCount);
+  ;
+
+  const filteredUncategorizedPosts = filteredUncategorizedPool.slice(0, visibleCount);
 
   // 🐛 Debug logging
   useEffect(() => {
@@ -250,8 +252,7 @@ export default function Body() {
         )}
       </div>
 
-      {filteredUncategorizedPosts.length >= 15 &&
-        filteredUncategorizedPosts.length < MAX_POSTS && (
+      {filteredUncategorizedPool.length > visibleCount && (
           <div className="flex justify-center mt-8">
             <button
               onClick={handleLoadMore}

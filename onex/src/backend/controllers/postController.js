@@ -9,13 +9,16 @@ export async function createPost(req, res) {
   try {
     if (!req.user?._id) return res.status(401).json({ error: 'Unauthorized' });
 
-    const { title, description, city, state, category, visibility } = req.body;
+    const { title, description, city, state, country, category, visibility } = req.body;
     if (!title || !description)
       return res.status(400).json({ error: 'Title and description required' });
 
     const promoExpiry = req.user.activePromoExpiry ? new Date(req.user.activePromoExpiry) : null;
     const hasActivePromo = Boolean(promoExpiry && !Number.isNaN(promoExpiry.getTime()) && promoExpiry > new Date());
     const effectiveCategory = category?.trim() || 'uncategorized';
+    const normalizedCity = city?.trim() || '';
+    const normalizedState = normalizeState(state);
+    const normalizedCountry = country?.trim() || '';
 
     let imageUrls = [];
     let videoUrls = [];
@@ -50,8 +53,9 @@ export async function createPost(req, res) {
       userId: req.user._id,
       title,
       description,
-      city,
-      state: normalizeState(state), // Normalize state abbreviations to full names
+      city: normalizedCity,
+      state: normalizedState,
+      country: normalizedCountry,
       category: effectiveCategory,
       visibility,
       pictures: imageUrls,
@@ -64,7 +68,7 @@ export async function createPost(req, res) {
 
     const populatedPost = await Post.findById(savedPost._id).populate({
       path: 'userId',
-      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice',
+      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry',
     });
 
     res.status(201).json(populatedPost);
@@ -87,7 +91,7 @@ export async function getPosts(req, res) {
 
     const posts = await Post.find(filter)
       .sort({ createdAt: -1 })
-      .populate({ path: 'userId', select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice' });
+      .populate({ path: 'userId', select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry' });
 
     res.json(posts);
   } catch (err) {
@@ -101,7 +105,7 @@ export async function getPostById(req, res) {
   try {
     const post = await Post.findById(req.params.id).populate({
       path: 'userId',
-      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice',
+      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry',
     });
 
     if (!post) return res.status(404).json({ error: 'Post not found' });
@@ -125,7 +129,7 @@ export async function updatePost(req, res) {
 
     const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate({
       path: 'userId',
-      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice',
+      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry',
     });
 
     res.json(updatedPost);

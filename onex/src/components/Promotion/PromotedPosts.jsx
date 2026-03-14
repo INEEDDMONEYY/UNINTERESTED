@@ -73,7 +73,7 @@ function ProfileCard({ profile, isPlaceholder = false }) {
       ? `/profile/${encodeURIComponent(username)}`
       : null;
 
-  const cardClasses = `relative w-[210px] rounded-xl border p-4 text-center flex-shrink-0 transition-all duration-200 ${
+  const cardClasses = `relative flex h-[238px] w-[210px] flex-shrink-0 flex-col rounded-xl border p-4 text-center transition-all duration-200 sm:h-[248px] ${
     isPlaceholder
       ? "bg-pink-50 border-pink-300 shadow-sm"
       : "bg-white/90 backdrop-blur-sm border-pink-100 shadow-sm hover:shadow-pink-200"
@@ -97,10 +97,23 @@ function ProfileCard({ profile, isPlaceholder = false }) {
         className="w-16 h-16 rounded-full object-cover border-2 border-pink-300 mx-auto mb-3"
       />
       <h3 className="text-sm font-semibold text-pink-600 break-words">{username}</h3>
-      <p className="text-xs text-gray-600 mt-1 break-words">{profile.bio || "No bio provided."}</p>
-      {!isPlaceholder && profile.activePromoExpiry && (
-        <CountdownBadge expiryDate={profile.activePromoExpiry} />
-      )}
+      <div className="mt-1 min-h-[48px]">
+        <p
+          className="text-xs text-gray-600 break-words overflow-hidden"
+          style={{
+            display: "-webkit-box",
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: "vertical",
+          }}
+        >
+          {profile.bio || "No bio provided."}
+        </p>
+      </div>
+      <div className="mt-auto min-h-[28px]">
+        {!isPlaceholder && profile.activePromoExpiry && (
+          <CountdownBadge expiryDate={profile.activePromoExpiry} />
+        )}
+      </div>
     </>
   );
 
@@ -118,7 +131,7 @@ function ProfileCard({ profile, isPlaceholder = false }) {
           repeat: Infinity,
           times: [0, 0.72, 0.82, 0.9, 0.96, 1],
         }}
-        className="relative"
+        className="relative w-[210px] flex-shrink-0"
       >
         {verifiedBadge}
         <Link to={profilePath} className={`${cardClasses} cursor-pointer`}>

@@ -75,15 +75,16 @@ const stateAbbreviations = {
 export function normalizeState(state) {
   if (!state) return state;
 
-  const upperState = state.toUpperCase().trim();
+  const trimmedState = String(state).trim();
+  const upperState = trimmedState.toUpperCase();
 
   // If it's an abbreviation, return the full name
   if (stateAbbreviations[upperState]) {
     return stateAbbreviations[upperState];
   }
 
-  // Otherwise, return the original (assuming it's already a full name)
-  return state;
+  // Otherwise, return the trimmed original value.
+  return trimmedState;
 }
 
 /**
