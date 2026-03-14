@@ -161,7 +161,16 @@ export default function AdminUserManagement() {
       <div className="space-y-6">
 
         {/* Promote User Accounts */}
-        <PromoteAccountSettings users={users} />
+        <PromoteAccountSettings
+          users={users}
+          onUserPromoted={(userId, expiresAt) =>
+            setUsers((prev) =>
+              prev.map((u) =>
+                u._id === userId ? { ...u, activePromoExpiry: expiresAt } : u
+              )
+            )
+          }
+        />
 
         {/* Promocode Settings */}
         <PromocodeSettings />

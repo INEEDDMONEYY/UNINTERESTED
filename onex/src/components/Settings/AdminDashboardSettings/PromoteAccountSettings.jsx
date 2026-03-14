@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import confetti from "canvas-confetti";
 import api from "../../../utils/api";
 
-export default function PromoteAccountSettings({ users = [] }) {
+export default function PromoteAccountSettings({ users = [], onUserPromoted }) {
   const [selectedUser, setSelectedUser] = useState("");
   const [promotionDuration, setPromotionDuration] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -56,17 +56,19 @@ export default function PromoteAccountSettings({ users = [] }) {
       const expiresAt = response?.data?.data?.expiresAt;
       const selectedUsername = selectedUserProfile?.username || promotedUser?.username || "User";
 
-      if (promotedUser) {
+      // Use API response if available, otherwise fall back to the locally-known selectedUserProfile
+      const promotedEntry = promotedUser || selectedUserProfile;
+      if (promotedEntry) {
+        const updatedEntry = {
+          ...promotedEntry,
+          activePromoExpiry: expiresAt || promotedUser?.activePromoExpiry,
+        };
         setRecentlyPromoted((prev) => {
-          const cleaned = prev.filter((item) => item?._id !== promotedUser._id);
-          return [
-            {
-              ...promotedUser,
-              activePromoExpiry: expiresAt || promotedUser.activePromoExpiry,
-            },
-            ...cleaned,
-          ];
+          const cleaned = prev.filter((item) => item?._id !== promotedEntry._id);
+          return [updatedEntry, ...cleaned];
         });
+        // Notify parent so its users list stays in sync
+        onUserPromoted?.(promotedEntry._id, expiresAt || promotedUser?.activePromoExpiry);
       }
 
       showConfetti();

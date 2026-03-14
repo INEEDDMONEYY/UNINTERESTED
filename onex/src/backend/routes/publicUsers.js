@@ -11,6 +11,8 @@ const normalizeUsername = (value = '') => String(value).trim().toLowerCase();
 router.get('/promoted', async (req, res) => {
   try {
     const now = new Date();
+
+    // --- Source 1: PromoCode redemptions ---
     const promoCodes = await PromoCode.find({
       isActive: true,
       redemptions: { $elemMatch: { expiresAt: { $gt: now } } },
@@ -33,6 +35,22 @@ router.get('/promoted', async (req, res) => {
       });
     });
 
+    // --- Source 2: Users promoted directly via admin (activePromoExpiry on User doc) ---
+    const directlyPromoted = await User.find({
+      activePromoExpiry: { $gt: now },
+      status: { $ne: 'suspended' },
+    }).select('-password -resetPasswordToken -resetPasswordExpires -email');
+
+    directlyPromoted.forEach((user) => {
+      const key = String(user._id);
+      const expiresAt = new Date(user.activePromoExpiry);
+      const current = expiryByUserId.get(key);
+      if (!current || expiresAt > current) {
+        expiryByUserId.set(key, expiresAt);
+      }
+    });
+
+    // --- Merge: fetch all unique promoted user IDs ---
     const promotedUserIds = [...expiryByUserId.keys()];
     if (promotedUserIds.length === 0) {
       return res.status(200).json({ success: true, data: [] });
