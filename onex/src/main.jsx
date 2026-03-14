@@ -6,7 +6,9 @@ import "./index.css";
 
 import { UserProvider } from "./context/UserContext.jsx";
 import { DevMessageProvider } from "./context/DevMessageContext.jsx";
+import { ServerReadyProvider, useServerReady } from "./context/ServerReadyContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import ServerWarmupScreen from "./components/Loaders/ServerWarmupScreen.jsx";
 
 // Lazy loaded pages
 const App = lazy(() => import("./App.jsx"));
@@ -68,19 +70,29 @@ const router = createBrowserRouter([
   { path: "reviews/:userId", element: <ReviewsPage /> },
 ]);
 
+function AppGate() {
+  const serverReady = useServerReady();
+  if (!serverReady) return <ServerWarmupScreen />;
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center h-screen text-lg">
+          Loading...
+        </div>
+      }
+    >
+      <RouterProvider router={router} />
+    </Suspense>
+  );
+}
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <UserProvider>
       <DevMessageProvider>
-        <Suspense
-          fallback={
-            <div className="flex items-center justify-center h-screen text-lg">
-              Loading...
-            </div>
-          }
-        >
-          <RouterProvider router={router} />
-        </Suspense>
+        <ServerReadyProvider>
+          <AppGate />
+        </ServerReadyProvider>
       </DevMessageProvider>
     </UserProvider>
   </StrictMode>

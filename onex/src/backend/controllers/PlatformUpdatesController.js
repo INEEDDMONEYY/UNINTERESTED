@@ -1,5 +1,7 @@
 // backend/controllers/platformUpdatesController.js
 import PlatformUpdate from "../models/PlatformUpdate.js";
+import User from "../models/User.js";
+import { notifyUsersAboutPlatformUpdate } from "../utils/sendPlatformUpdateEmail.js";
 
 // Create a new update
 export const createUpdate = async (req, res) => {
@@ -12,8 +14,27 @@ export const createUpdate = async (req, res) => {
       type: safeType,
       createdBy: req.user._id, // assume user is authenticated
     });
+
     res.status(201).json(newUpdate);
+
+    const users = await User.find({
+      email: { $exists: true, $ne: "" },
+      status: { $ne: "suspended" },
+    }).select("email username status");
+
+    const notificationResult = await notifyUsersAboutPlatformUpdate({
+      users,
+      update: newUpdate,
+    });
+
+    console.log(
+      `✅ Platform update email job completed. Attempted: ${notificationResult.attempted}, sent: ${notificationResult.sent}, failed: ${notificationResult.failed}`
+    );
   } catch (err) {
+    if (res.headersSent) {
+      console.error("❌ Platform update notification failed:", err.message);
+      return;
+    }
     res.status(500).json({ error: "Failed to create update", details: err.message });
   }
 };

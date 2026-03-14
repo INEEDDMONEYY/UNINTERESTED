@@ -174,6 +174,11 @@ if (fs.existsSync(frontendPath)) {
   });
 }
 
+/* -------------------------- 🏥 Health Check -------------------------------- */
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', ts: Date.now() });
+});
+
 /* ------------------------ ❌ 404 & Global Error Handlers -------------------- */
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });

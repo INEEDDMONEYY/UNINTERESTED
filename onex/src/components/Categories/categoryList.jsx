@@ -2,15 +2,15 @@ export default function CategoryList({ onSelect }) {
   const categories = [
     'Restrictions 🚫',
     'Only AA 🔥',
-    'MM Baddies 💝',
-    'MM Latinas 🏳️',
-    'MM BBW ⛱️',
-    'MM Asians 🌏',
-    'MM LGBQT+ 🌈',
-    'MM 40+ 💘',
-    'MM MILF 💅',
-    'MM Request Pickup/Dropoff 💳',
-    'MM Car Dates 🚘',
+    ' Baddies 💝',
+    ' Latinas 🏳️',
+    ' BBW ⛱️',
+    ' Asians 🌏',
+    ' LGBQT+ 🌈',
+    ' Party N Play 💘',
+    ' MILF 💅',
+    ' Request Pickup/Dropoff 💳',
+    ' Car Dates 🚘',
   ];
 
   return (
