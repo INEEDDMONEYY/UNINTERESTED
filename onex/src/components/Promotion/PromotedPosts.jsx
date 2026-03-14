@@ -73,11 +73,20 @@ function ProfileCard({ profile, isPlaceholder = false }) {
       ? `/profile/${encodeURIComponent(username)}`
       : null;
 
-  const cardClasses = `relative flex h-[238px] w-[210px] flex-shrink-0 flex-col rounded-xl border p-4 text-center transition-all duration-200 sm:h-[248px] ${
+  const cardClasses = `relative z-10 flex h-[238px] w-[210px] flex-shrink-0 flex-col rounded-[11px] p-4 text-center transition-all duration-200 sm:h-[248px] ${
     isPlaceholder
-      ? "bg-pink-50 border-pink-300 shadow-sm"
-      : "bg-white/90 backdrop-blur-sm border-pink-100 shadow-sm hover:shadow-pink-200"
+      ? "bg-gradient-to-br from-pink-50 via-white to-rose-50 shadow-sm"
+      : "bg-gradient-to-br from-pink-50/85 via-white to-rose-50/80 backdrop-blur-sm shadow-sm hover:shadow-pink-200"
   }`;
+
+  const rotatingBorder = (
+    <Motion.span
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 rounded-xl bg-[conic-gradient(from_180deg_at_50%_50%,#f9a8d4_0deg,#fbcfe8_90deg,#fda4af_180deg,#fce7f3_270deg,#f9a8d4_360deg)]"
+      animate={{ rotate: 360 }}
+      transition={{ duration: 10, ease: "linear", repeat: Infinity }}
+    />
+  );
 
   const verifiedBadge = !isPlaceholder ? (
     <span
@@ -131,8 +140,9 @@ function ProfileCard({ profile, isPlaceholder = false }) {
           repeat: Infinity,
           times: [0, 0.72, 0.82, 0.9, 0.96, 1],
         }}
-        className="relative w-[210px] flex-shrink-0"
+        className="relative w-[210px] flex-shrink-0 rounded-xl p-[1px] overflow-hidden"
       >
+        {rotatingBorder}
         {verifiedBadge}
         <Link to={profilePath} className={`${cardClasses} cursor-pointer`}>
           {cardContent}
@@ -154,10 +164,11 @@ function ProfileCard({ profile, isPlaceholder = false }) {
         repeat: Infinity,
         times: [0, 0.72, 0.82, 0.9, 0.96, 1],
       }}
-      className={cardClasses}
+      className="relative w-[210px] flex-shrink-0 rounded-xl p-[1px] overflow-hidden"
     >
+      {rotatingBorder}
       {verifiedBadge}
-      {cardContent}
+      <div className={cardClasses}>{cardContent}</div>
     </Motion.article>
   );
 }

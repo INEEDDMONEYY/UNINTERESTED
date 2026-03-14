@@ -84,6 +84,23 @@ export default function Body() {
   const [visibleCount, setVisibleCount] = useState(15);
   const LOAD_MORE_STEP = 15;
 
+  const getAreaLabel = (selectedLocation) => {
+    if (!selectedLocation) return "your area";
+
+    const city = selectedLocation?.city?.trim();
+    const state = selectedLocation?.state?.trim();
+    const country = selectedLocation?.country?.trim();
+
+    const cityKnown = city && !city.toLowerCase().includes("unknown");
+    const stateKnown = state && !state.toLowerCase().includes("unknown");
+    const countryKnown = country && !country.toLowerCase().includes("unknown");
+
+    if (stateKnown) return state;
+    if (cityKnown) return city;
+    if (countryKnown) return country;
+    return "your area";
+  };
+
   // --------------------------- Fetch Posts ---------------------------
   const fetchPosts = async () => {
     try {
@@ -159,6 +176,7 @@ export default function Body() {
   ;
 
   const filteredUncategorizedPosts = filteredUncategorizedPool.slice(0, visibleCount);
+  const areaLabel = getAreaLabel(location);
 
   // 🐛 Debug logging
   useEffect(() => {
@@ -231,6 +249,15 @@ export default function Body() {
             onQueryChange={setSearchQuery}
           />
         )}
+      </div>
+
+      <div className="mb-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+          Listings in your area
+        </h2>
+        <p className="text-sm text-gray-600 mt-1">
+          Providers near {areaLabel}
+        </p>
       </div>
 
       <div

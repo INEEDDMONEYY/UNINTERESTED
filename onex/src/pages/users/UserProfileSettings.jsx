@@ -8,8 +8,10 @@ import MeetupServiceSettings from "../../components/Settings/UserDashboardSettin
 import RedeemPromoSettings from "../../components/Settings/UserDashboardSettings/RedeemPromoSettings.jsx";
 import UserAvailabilityDisplay from "../../components/UserDisplay/UserAvailabilityDisplay";
 import PhoneNumberSettings from "../../components/Settings/UserDashboardSettings/PhoneNumberSettings.jsx";
+import DeleteAccountSettings from "../../components/Settings/UserDashboardSettings/DeleteAccountSettings.jsx";
+import ReferencesLinks from "../../components/References/ReferencesLinks.jsx";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
-import { DollarSign, Cake, Phone } from "lucide-react";
+import { DollarSign, Cake, Phone, Trash2 } from "lucide-react";
 
 export default function UserProfileSettings({ onProfileUpdate }) {
   const { user } = useContext(UserContext);
@@ -127,6 +129,10 @@ export default function UserProfileSettings({ onProfileUpdate }) {
       {/* ✅ Profile Update */}
       <UpdateProfileSettings onProfileUpdate={onProfileUpdate} user={user} />
 
+      <section className="space-y-3">
+        <ReferencesLinks editable user={user} />
+      </section>
+
       {/* =====================================================================================
           AVAILABILITY SETTINGS — controlled by FEATURE_FLAGS.AVAILABILITY_SETTINGS
          ===================================================================================== */}
@@ -185,6 +191,22 @@ export default function UserProfileSettings({ onProfileUpdate }) {
         <section className="space-y-3">
           <div className="border border-pink-100 rounded-lg p-4 bg-white shadow-sm">
             <RedeemPromoSettings userId={userId} />
+          </div>
+        </section>
+      )}
+
+      {/* =====================================================================================
+    DELETE ACCOUNT SETTINGS — controlled by FEATURE_FLAGS.DELETE_ACCOUNT_SETTINGS
+   ===================================================================================== */}
+      {FEATURE_FLAGS.DELETE_ACCOUNT_SETTINGS && (
+        <section className="space-y-3 pt-6 border-t border-gray-200">
+          <h2 className="flex items-center gap-2 font-medium text-red-600">
+            <Trash2 size={18} className="text-red-600" />
+            Danger Zone
+          </h2>
+
+          <div className="border border-red-200 rounded-lg p-4 bg-white shadow-sm">
+            <DeleteAccountSettings />
           </div>
         </section>
       )}

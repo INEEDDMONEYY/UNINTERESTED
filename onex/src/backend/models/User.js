@@ -44,11 +44,23 @@ const UserSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    socialLinks: {
+      website: { type: String, trim: true, default: "" },
+      instagram: { type: String, trim: true, default: "" },
+      x: { type: String, trim: true, default: "" },
+      onlyfans: { type: String, trim: true, default: "" },
+      youtube: { type: String, trim: true, default: "" },
+    },
     age: {
       type: Number,
       min: 18,
       max: 100,
       default: null,
+    },
+    location: {
+      type: String,
+      trim: true,
+      default: "",
     },
     availability: {
       status: {

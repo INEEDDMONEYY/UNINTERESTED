@@ -19,6 +19,8 @@ export default function UserProfileHeader({
   const [user, setUser] = useState({
     username: "",
     bio: "",
+    age: null,
+    location: "",
     profilePic: null,
     bannerPic: null,
     activePromoExpiry: null,
@@ -27,9 +29,12 @@ export default function UserProfileHeader({
   const [banner, setBanner] = useState(null);
   const [loading, setLoading] = useState(false);
   const [editingBio, setEditingBio] = useState(false);
+  const [editingLocation, setEditingLocation] = useState(false);
   const [bioInput, setBioInput] = useState("");
+  const [locationInput, setLocationInput] = useState("");
   const [savingBanner, setSavingBanner] = useState(false);
   const [savingBio, setSavingBio] = useState(false);
+  const [savingLocation, setSavingLocation] = useState(false);
 
   const fileInputRef = useRef(null);
   const isOwner = Boolean(ctxUser?._id && displayUserId && String(ctxUser._id) === String(displayUserId));
@@ -62,11 +67,14 @@ export default function UserProfileHeader({
       setUser({
         username: profileData.username || "",
         bio: profileData.bio || "",
+        age: profileData.age ?? null,
+        location: profileData.location || "",
         profilePic: profileData.profilePic || null,
         bannerPic: profileData.bannerPic || null,
         activePromoExpiry: profileData.activePromoExpiry || null,
       });
       setBioInput(profileData.bio || "");
+      setLocationInput(profileData.location || "");
       if (profileData.bannerPic) setBanner(profileData.bannerPic);
     };
 
@@ -173,6 +181,28 @@ export default function UserProfileHeader({
       alert(err.message || "Failed to update bio");
     } finally {
       setSavingBio(false);
+    }
+  };
+
+  const handleLocationSave = async () => {
+    if (!isOwner) {
+      alert("You can only update your own location.");
+      return;
+    }
+
+    setSavingLocation(true);
+
+    try {
+      const updatedUser = await updateProfile({ location: locationInput });
+      setUser((prev) => ({
+        ...prev,
+        ...updatedUser,
+      }));
+      setEditingLocation(false);
+    } catch (err) {
+      alert(err.message || "Failed to update location");
+    } finally {
+      setSavingLocation(false);
     }
   };
 
@@ -309,6 +339,63 @@ export default function UserProfileHeader({
 
               </div>
             )}
+
+            <div className="mt-3 space-y-2">
+              {Number.isFinite(Number(user.age)) && Number(user.age) > 0 && (
+                <p className="text-gray-700 text-sm md:text-base">
+                  Age: {user.age}
+                </p>
+              )}
+
+              {!editingLocation ? (
+                <div className="flex items-start gap-2">
+                  <p className="text-gray-700 text-sm md:text-base flex-1">
+                    Location: {user.location || "No location set."}
+                  </p>
+
+                  {isOwner && (
+                    <button
+                      onClick={() => setEditingLocation(true)}
+                      className="text-gray-500 hover:text-pink-600 transition"
+                      aria-label="Edit location"
+                      title="Edit location"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="text"
+                    value={locationInput}
+                    onChange={(e) => setLocationInput(e.target.value)}
+                    className="border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    placeholder="Enter your location"
+                  />
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleLocationSave}
+                      disabled={savingLocation}
+                      className="bg-pink-600 text-white text-xs px-3 py-1 rounded hover:bg-pink-700 transition disabled:opacity-60"
+                    >
+                      {savingLocation ? "Saving..." : "Save"}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setEditingLocation(false);
+                        setLocationInput(user.location || "");
+                      }}
+                      className="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded hover:bg-gray-300 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
           </div>
         </div>

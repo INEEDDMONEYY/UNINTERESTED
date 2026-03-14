@@ -175,6 +175,24 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  const deleteAccount = async () => {
+    try {
+      const currentUserId = user?._id || user?.id;
+      await api.delete("/users/delete-account");
+
+      clearAuthData();
+      if (currentUserId) {
+        localStorage.removeItem(`user_${currentUserId}`);
+        localStorage.removeItem(keyFor("userProfile", currentUserId));
+      }
+
+      setUser(null);
+      return true;
+    } catch (err) {
+      throw new Error(err.response?.data?.error || "Failed to delete account");
+    }
+  };
+
   return (
     <>
       {appToast && (
@@ -199,6 +217,7 @@ export const UserProvider = ({ children }) => {
           logout,
           updateProfile,
           refreshUser,
+          deleteAccount,
           loading,
           error,
         }}

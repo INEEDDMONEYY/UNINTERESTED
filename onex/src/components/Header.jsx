@@ -4,6 +4,18 @@ import { Link } from "react-router-dom";
 
 const HERO_BG = "/mm-hero.png";
 
+const stackMessageForMobile = (message = "", wordsPerLine = 4) => {
+  const words = String(message).trim().split(/\s+/).filter(Boolean);
+  if (words.length <= wordsPerLine) return message;
+
+  const lines = [];
+  for (let i = 0; i < words.length; i += wordsPerLine) {
+    lines.push(words.slice(i, i + wordsPerLine).join(" "));
+  }
+
+  return lines.join("\n");
+};
+
 export default function Header() {
   const { devMessage } = useDevMessage();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -12,6 +24,7 @@ export default function Header() {
   const heroMessage =
     devMessage ||
     "Where imagination meets adventure. Every door opens to something unexpected, and every moment brings you closer to the unknown.";
+  const mobileStackedMessage = stackMessageForMobile(heroMessage, 4);
 
   return (
     <header className="relative flex min-h-[70vh] w-full items-center justify-center px-3 pt-8 pb-12 font-[Jost,sans-serif] sm:min-h-[72vh] sm:px-4 sm:pt-10 sm:pb-16">
@@ -46,7 +59,8 @@ export default function Header() {
         <div className="relative z-[5] mx-auto max-w-[760px] px-4 py-14 text-center sm:px-6 sm:py-24">
 
           <p className="mx-auto mb-7 max-w-[520px] text-[0.9rem] font-light leading-[1.6] text-white/90 drop-shadow sm:mb-9 sm:text-[clamp(0.9rem,1.6vw,1.05rem)] sm:leading-[1.7]">
-            {heroMessage}
+            <span className="whitespace-pre-line sm:hidden">{mobileStackedMessage}</span>
+            <span className="hidden sm:inline">{heroMessage}</span>
           </p>
 
           {!isLoggedIn && (

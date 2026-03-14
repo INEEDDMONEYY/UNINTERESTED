@@ -1,6 +1,7 @@
 import { StrictMode, Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 import "./index.css";
 
@@ -70,19 +71,22 @@ const router = createBrowserRouter([
   { path: "reviews/:userId", element: <ReviewsPage /> },
 ]);
 
-function AppGate() {
+export function AppGate() {
   const serverReady = useServerReady();
   if (!serverReady) return <ServerWarmupScreen />;
   return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center h-screen text-lg">
-          Loading...
-        </div>
-      }
-    >
-      <RouterProvider router={router} />
-    </Suspense>
+    <>
+      <Toaster position="top-right" toastOptions={{ duration: 6000 }} />
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center h-screen text-lg">
+            Loading...
+          </div>
+        }
+      >
+        <RouterProvider router={router} />
+      </Suspense>
+    </>
   );
 }
 

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight, Star, BadgeCheck } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "../../utils/api";
 
@@ -33,27 +33,63 @@ export default function PostCard({ post, onDelete }) {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isOwner = user._id && post.userId?._id === user._id;
 
-  // -------------------- Promo Status --------------------
-  const getPostStatus = () => {
-    if (post.isPromo) {
-      const expiryDate = post.promoExpiresAt
-        ? new Date(post.promoExpiresAt)
-        : null;
-      const now = new Date();
-      if (expiryDate && now < expiryDate) {
-        return { type: "promo", label: "PROMO", color: "bg-blue-500" };
-      } else {
-        return {
-          type: "promo-expired",
-          label: "PROMO EXPIRED",
-          color: "bg-gray-500",
-        };
-      }
-    }
-    return { type: "free", label: "FREE", color: "bg-purple-500" };
+  // -------------------- Promotion Status --------------------
+  const hasActivePromotion = () => {
+    const postExpiry = post?.promoExpiresAt ? new Date(post.promoExpiresAt) : null;
+    const userExpiry = post?.userId?.activePromoExpiry
+      ? new Date(post.userId.activePromoExpiry)
+      : null;
+    const now = Date.now();
+
+    const postPromoActive =
+      post?.isPromo && postExpiry && !Number.isNaN(postExpiry.getTime()) && postExpiry.getTime() > now;
+    const userPromoActive =
+      userExpiry && !Number.isNaN(userExpiry.getTime()) && userExpiry.getTime() > now;
+
+    return Boolean(postPromoActive || userPromoActive);
   };
 
-  const postStatus = getPostStatus();
+  const isPromoted = hasActivePromotion();
+
+  const getPostedAgoLabel = (createdAt) => {
+    if (!createdAt) return "";
+
+    const created = new Date(createdAt);
+    if (Number.isNaN(created.getTime())) return "";
+
+    const diffMs = Date.now() - created.getTime();
+    const minute = 60 * 1000;
+    const hour = 60 * minute;
+    const day = 24 * hour;
+    const week = 7 * day;
+    const month = 30 * day;
+    const year = 365 * day;
+
+    if (diffMs < minute) return "Posted just now";
+    if (diffMs < hour) {
+      const minutes = Math.floor(diffMs / minute);
+      return `Posted ${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+    }
+    if (diffMs < day) {
+      const hours = Math.floor(diffMs / hour);
+      return `Posted ${hours} hour${hours === 1 ? "" : "s"} ago`;
+    }
+    if (diffMs < week) {
+      const days = Math.floor(diffMs / day);
+      return `Posted ${days} day${days === 1 ? "" : "s"} ago`;
+    }
+    if (diffMs < month) {
+      const weeks = Math.floor(diffMs / week);
+      return `Posted ${weeks} week${weeks === 1 ? "" : "s"} ago`;
+    }
+    if (diffMs < year) {
+      const months = Math.floor(diffMs / month);
+      return `Posted ${months} month${months === 1 ? "" : "s"} ago`;
+    }
+
+    const years = Math.floor(diffMs / year);
+    return `Posted ${years} year${years === 1 ? "" : "s"} ago`;
+  };
 
   const prevImage = (e) => {
     e.stopPropagation();
@@ -172,12 +208,30 @@ export default function PostCard({ post, onDelete }) {
         >
           {/* Badges Container */}
           <div className="absolute top-2 left-2 right-2 flex justify-between items-start gap-2 flex-wrap pointer-events-none">
-            {/* Status Badge */}
-            <div
-              className={`${postStatus.color} text-white text-[10px] sm:text-xs md:text-sm font-bold px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 rounded-full shadow-md`}
-            >
-              {postStatus.label}
-            </div>
+            {/* Founding Provider / Promotion Indicator */}
+            {isPromoted ? (
+              <div className="relative inline-flex rounded-full p-[1px] overflow-hidden shadow-md">
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 rounded-full bg-[conic-gradient(from_180deg_at_50%_50%,#86efac_0deg,#4ade80_90deg,#22c55e_180deg,#bbf7d0_270deg,#86efac_360deg)] animate-[spin_8s_linear_infinite]"
+                />
+                <div className="relative inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500/90 via-green-500/90 to-lime-500/90 text-white text-[10px] sm:text-xs md:text-sm font-bold px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 rounded-full backdrop-blur-[1px]">
+                  <Star size={12} className="fill-current" />
+                  <span>Founding Provider</span>
+                </div>
+              </div>
+            ) : (
+              <div
+                className="inline-flex items-center justify-center h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-white/95 ring-1 ring-gray-300 shadow-md"
+                title={isPromoted ? "Promoted profile" : "Not promoted"}
+                aria-label={isPromoted ? "Promoted profile" : "Not promoted"}
+              >
+                <BadgeCheck
+                  size={14}
+                  className={isPromoted ? "text-pink-500" : "text-gray-400"}
+                />
+              </div>
+            )}
 
             {/* Visibility Badge */}
             {post.visibility && (
@@ -227,7 +281,7 @@ export default function PostCard({ post, onDelete }) {
 
           {post.createdAt && (
             <p className="text-gray-400 text-xs mt-1">
-              Posted on {new Date(post.createdAt).toLocaleString()}
+              {getPostedAgoLabel(post.createdAt)}
             </p>
           )}
         </Link>

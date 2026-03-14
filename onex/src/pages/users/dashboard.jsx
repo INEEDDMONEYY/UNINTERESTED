@@ -10,6 +10,9 @@ import {
   Menu,
   X,
   Clock,
+  Sparkles,
+  Link2,
+  ShieldAlert,
 } from "lucide-react";
 
 import UserProfileSettings from "./UserProfileSettings.jsx";
@@ -30,6 +33,7 @@ export default function UserDashboard() {
   const [promoInput, setPromoInput] = useState("");
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoMessage, setPromoMessage] = useState(null);
+  const SHOW_WHATS_NEW_BADGE = true;
 
   const restrictionLabelMap = {
     "no-posting": "Posting disabled",
@@ -143,7 +147,14 @@ export default function UserDashboard() {
             }`}
           >
             <User size={18} />
-            Edit Profile
+            <span className="inline-flex items-center gap-2">
+              Edit Profile
+              {SHOW_WHATS_NEW_BADGE && (
+                <span className="rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.04em] text-pink-700">
+                  New
+                </span>
+              )}
+            </span>
           </button>
 
           {FEATURE_FLAGS.ENABLE_VIEW_ACTIVITY && (
@@ -310,6 +321,43 @@ export default function UserDashboard() {
 
         {activeView === "dashboard" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+
+            <div className="bg-white p-6 rounded-xl shadow border border-pink-200 sm:col-span-2 xl:col-span-3">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <h2 className="text-lg font-semibold inline-flex items-center gap-2">
+                  <Sparkles size={18} className="text-pink-600" />
+                  What's New in Settings
+                </h2>
+                {SHOW_WHATS_NEW_BADGE && (
+                  <span className="rounded-full bg-pink-600 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.05em] text-white">
+                    New
+                  </span>
+                )}
+              </div>
+
+              <ul className="space-y-3 text-sm text-gray-700">
+                <li className="flex items-start gap-2">
+                  <Link2 size={16} className="mt-0.5 text-pink-600" />
+                  <span>
+                    Go to <strong>Edit Profile</strong> and add your <strong>Verified Links</strong> to show references from other platforms.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <ShieldAlert size={16} className="mt-0.5 text-red-600" />
+                  <span>
+                    In <strong>Danger Zone</strong>, you can now delete your account. You'll get a confirmation prompt before deletion is final.
+                  </span>
+                </li>
+              </ul>
+
+              <button
+                type="button"
+                onClick={() => safeSetActiveView("profile")}
+                className="mt-4 inline-flex items-center rounded-md bg-pink-600 px-4 py-2 text-sm font-medium text-white hover:bg-pink-700 transition"
+              >
+                Open Profile Settings
+              </button>
+            </div>
 
             {/* Activate Promo Code — shown only when no promotion is active */}
             {!hasActivePromo && (

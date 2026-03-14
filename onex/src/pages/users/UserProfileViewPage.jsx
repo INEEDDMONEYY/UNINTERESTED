@@ -6,6 +6,7 @@ import UserAvailabilityDisplay from "../../components/UserDisplay/UserAvailabili
 import UserMeetupDisplay from "../../components/UserDisplay/UserMeetupDisplay";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
 import ReviewButton from "../../components/Buttons/reviewButtons/ReviewButton";
+import ReferencesLinks from "../../components/References/ReferencesLinks.jsx";
 
 
 export default function UserProfileViewPage({ userId: propUserId = null, disableActionButtons = false }) {
@@ -87,6 +88,10 @@ export default function UserProfileViewPage({ userId: propUserId = null, disable
         {/* User Info */}
         <section>
           <UserProfileHeader refreshKey={refreshKey} userId={userId} />
+        </section>
+
+        <section>
+          <ReferencesLinks userId={userId} />
         </section>
 
         {/* Availability */}
