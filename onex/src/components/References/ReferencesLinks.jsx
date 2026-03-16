@@ -169,7 +169,7 @@ export default function ReferencesLinks({ userId = null, user = null, editable =
       </div>
 
       <p className="mt-2 text-xs sm:text-sm text-gray-500">
-        Add your external links so viewers can verify your presence across platforms.
+        Check out where else your provider post !
       </p>
 
       {canEdit && isEditing ? (

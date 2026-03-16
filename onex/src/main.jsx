@@ -1,4 +1,4 @@
-import { StrictMode, Suspense, lazy } from "react";
+import { StrictMode, Suspense, lazy, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
@@ -8,6 +8,7 @@ import "./index.css";
 import { UserProvider } from "./context/UserContext.jsx";
 import { DevMessageProvider } from "./context/DevMessageContext.jsx";
 import { ServerReadyProvider, useServerReady } from "./context/ServerReadyContext.jsx";
+import { startAnalyticsTracking } from "./utils/analyticsTracker.js";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import ServerWarmupScreen from "./components/Loaders/ServerWarmupScreen.jsx";
 
@@ -73,6 +74,12 @@ const router = createBrowserRouter([
 
 export function AppGate() {
   const serverReady = useServerReady();
+
+  useEffect(() => {
+    const stop = startAnalyticsTracking();
+    return () => stop();
+  }, []);
+
   if (!serverReady) return <ServerWarmupScreen />;
   return (
     <>

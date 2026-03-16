@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
 import api from "../../utils/api";
 
+const reviewsInFlightByUserId = new Map();
+
 export default function ReviewsPage() {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
@@ -33,7 +35,18 @@ export default function ReviewsPage() {
       try {
         setLoading(true);
         setFetchError("");
-        const { data } = await api.get(`/reviews/${targetUserId}`);
+        let request = reviewsInFlightByUserId.get(targetUserId);
+        if (!request) {
+          request = api
+            .get(`/reviews/${targetUserId}`)
+            .then((res) => res.data)
+            .finally(() => {
+              reviewsInFlightByUserId.delete(targetUserId);
+            });
+          reviewsInFlightByUserId.set(targetUserId, request);
+        }
+
+        const data = await request;
         setReviews(Array.isArray(data?.reviews) ? data.reviews : []);
         setTargetUsername(data?.targetUser?.username || "this user");
       } catch (err) {

@@ -34,6 +34,7 @@ import promoCodeRoutes from './routes/promoCodeRoutes.js';
 import publicSettingsRoutes from './routes/publicSettings.js';
 import publicUsersRoutes from './routes/publicUsers.js';
 import reviewRoutes from './routes/reviewRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 
 // 🛡️ Middleware
 import { authMiddleware, adminOnlyMiddleware } from './middleware/authMiddleware.js';
@@ -126,6 +127,9 @@ app.use('/api/conversations', authMiddleware, conversationRoutes);
 
 /* -------------------------- 📝 Post Routes --------------------------- */
 app.use('/api/posts', postRoutes);
+
+/* -------------------------- 📈 Analytics Tracking --------------------- */
+app.use('/api/analytics', analyticsRoutes);
 
 /* -------------------------- 👤 User Routes ------------------------------- */
 app.use('/api/users', authMiddleware, userRoutes);

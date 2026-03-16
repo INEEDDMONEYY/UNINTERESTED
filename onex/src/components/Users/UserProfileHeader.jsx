@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext, useRef } from "react";
 import { UserContext } from "../../context/UserContext";
-import { Camera, Pencil, CheckCircle2 } from "lucide-react";
+import { Camera, Pencil, CheckCircle2, Star } from "lucide-react";
 import api from "../../utils/api";
 
 /*
@@ -8,7 +8,6 @@ import api from "../../utils/api";
 */
 
 export default function UserProfileHeader({
-  refreshKey = 0,
   propUser = null,
   userId: propUserId = null,
 }) {
@@ -120,7 +119,7 @@ export default function UserProfileHeader({
       });
 
     return () => { cancelled = true; };
-  }, [refreshKey, propUser, displayUserId, ctxUser, isOwner]);
+  }, [propUser, displayUserId, ctxUser, isOwner]);
 
   const handleBannerClick = () => {
     if (!isOwner) return;
@@ -287,6 +286,14 @@ export default function UserProfileHeader({
               className={isPromotedAccount ? "text-pink-500" : "text-gray-400"}
               aria-label={isPromotedAccount ? "Promoted account" : "Standard account"}
             />
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white text-[11px] md:text-xs font-semibold px-2 py-0.5"
+              aria-label="Founding Provider"
+              title="Founding Provider"
+            >
+              <Star size={12} className="fill-current" />
+              Founding Provider
+            </span>
           </h1>
 
           {/* Bio Section */}

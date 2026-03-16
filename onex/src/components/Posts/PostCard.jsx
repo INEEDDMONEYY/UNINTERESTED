@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Trash2, ChevronLeft, ChevronRight, Star, BadgeCheck } from "lucide-react";
+import { Trash2, ChevronLeft, ChevronRight, Star, BadgeCheck, Rocket } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "../../utils/api";
 
@@ -50,6 +50,17 @@ export default function PostCard({ post, onDelete }) {
   };
 
   const isPromoted = hasActivePromotion();
+
+  const hasTrustedAccountAge = () => {
+    const createdAt = post?.userId?.createdAt;
+    if (!createdAt) return false;
+    const createdDate = new Date(createdAt);
+    if (Number.isNaN(createdDate.getTime())) return false;
+    const oneYearMs = 365 * 24 * 60 * 60 * 1000;
+    return Date.now() - createdDate.getTime() >= oneYearMs;
+  };
+
+  const isTrustedProvider = hasTrustedAccountAge();
 
   const getPostedAgoLabel = (createdAt) => {
     if (!createdAt) return "";
@@ -193,6 +204,17 @@ export default function PostCard({ post, onDelete }) {
                   </div>
                 </>
               )}
+
+              <div
+                className="absolute bottom-2 left-2 inline-flex items-center justify-center h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-white/95 ring-1 shadow-md"
+                title={isPromoted ? "Promoted account" : "Not promoted"}
+                aria-label={isPromoted ? "Promoted account" : "Not promoted"}
+              >
+                <BadgeCheck
+                  size={14}
+                  className={isPromoted ? "text-pink-500" : "text-gray-400"}
+                />
+              </div>
             </>
           ) : (
             <div className="w-full h-48 sm:h-40 md:h-52 lg:h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-sm rounded-md">
@@ -209,29 +231,30 @@ export default function PostCard({ post, onDelete }) {
           {/* Badges Container */}
           <div className="absolute top-2 left-2 right-2 flex justify-between items-start gap-2 flex-wrap pointer-events-none">
             {/* Founding Provider / Promotion Indicator */}
-            {isPromoted ? (
-              <div className="relative inline-flex rounded-full p-[1px] overflow-hidden shadow-md">
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 rounded-full bg-[conic-gradient(from_180deg_at_50%_50%,#86efac_0deg,#4ade80_90deg,#22c55e_180deg,#bbf7d0_270deg,#86efac_360deg)] animate-[spin_8s_linear_infinite]"
-                />
-                <div className="relative inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500/90 via-green-500/90 to-lime-500/90 text-white text-[10px] sm:text-xs md:text-sm font-bold px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 rounded-full backdrop-blur-[1px]">
-                  <Star size={12} className="fill-current" />
-                  <span>Founding Provider</span>
+            <div className="inline-flex items-center gap-1 sm:gap-2">
+              {isPromoted ? (
+                <div className="inline-flex items-center gap-1 rounded-full bg-pink-600 text-white text-[10px] sm:text-xs md:text-sm font-semibold px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 shadow-md">
+                  <BadgeCheck size={12} className="text-white" />
+                  <span>Promo</span>
                 </div>
-              </div>
-            ) : (
-              <div
-                className="inline-flex items-center justify-center h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-white/95 ring-1 ring-gray-300 shadow-md"
-                title={isPromoted ? "Promoted profile" : "Not promoted"}
-                aria-label={isPromoted ? "Promoted profile" : "Not promoted"}
-              >
-                <BadgeCheck
-                  size={14}
-                  className={isPromoted ? "text-pink-500" : "text-gray-400"}
-                />
-              </div>
-            )}
+              ) : isTrustedProvider ? (
+                <div className="inline-flex items-center gap-1 rounded-full bg-yellow-400 text-yellow-950 text-[10px] sm:text-xs md:text-sm font-semibold px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 shadow-md ring-1 ring-yellow-300">
+                  <Rocket size={12} className="text-yellow-900" />
+                  <span>Trusted provider</span>
+                </div>
+              ) : (
+                <div className="relative inline-flex rounded-full p-[1px] overflow-hidden shadow-md">
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 rounded-full bg-[conic-gradient(from_180deg_at_50%_50%,#86efac_0deg,#4ade80_90deg,#22c55e_180deg,#bbf7d0_270deg,#86efac_360deg)] animate-[spin_8s_linear_infinite]"
+                  />
+                  <div className="relative inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500/90 via-green-500/90 to-lime-500/90 text-white text-[10px] sm:text-xs md:text-sm font-bold px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 rounded-full backdrop-blur-[1px]">
+                    <Star size={12} className="fill-current" />
+                    <span>Founding Provider</span>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Visibility Badge */}
             {post.visibility && (

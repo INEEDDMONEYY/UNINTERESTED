@@ -2,6 +2,16 @@ import { useState, useEffect } from 'react';
 import api from '../../utils/api';
 import PostCard from './PostCard';
 
+const dedupePostsById = (items = []) => {
+  const seen = new Set();
+  return items.filter((item) => {
+    const id = item?._id;
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+};
+
 export default function PostList({ authorId = "" }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,32 +45,36 @@ export default function PostList({ authorId = "" }) {
           setErrorMessage("Unexpected response format from server.");
           setPosts([]);
           setAuthorUsername("");
-        } else if (normalizedPosts.length === 0) {
-          setErrorMessage("No posts found.");
-          setPosts([]);
-
-          // Still resolve profile name for heading when there are no posts.
-          try {
-            const { data: userData } = await api.get(`/public/users/id/${authorId}`);
-            const fetchedUsername = userData?.username || "";
-            setAuthorUsername(fetchedUsername);
-          } catch {
-            setAuthorUsername("");
-          }
         } else {
-          setPosts(normalizedPosts);
-          setErrorMessage(null);
+          const uniquePosts = dedupePostsById(normalizedPosts);
 
-          const firstPostUsername = normalizedPosts?.[0]?.userId?.username || "";
-          if (firstPostUsername) {
-            setAuthorUsername(firstPostUsername);
-          } else {
+          if (uniquePosts.length === 0) {
+            setErrorMessage("No posts found.");
+            setPosts([]);
+
+            // Still resolve profile name for heading when there are no posts.
             try {
               const { data: userData } = await api.get(`/public/users/id/${authorId}`);
               const fetchedUsername = userData?.username || "";
               setAuthorUsername(fetchedUsername);
             } catch {
               setAuthorUsername("");
+            }
+          } else {
+            setPosts(uniquePosts);
+            setErrorMessage(null);
+
+            const firstPostUsername = uniquePosts?.[0]?.userId?.username || "";
+            if (firstPostUsername) {
+              setAuthorUsername(firstPostUsername);
+            } else {
+              try {
+                const { data: userData } = await api.get(`/public/users/id/${authorId}`);
+                const fetchedUsername = userData?.username || "";
+                setAuthorUsername(fetchedUsername);
+              } catch {
+                setAuthorUsername("");
+              }
             }
           }
         }

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import {
   Users,
   Settings,
-  // BarChart2,
+  BarChart2,
   LogOut,
   Home,
   // Mail,
@@ -16,7 +16,7 @@ import {
   Ticket,
 } from "lucide-react";
 
-// import AdminAnalytics from "./AdminAnalytics";
+import AdminAnalytics from "./AdminAnalytics";
 import AdminSettings from "./AdminSettings";
 // import AdminMessages from "./AdminMessages";
 import AdminUserManagement from "./AdminUserManagement";
@@ -253,12 +253,12 @@ export default function AdminDashboard() {
               view="create-users"
             />
             <SidebarButton icon={Settings} label="Settings" view="settings" />
-            {/*
             <SidebarButton
               icon={BarChart2}
               label="Site Analytics"
               view="analytics"
             />
+            {/*
             <SidebarButton icon={Mail} label="Messages" view="messages" />
             */}
           </nav>
@@ -334,7 +334,11 @@ export default function AdminDashboard() {
           />
         )}
 
-        {/* {activeView === "analytics" && <AdminAnalytics />} */}
+        {activeView === "analytics" && (
+          <div className="bg-white rounded-lg p-6 shadow-md border border-pink-200">
+            <AdminAnalytics embed />
+          </div>
+        )}
 
         {activeView === "dashboard" && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

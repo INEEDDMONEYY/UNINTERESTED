@@ -12,6 +12,16 @@ import PostCard from "../components/Posts/PostCard";
 import { FEATURE_FLAGS } from "../config/featureFlags";
 import { statesMatch } from "../utils/stateNormalizer";
 
+const dedupePostsById = (items = []) => {
+  const seen = new Set();
+  return items.filter((item) => {
+    const id = item?._id;
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+};
+
 const API_BASE =
   import.meta.env.VITE_BACKEND_URL ||
   import.meta.env.VITE_API_BASE ||
@@ -107,7 +117,8 @@ export default function Body() {
       const { data } = await axios.get(
         `${API_BASE}/api/posts`
       );
-      setPosts(Array.isArray(data) ? data : []);
+      const normalized = Array.isArray(data) ? data : [];
+      setPosts(dedupePostsById(normalized));
     } catch (err) {
       console.error("Failed to fetch posts:", err);
       setPosts([]);
@@ -161,7 +172,7 @@ export default function Body() {
   const hasSearchQuery = typeof searchQuery === "string" && searchQuery.trim().length > 0;
   const sourcePosts = hasSearchQuery
     ? Array.isArray(searchResults)
-      ? searchResults
+      ? dedupePostsById(searchResults)
       : []
     : posts;
 
@@ -221,7 +232,7 @@ export default function Body() {
       <Heading />
 
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 mt-4">
-        <h3 className="text-lg font-semibold text-gray-700">Ads</h3>
+        <h3 className="text-lg font-semibold text-gray-700">New listings daily</h3>
         <LocationSet onLocationChange={setLocation} />
         {isLoggedIn && (
           <div className="post-btn-div">

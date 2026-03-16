@@ -32,7 +32,6 @@ export default function UserProfileViewPage({ userId: propUserId = null, disable
   const [availability, setAvailability] = useState({ status: "" });
   const [incallPrice, setIncallPrice] = useState("");
   const [outcallPrice, setOutcallPrice] = useState("");
-  const [refreshKey, setRefreshKey] = useState(0);
 
   // Hydrate state from localStorage when userId changes
   useEffect(() => {
@@ -56,7 +55,6 @@ export default function UserProfileViewPage({ userId: propUserId = null, disable
   useEffect(() => {
     try {
       localStorage.setItem(availabilityKey, JSON.stringify(availability));
-      setRefreshKey(prev => prev + 1);
     } catch {
       // Ignore localStorage write failures (quota/private mode).
     }
@@ -66,7 +64,6 @@ export default function UserProfileViewPage({ userId: propUserId = null, disable
   useEffect(() => {
     try {
       localStorage.setItem(incallKey, incallPrice ?? "");
-      setRefreshKey(prev => prev + 1);
     } catch {
       // Ignore localStorage write failures (quota/private mode).
     }
@@ -76,7 +73,6 @@ export default function UserProfileViewPage({ userId: propUserId = null, disable
   useEffect(() => {
     try {
       localStorage.setItem(outcallKey, outcallPrice ?? "");
-      setRefreshKey(prev => prev + 1);
     } catch {
       // Ignore localStorage write failures (quota/private mode).
     }
@@ -87,7 +83,7 @@ export default function UserProfileViewPage({ userId: propUserId = null, disable
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12 pb-36 sm:pb-10">
         {/* User Info */}
         <section>
-          <UserProfileHeader refreshKey={refreshKey} userId={userId} />
+          <UserProfileHeader userId={userId} />
         </section>
 
         <section>

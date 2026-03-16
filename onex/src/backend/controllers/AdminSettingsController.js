@@ -7,6 +7,9 @@ import bcrypt from "bcrypt";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import { getAdminAnalytics } from "./adminAnalyticsController.js";
+
+export { getAdminAnalytics };
 
 /* --------------------------- 📊 Get Admin Stats --------------------------- */
 export const getStats = async (req, res) => {

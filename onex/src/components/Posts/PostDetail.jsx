@@ -1,7 +1,7 @@
 // 📦 External Libraries
 import { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, Star, Rocket } from "lucide-react";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
 import api from "../../utils/api";
 import { UserContext } from "../../context/UserContext";
@@ -10,6 +10,8 @@ import { UserContext } from "../../context/UserContext";
 import PostDetailLoader from "../Loaders/PostDetailLoader";
 import UserAvailabilityDisplay from "../UserDisplay/UserAvailabilityDisplay";
 import UserMeetupDisplay from "../UserDisplay/UserMeetupDisplay";
+
+const postRequestCache = new Map();
 
 const formatPhoneNumber = (value = "") => {
   const digits = String(value).replace(/\D/g, "").slice(0, 10);
@@ -72,9 +74,6 @@ export default function PostDetail() {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
-  const [availability, setAvailability] = useState({ status: "" });
-  const [incallPrice, setIncallPrice] = useState("");
-  const [outcallPrice, setOutcallPrice] = useState("");
   const mediaItems = [
     ...(Array.isArray(post?.pictures)
       ? post.pictures.map((url) => ({ type: "image", url }))
@@ -94,49 +93,69 @@ export default function PostDetail() {
     ? formatPhoneNumber(effectiveUser.phoneNumber)
     : "";
   const isPromotedUser = hasActivePromotion(effectiveUser?.activePromoExpiry);
+  const hasTrustedAccountAge = () => {
+    const createdAt = effectiveUser?.createdAt;
+    if (!createdAt) return false;
+    const createdDate = new Date(createdAt);
+    if (Number.isNaN(createdDate.getTime())) return false;
+    const oneYearMs = 365 * 24 * 60 * 60 * 1000;
+    return Date.now() - createdDate.getTime() >= oneYearMs;
+  };
+  const isTrustedProvider = hasTrustedAccountAge();
+  const availability = effectiveUser?.availability || { status: "" };
+  const incallPrice = effectiveUser?.incallPrice || "";
+  const outcallPrice = effectiveUser?.outcallPrice || "";
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchPost = async () => {
       try {
         setFetchError("");
-        const { data } = await api.get(`/posts/${postId}`);
+        let request = postRequestCache.get(postId);
+        if (!request) {
+          request = api
+            .get(`/posts/${postId}`)
+            .then((res) => res.data)
+            .finally(() => {
+              postRequestCache.delete(postId);
+            });
+          postRequestCache.set(postId, request);
+        }
 
-        console.log("✅ Post fetched:", data); // Debug log
-
-        setPost(data);
-
-        // Set availability from populated user profile
-        const fetchedOwnerId = data.userId?._id || data.userId?.id || "";
-        const loggedInUserId = currentUser?._id || currentUser?.id || "";
-        const detailUser = fetchedOwnerId && loggedInUserId && fetchedOwnerId === loggedInUserId
-          ? { ...data.userId, ...currentUser }
-          : data.userId;
-
-        setAvailability(detailUser?.availability || { status: "" });
-
-        // Set meetup prices from populated user profile
-        setIncallPrice(detailUser?.incallPrice || "");
-        setOutcallPrice(detailUser?.outcallPrice || "");
+        const data = await request;
+        if (!cancelled) {
+          setPost(data);
+        }
       } catch (err) {
         console.error("Failed to fetch post:", err);
-        console.error("Error response:", err.response?.data); // Debug log
-        setPost(null);
+        if (!cancelled) {
+          setPost(null);
+        }
         const status = err?.response?.status;
         const backendMessage = err?.response?.data?.error;
-        if (!status) {
-          setFetchError("Unable to reach the server. Please check your connection or deployment API URL.");
-        } else if (status === 404) {
-          setFetchError("This post could not be found. It may have been deleted or the link is invalid.");
-        } else {
-          setFetchError(backendMessage || `Failed to load post details (HTTP ${status}).`);
+        if (!cancelled) {
+          if (!status) {
+            setFetchError("Unable to reach the server. Please check your connection or deployment API URL.");
+          } else if (status === 404) {
+            setFetchError("This post could not be found. It may have been deleted or the link is invalid.");
+          } else {
+            setFetchError(backendMessage || `Failed to load post details (HTTP ${status}).`);
+          }
         }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     fetchPost();
-  }, [postId, currentUser]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [postId]);
 
   if (loading) return <PostDetailLoader />;
   if (!post) {
@@ -150,13 +169,44 @@ export default function PostDetail() {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10 bg-white rounded-xl shadow-md m-5 relative">
-      <span
-        className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm ring-1 ring-gray-200"
-        aria-label={isPromotedUser ? "Promoted user" : "Standard user"}
-        title={isPromotedUser ? "Promoted user" : "Standard user"}
-      >
-        <BadgeCheck className={isPromotedUser ? "text-pink-500" : "text-gray-400"} size={20} />
-      </span>
+      <div className="absolute right-4 top-4 inline-flex items-center gap-1 sm:gap-2">
+        {isPromotedUser ? (
+          <span
+            className="inline-flex items-center gap-1 rounded-full bg-pink-600 text-white text-xs font-semibold px-2.5 py-1 shadow-sm"
+            aria-label="Promoted user"
+            title="Promoted user"
+          >
+            <BadgeCheck size={14} className="text-white" />
+            Promo
+          </span>
+        ) : isTrustedProvider ? (
+          <span
+            className="inline-flex items-center gap-1 rounded-full bg-yellow-400 text-yellow-950 text-xs font-semibold px-2.5 py-1 shadow-sm ring-1 ring-yellow-300"
+            aria-label="Trusted provider"
+            title="Trusted provider"
+          >
+            <Rocket size={14} className="text-yellow-900" />
+            Trusted provider
+          </span>
+        ) : (
+          <span
+            className="inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white text-xs font-semibold px-2.5 py-1 shadow-sm"
+            aria-label="Founding Provider"
+            title="Founding Provider"
+          >
+            <Star size={14} className="fill-current" />
+            Founding Provider
+          </span>
+        )}
+
+        <span
+          className="inline-flex items-center justify-center h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white/95 ring-1 ring-gray-300 shadow-sm"
+          aria-label={isPromotedUser ? "Promoted account" : "Not promoted"}
+          title={isPromotedUser ? "Promoted account" : "Not promoted"}
+        >
+          <BadgeCheck size={16} className={isPromotedUser ? "text-pink-500" : "text-gray-400"} />
+        </span>
+      </div>
 
       {/* 🖼️ Post Images Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">

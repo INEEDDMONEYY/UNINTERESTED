@@ -13,6 +13,8 @@ import {
   Sparkles,
   Link2,
   ShieldAlert,
+  CheckCircle2,
+  Circle,
 } from "lucide-react";
 
 import UserProfileSettings from "./UserProfileSettings.jsx";
@@ -34,6 +36,25 @@ export default function UserDashboard() {
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoMessage, setPromoMessage] = useState(null);
   const SHOW_WHATS_NEW_BADGE = true;
+
+  const setupChecklist = [
+    {
+      key: "profilePic",
+      label: "Profile picture",
+      complete: Boolean(user?.profilePic),
+    },
+    {
+      key: "age",
+      label: "Age",
+      complete: Number.isFinite(Number(user?.age)) && Number(user?.age) > 0,
+    },
+    {
+      key: "bio",
+      label: "Bio",
+      complete: Boolean(user?.bio?.trim()),
+    },
+  ];
+  const completedSetupSteps = setupChecklist.filter((step) => step.complete).length;
 
   const restrictionLabelMap = {
     "no-posting": "Posting disabled",
@@ -321,6 +342,67 @@ export default function UserDashboard() {
 
         {activeView === "dashboard" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+
+            <div className="bg-gradient-to-br from-pink-50 via-white to-yellow-50 p-6 rounded-xl shadow border border-pink-200 sm:col-span-2 xl:col-span-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <h2 className="text-lg font-semibold inline-flex items-center gap-2">
+                  <Sparkles size={18} className="text-pink-600" />
+                  Promotion Setup Steps
+                </h2>
+                <span className="rounded-full bg-pink-600 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.05em] text-white">
+                  Highlight
+                </span>
+              </div>
+
+              <p className="text-sm text-gray-700 mb-3">
+                Redeeming a valid promo code will place your account in the promoted accounts section while the code is active.
+              </p>
+
+              <ol className="list-decimal pl-5 space-y-2 text-sm text-gray-700 mb-4">
+                <li>Complete your profile basics before activating a promo code.</li>
+                <li>Redeem your promo code in the Activate Promo Code card.</li>
+                <li>Confirm your countdown appears to verify your promoted status is live.</li>
+              </ol>
+
+              <div className="rounded-lg border border-pink-100 bg-white p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <p className="text-sm font-semibold text-gray-800">Account readiness</p>
+                  <span className="text-xs font-medium text-gray-600">
+                    {completedSetupSteps}/{setupChecklist.length} complete
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {setupChecklist.map((step) => (
+                    <div
+                      key={step.key}
+                      className={`rounded-md border px-3 py-2 text-sm inline-flex items-center gap-2 ${
+                        step.complete
+                          ? "border-green-200 bg-green-50 text-green-800"
+                          : "border-gray-200 bg-gray-50 text-gray-700"
+                      }`}
+                    >
+                      {step.complete ? (
+                        <CheckCircle2 size={16} className="text-green-600" />
+                      ) : (
+                        <Circle size={16} className="text-gray-400" />
+                      )}
+                      {step.label}
+                    </div>
+                  ))}
+                </div>
+
+                {completedSetupSteps < setupChecklist.length ? (
+                  <p className="mt-3 text-xs text-amber-700">
+                    Tip: Finish all items above for the best first impression when your promotion goes live.
+                  </p>
+                ) : (
+                  <p className="mt-3 text-xs text-green-700">
+                    Looks great. Your account is ready for promotion.
+                  </p>
+                )}
+              </div>
+            </div>
 
             <div className="bg-white p-6 rounded-xl shadow border border-pink-200 sm:col-span-2 xl:col-span-3">
               <div className="flex items-center justify-between gap-3 mb-3">
