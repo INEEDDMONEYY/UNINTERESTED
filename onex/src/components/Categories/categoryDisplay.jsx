@@ -6,6 +6,10 @@ import PostCard from "../Posts/PostCard";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
 import { statesMatch } from "../../utils/stateNormalizer";
 
+// Strip punctuation and normalize whitespace so inputs like ".Great falls." match "Great Falls"
+const sanitizeLocation = (str) =>
+  (str || "").replace(/[^a-z0-9\s]/gi, " ").replace(/\s+/g, " ").trim().toLowerCase();
+
 export default function CategoryDisplay({ selectedCategory, users = [], posts = [], location = null }) {
   const { categoryName } = useParams();
   const category = selectedCategory || categoryName;
@@ -47,8 +51,16 @@ export default function CategoryDisplay({ selectedCategory, users = [], posts = 
     const hasState = !!locationState && !locationState.toLowerCase().includes("unknown");
     const hasCountry = !!locationCountry;
 
-    const cityMatch = hasCity && post.city?.trim()?.toLowerCase() === locationCity;
-    const stateMatch = hasState && statesMatch(post.state, locationState);
+    // Support multi-city posts and sanitize punctuation (e.g. ".Great falls." → "great falls")
+    const postCities = (post.city || "").split(",").map(sanitizeLocation).filter(Boolean);
+    const cityMatch = hasCity && postCities.some((c) => c === sanitizeLocation(locationCity));
+    // Sanitize stored state value to handle trailing commas/punctuation (e.g. "Montana,")
+    const postState = (post.state || "").replace(/[^a-z0-9\s]/gi, " ").replace(/\s+/g, " ").trim();
+    // Also check if state was typed into the city field (e.g. city="Great falls, Montana," state="")
+    const stateFromCityParts = !postState
+      ? postCities.find((part) => statesMatch(part, locationState))
+      : null;
+    const stateMatch = hasState && (statesMatch(postState, locationState) || !!stateFromCityParts);
     const countryMatch = hasCountry && post.country?.trim()?.toLowerCase() === locationCountry;
 
     if (!hasCity && !hasState && !hasCountry) return true;

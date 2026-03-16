@@ -291,7 +291,7 @@ export default function PostCard({ post, onDelete }) {
           </h4>
 
           <div className="overflow-hidden">
-            <p className="text-sm sm:text-base text-gray-700 mt-2 break-words">
+            <p className="text-sm sm:text-base text-gray-700 mt-2 break-words line-clamp-3">
               {post.description || "No description provided."}
             </p>
           </div>

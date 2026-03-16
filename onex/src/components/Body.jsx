@@ -12,6 +12,10 @@ import PostCard from "../components/Posts/PostCard";
 import { FEATURE_FLAGS } from "../config/featureFlags";
 import { statesMatch } from "../utils/stateNormalizer";
 
+// Strip punctuation and normalize whitespace so inputs like ".Great falls." match "Great Falls"
+const sanitizeLocation = (str) =>
+  (str || "").replace(/[^a-z0-9\s]/gi, " ").replace(/\s+/g, " ").trim().toLowerCase();
+
 const dedupePostsById = (items = []) => {
   const seen = new Set();
   return items.filter((item) => {
@@ -160,8 +164,16 @@ export default function Body() {
     const hasState = !!locationState && !locationState.toLowerCase().includes("unknown");
     const hasCountry = !!locationCountry;
 
-    const cityMatch = hasCity && post.city?.trim()?.toLowerCase() === locationCity;
-    const stateMatch = hasState && statesMatch(post.state, locationState);
+    // Support multi-city posts and sanitize punctuation (e.g. ".Great falls." → "great falls")
+    const postCities = (post.city || "").split(",").map(sanitizeLocation).filter(Boolean);
+    const cityMatch = hasCity && postCities.some((c) => c === sanitizeLocation(locationCity));
+    // Sanitize stored state value to handle trailing commas/punctuation (e.g. "Montana,")
+    const postState = (post.state || "").replace(/[^a-z0-9\s]/gi, " ").replace(/\s+/g, " ").trim();
+    // Also check if the state was accidentally typed inside the city field (e.g. city="Great falls, Montana," state="")
+    const stateFromCityParts = !postState
+      ? postCities.find((part) => statesMatch(part, locationState))
+      : null;
+    const stateMatch = hasState && (statesMatch(postState, locationState) || !!stateFromCityParts);
     const countryMatch =
       hasCountry && post.country?.trim()?.toLowerCase() === locationCountry;
 
@@ -178,11 +190,9 @@ export default function Body() {
 
   const filteredUncategorizedPool = sourcePosts
     .filter((post) => {
-      const categoryValue = post.category?.trim()?.toLowerCase() || "";
-      const hasNoCategory = !categoryValue || categoryValue === "uncategorized";
+      // Show all posts regardless of category — categorized posts still appear in the location feed
       const matchesLocation = hasSearchQuery ? true : locationMatchesPost(post, location);
-      const matchesCategory = hasSearchQuery ? true : hasNoCategory;
-      return matchesCategory && matchesLocation;
+      return matchesLocation;
     })
   ;
 

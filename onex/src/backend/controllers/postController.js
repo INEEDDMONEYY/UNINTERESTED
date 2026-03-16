@@ -75,7 +75,7 @@ export async function createPost(req, res) {
 
     const populatedPost = await Post.findById(savedPost._id).populate({
       path: 'userId',
-      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry',
+      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry createdAt',
     });
 
     res.status(201).json(populatedPost);
@@ -98,7 +98,7 @@ export async function getPosts(req, res) {
 
     const posts = await Post.find(filter)
       .sort({ createdAt: -1 })
-      .populate({ path: 'userId', select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry' });
+      .populate({ path: 'userId', select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry createdAt' });
 
     res.json(posts);
   } catch (err) {
@@ -112,7 +112,7 @@ export async function getPostById(req, res) {
   try {
     const post = await Post.findById(req.params.id).populate({
       path: 'userId',
-      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry',
+      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry createdAt',
     });
 
     if (!post) return res.status(404).json({ error: 'Post not found' });

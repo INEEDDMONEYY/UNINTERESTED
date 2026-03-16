@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import PostCard from "./PostCard";
 import EmptyCategoryLoader from "../Loaders/EmptyCategoryLoader";
+import { statesMatch } from "../../utils/stateNormalizer";
+
+// Strip punctuation and normalize whitespace so inputs like ".Great falls." match "Great Falls"
+const sanitizeLocation = (str) =>
+  (str || "").replace(/[^a-z0-9\s]/gi, " ").replace(/\s+/g, " ").trim().toLowerCase();
 
 export default function FilteredPosts({
   posts = [],
@@ -60,11 +65,21 @@ export default function FilteredPosts({
   // ------------------ Filter posts by location, category ------------------
   const filteredPosts = sortPostsByPriority(visiblePosts)
     .filter((post) => {
-      // ✅ Safe optional chaining for location filter
+      // Support multi-city posts (e.g. "NYC, Brooklyn") and punctuation-heavy input (e.g. ".Great falls.")
+      const postCities = (post.city || "").split(",").map(sanitizeLocation).filter(Boolean);
+      const filterCity = sanitizeLocation(location?.city);
+      const cityMatch = filterCity ? postCities.some((c) => c === filterCity) : false;
+      // Sanitize stored state value to handle trailing commas/punctuation (e.g. "Montana,")
+      const postState = (post.state || "").replace(/[^a-z0-9\s]/gi, " ").replace(/\s+/g, " ").trim();
+      // Also check if state was typed into the city field (e.g. city="Great falls, Montana," state="")
+      const stateFromCityParts = !postState
+        ? postCities.find((part) => statesMatch(part, location?.state))
+        : null;
       const matchesLocation =
         !location ||
-        post.city?.toLowerCase() === location.city?.toLowerCase() ||
-        post.state?.toLowerCase() === location.state?.toLowerCase();
+        cityMatch ||
+        statesMatch(postState, location.state) ||
+        !!stateFromCityParts;
 
       // ✅ Safe optional chaining for category filter
       const matchesCategory =

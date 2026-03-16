@@ -75,7 +75,9 @@ const stateAbbreviations = {
 export function normalizeState(state) {
   if (!state) return state;
 
-  const trimmedState = String(state).trim();
+  // Strip punctuation/symbols (e.g. trailing commas, dots) before normalizing
+  const cleaned = String(state).replace(/[^a-z0-9\s]/gi, " ").replace(/\s+/g, " ").trim();
+  const trimmedState = cleaned;
   const upperState = trimmedState.toUpperCase();
 
   // If it's an abbreviation, return the full name
