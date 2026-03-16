@@ -21,6 +21,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
     country: "",
     category: "",
     pictures: [],
+    videos: [],
     visibility: "",
     promoCode: "",
   });
@@ -62,7 +63,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files && files.length > 0) {
-      // handle file uploads
+      // handle file uploads from the device library
       setFormData((prev) => ({ ...prev, [name]: Array.from(files) }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
@@ -113,7 +114,9 @@ export default function PostForm({ onSuccess, embedded = false }) {
       Object.entries(payload).forEach(([key, value]) => {
         if (value !== null) {
           if (key === "pictures") {
-            value.forEach((file) => fd.append("pictures", file)); // MUST match multer field name
+            value.forEach((file) => fd.append("pictures", file));
+          } else if (key === "videos") {
+            value.forEach((file) => fd.append("videos", file));
           } else if (key === "promoCode") {
             // promo code is handled by redeem endpoint and is not part of post payload
           } else {
@@ -147,6 +150,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
         country: "",
         category: "",
         pictures: [],
+        videos: [],
         visibility: "",
         promoCode: "",
       });
@@ -263,11 +267,24 @@ export default function PostForm({ onSuccess, embedded = false }) {
         <input
           type="file"
           name="pictures"
-          accept="image/*,video/*"
+          accept="image/*"
           multiple
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg text-sm sm:text-base md:text-lg"
         />
+
+        <input
+          type="file"
+          name="videos"
+          accept="video/*"
+          multiple
+          onChange={handleChange}
+          className="w-full border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg text-sm sm:text-base md:text-lg"
+        />
+
+        <p className="text-xs sm:text-sm text-gray-500 -mt-1">
+          Upload saved videos directly from your device library. Recording a new video is optional.
+        </p>
 
         <select
           name="visibility"
@@ -297,12 +314,12 @@ export default function PostForm({ onSuccess, embedded = false }) {
           </span>
         </label>
 
-        <p className="text-xs sm:text-sm text-gray-600">
-          for extra exposure on the platfrom you will have to pay
+        <p className="mx-auto max-w-xs px-2 text-center text-xs leading-relaxed text-gray-600 sm:max-w-sm sm:px-0 sm:text-sm">
+          For extra exposure on the platform, you will be required to pay.
         </p>
 
         {hasActivePromo && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-center">
+          <div className="mx-auto inline-flex items-center rounded-md border border-green-300 bg-green-50 px-2.5 py-1 text-[11px] sm:text-xs font-medium text-green-700">
             ✓ Promo Post Activated
           </div>
         )}

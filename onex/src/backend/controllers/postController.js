@@ -23,9 +23,16 @@ export async function createPost(req, res) {
     let imageUrls = [];
     let videoUrls = [];
 
+    const uploadedFiles = Array.isArray(req.files)
+      ? req.files
+      : [
+          ...(Array.isArray(req.files?.pictures) ? req.files.pictures : []),
+          ...(Array.isArray(req.files?.videos) ? req.files.videos : []),
+        ];
+
     // Upload files to Cloudinary and split by media type.
-    if (req.files && req.files.length > 0) {
-      const uploadPromises = req.files.map((file) =>
+    if (uploadedFiles.length > 0) {
+      const uploadPromises = uploadedFiles.map((file) =>
         new Promise((resolve, reject) => {
           const isVideo = file.mimetype?.startsWith('video/');
           const stream = cloudinary.uploader.upload_stream(

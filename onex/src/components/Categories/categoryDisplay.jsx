@@ -55,8 +55,49 @@ export default function CategoryDisplay({ selectedCategory, users = [], posts = 
     return cityMatch || stateMatch || countryMatch;
   };
 
+  // Sort: promoted first, founding provider second
+  const sortPostsByPriority = (arr) =>
+    [...arr].sort((a, b) => {
+      const now = Date.now();
+
+      const hasActivePromotion = (post) => {
+        const postExpiry = post?.promoExpiresAt ? new Date(post.promoExpiresAt) : null;
+        const userExpiry = post?.userId?.activePromoExpiry
+          ? new Date(post.userId.activePromoExpiry)
+          : null;
+
+        const postPromoActive =
+          post?.isPromo && postExpiry && !Number.isNaN(postExpiry.getTime()) && postExpiry.getTime() > now;
+        const userPromoActive =
+          userExpiry && !Number.isNaN(userExpiry.getTime()) && userExpiry.getTime() > now;
+
+        return Boolean(postPromoActive || userPromoActive);
+      };
+
+      const isFoundingProvider = (post) => {
+        if (hasActivePromotion(post)) return false;
+
+        const createdAt = post?.userId?.createdAt;
+        if (!createdAt) return false;
+
+        const createdDate = new Date(createdAt);
+        if (Number.isNaN(createdDate.getTime())) return false;
+
+        const oneYearMs = 365 * 24 * 60 * 60 * 1000;
+        return now - createdDate.getTime() < oneYearMs;
+      };
+
+      const getPriority = (post) => {
+        if (hasActivePromotion(post)) return 0;
+        if (isFoundingProvider(post)) return 1;
+        return 2;
+      };
+
+      return getPriority(a) - getPriority(b);
+    });
+
   // Filter posts by category, location, and optionally user
-  const categoryPosts = visiblePosts.filter((post) => {
+  const categoryPosts = sortPostsByPriority(visiblePosts).filter((post) => {
     const matchesCategory = post.category?.trim().toLowerCase() === category?.trim().toLowerCase();
     const matchesLocation = locationMatchesPost(post);
     const matchesUser = selectedUser ? post.userId?.username === selectedUser : true;

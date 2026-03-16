@@ -23,7 +23,10 @@ router.post(
   '/',
   authMiddleware,
   enforceRestriction('post:create'),
-  upload.array('pictures', 5), // field name must match frontend
+  upload.fields([
+    { name: 'pictures', maxCount: 5 },
+    { name: 'videos', maxCount: 5 },
+  ]),
   postController.createPost
 );
 

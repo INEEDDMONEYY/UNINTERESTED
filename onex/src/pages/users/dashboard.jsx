@@ -360,8 +360,9 @@ export default function UserDashboard() {
 
               <ol className="list-decimal pl-5 space-y-2 text-sm text-gray-700 mb-4">
                 <li>Complete your profile basics before activating a promo code.</li>
-                <li>Redeem your promo code in the Activate Promo Code card.</li>
-                <li>Confirm your countdown appears to verify your promoted status is live.</li>
+                <li>Redeem your promo code in the 'Edit profile settings', there will be a section for you to redeem code. You can also redeem it when posting.</li>
+                <li>Upon confirmation, a countdown appears to verify your promoted status is live and how long it will be live for you and users of the platform before it is deleted.</li>
+                <li>Check homepage upon completion to see your promoted status in action.</li>
               </ol>
 
               <div className="rounded-lg border border-pink-100 bg-white p-4">
@@ -422,6 +423,12 @@ export default function UserDashboard() {
                   <Link2 size={16} className="mt-0.5 text-pink-600" />
                   <span>
                     Go to <strong>Edit Profile</strong> and add your <strong>Verified Links</strong> to show references from other platforms.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="mt-0.5 text-green-600" />
+                  <span>
+                    When creating a post, you can now upload <strong>saved videos directly from your device library</strong>. Recording a new video is no longer required.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -504,6 +511,9 @@ export default function UserDashboard() {
                 </li>
                 <li>
                   Active promo codes always display in your dashboard while live, including the countdown timer.
+                </li>
+                <li>
+                  New feature: you can upload saved videos from your phone or device archive when creating a post, so you do not need to record one live.
                 </li>
                 <li>
                   Add clear photos/videos and a complete description to improve trust and visibility.

@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { Ticket, Gift } from "lucide-react";
+import { Ticket, Gift, Sparkles, BadgeCheck, Rocket, Star } from "lucide-react";
 import { UserContext } from "../../../context/UserContext";
 import api from "../../../utils/api";
 import confetti from "canvas-confetti";
@@ -87,18 +87,53 @@ export default function RedeemPromoSettings() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
 
-      {/* Header */}
+      {/* ── Animated motivational banner ── */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-pink-600 via-fuchsia-600 to-yellow-500 p-[2px]">
+        {/* spinning conic shimmer ring */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-xl bg-[conic-gradient(from_0deg,transparent_60%,rgba(255,255,255,0.35)_80%,transparent_100%)] animate-[spin_3s_linear_infinite]"
+        />
+        <div className="relative rounded-[10px] bg-gradient-to-br from-pink-700 via-fuchsia-700 to-yellow-600 px-5 py-4 text-white">
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles size={18} className="animate-bounce text-yellow-300" />
+            <span className="text-sm font-bold uppercase tracking-widest text-yellow-200">
+              Exclusive Offer
+            </span>
+          </div>
+          <p className="text-base font-extrabold leading-snug">
+            Redeem your code and get featured
+          </p>
+          <p className="text-xs text-pink-200 mt-1">
+            Your profile will appear in the promoted accounts section while the code is active.
+          </p>
+        </div>
+      </div>
+
+      {/* ── Benefit pills ── */}
+      <div className="flex flex-wrap gap-2">
+        {[
+          { icon: <BadgeCheck size={13} className="text-pink-500" />, label: "Promoted badge on every post" },
+          { icon: <Rocket size={13} className="text-yellow-500" />, label: "Top placement in the feed" },
+          { icon: <Star size={13} className="text-emerald-500" />, label: "Visible to all visitors" },
+        ].map(({ icon, label }) => (
+          <span
+            key={label}
+            className="inline-flex items-center gap-1.5 rounded-full border border-pink-100 bg-pink-50 px-3 py-1 text-xs font-medium text-pink-800 animate-pulse"
+          >
+            {icon}
+            {label}
+          </span>
+        ))}
+      </div>
+
+      {/* ── Header ── */}
       <div className="flex items-center gap-2 text-gray-700 font-medium">
         <Ticket size={18} className="text-pink-600" />
         <span>Redeem Promo Code</span>
       </div>
-
-      {/* Description */}
-      <p className="text-sm text-gray-500">
-        Enter your promo code below to redeem special offers or bonuses.
-      </p>
 
       {user?.username && (
         <p className="text-xs text-gray-400">
@@ -110,7 +145,7 @@ export default function RedeemPromoSettings() {
         <p className="text-sm text-gray-700">{statusMessage}</p>
       )}
 
-      {/* Form */}
+      {/* ── Form ── */}
       <form
         onSubmit={handleRedeem}
         className="flex flex-col sm:flex-row gap-3"
@@ -120,17 +155,21 @@ export default function RedeemPromoSettings() {
           value={promoCode}
           onChange={(e) => setPromoCode(e.target.value)}
           placeholder="Enter promo code"
-          className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+          className="flex-1 border border-pink-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500 transition"
         />
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="flex items-center justify-center gap-2 bg-pink-600 text-white px-4 py-2 rounded-md hover:bg-pink-700 active:scale-95 transition"
-        >
-          <Gift size={16} />
-          {submitting ? "Redeeming..." : "Redeem"}
-        </button>
+        {/* Pulsing glow wrapper */}
+        <span className="relative inline-flex rounded-md">
+          <span className="absolute inset-0 rounded-md bg-pink-500 opacity-60 animate-ping" />
+          <button
+            type="submit"
+            disabled={submitting}
+            className="relative flex items-center justify-center gap-2 bg-pink-600 text-white px-5 py-2 rounded-md hover:bg-pink-700 active:scale-95 transition font-semibold disabled:opacity-60"
+          >
+            <Gift size={16} />
+            {submitting ? "Redeeming..." : "Redeem Now"}
+          </button>
+        </span>
       </form>
 
     </div>
