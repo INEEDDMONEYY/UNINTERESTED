@@ -224,16 +224,12 @@ export default function PromotedPosts() {
           WebkitOverflowScrolling: "touch",
         }}
       >
-        <ProfileCard profile={PLACEHOLDER_PROFILE} isPlaceholder />
-
         {promotedUsers.length > 0 ? (
           promotedUsers.map((user) => (
             <ProfileCard key={user._id || user.id} profile={user} />
           ))
         ) : (
-          <div className="w-[260px] rounded-xl border border-dashed border-gray-300 bg-white/70 p-4 text-sm text-gray-600 flex-shrink-0">
-            No active promo profiles yet.
-          </div>
+          <ProfileCard profile={PLACEHOLDER_PROFILE} isPlaceholder />
         )}
       </div>
     </section>

@@ -2,6 +2,7 @@ import { useState, useContext, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
 import api from "../../utils/api";
+import { setSEO } from "../../utils/seo";
 
 const reviewsInFlightByUserId = new Map();
 
@@ -48,7 +49,14 @@ export default function ReviewsPage() {
 
         const data = await request;
         setReviews(Array.isArray(data?.reviews) ? data.reviews : []);
-        setTargetUsername(data?.targetUser?.username || "this user");
+        const resolvedUsername = data?.targetUser?.username || "this user";
+        setTargetUsername(resolvedUsername);
+        if (resolvedUsername && resolvedUsername !== "this user") {
+          setSEO(
+            `Client Reviews for ${resolvedUsername} | Mystery Mansion`,
+            `Read verified client reviews for ${resolvedUsername} on Mystery Mansion. See honest feedback from real clients.`
+          );
+        }
       } catch (err) {
         setFetchError(err?.response?.data?.error || "Failed to load reviews.");
       } finally {

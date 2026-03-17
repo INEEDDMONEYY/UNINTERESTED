@@ -1,24 +1,66 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { X, Send } from "lucide-react";
 import api from "../../utils/api";
 
-export default function NewConversationModal({ onClose, onCreated }) {
+export default function NewConversationModal({
+  onClose,
+  onCreated,
+  onCreate,
+  currentUserId,
+  restrictToRole,
+  excludedRecipientIds,
+}) {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
-  // Fetch all users (to select from)
+  const handleCreated = onCreated || onCreate;
+  const normalizedExcludedRecipientIds = useMemo(
+    () => (Array.isArray(excludedRecipientIds) ? excludedRecipientIds.map(String) : []),
+    [excludedRecipientIds]
+  );
+
+  const excludedRecipientIdsKey = normalizedExcludedRecipientIds.join("|");
+
+  // Fetch users and filter by role/exclusions when provided.
   useEffect(() => {
+    let isMounted = true;
+
     const fetchUsers = async () => {
+      setIsLoadingUsers(true);
       try {
-        const { data } = await api.get("/admin/users");
-        setUsers(data?.data || data?.users || []);
+        const { data } = await api.get("/public/users");
+        const rawUsers = Array.isArray(data)
+          ? data
+          : data?.data || data?.users || [];
+
+        const excludedSet = new Set(normalizedExcludedRecipientIds);
+        const filteredUsers = rawUsers.filter((user) => {
+          if (!user?._id) return false;
+          if (currentUserId && String(user._id) === String(currentUserId)) return false;
+          if (restrictToRole && user.role !== restrictToRole) return false;
+          if (excludedSet.has(String(user._id))) return false;
+          return true;
+        });
+
+        if (!isMounted) return;
+        setUsers(filteredUsers);
       } catch (err) {
         console.error("Error loading users:", err);
+        if (!isMounted) return;
+        setUsers([]);
+      } finally {
+        if (!isMounted) return;
+        setIsLoadingUsers(false);
       }
     };
     fetchUsers();
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUserId, restrictToRole, excludedRecipientIdsKey, normalizedExcludedRecipientIds]);
 
   // Create conversation
   const handleCreate = async () => {
@@ -26,7 +68,9 @@ export default function NewConversationModal({ onClose, onCreated }) {
     setLoading(true);
     try {
       const { data: newConv } = await api.post("/conversations", { recipientId: selectedUser });
-      onCreated(newConv);
+      if (typeof handleCreated === "function") {
+        handleCreated(newConv);
+      }
       onClose();
     } catch (err) {
       console.error("Create conversation error:", err);
@@ -51,15 +95,24 @@ export default function NewConversationModal({ onClose, onCreated }) {
         <select
           value={selectedUser}
           onChange={(e) => setSelectedUser(e.target.value)}
+          disabled={isLoadingUsers || users.length === 0}
           className="w-full bg-gray-800 text-white p-2 rounded-lg border border-gray-700 focus:ring-2 focus:ring-pink-500 mb-4"
         >
-          <option value="">-- Choose User --</option>
+          <option value="">
+            {isLoadingUsers ? "Loading users..." : "-- Choose User --"}
+          </option>
           {users.map((user) => (
             <option key={user._id} value={user._id}>
               {user.username}
             </option>
           ))}
         </select>
+
+        {!isLoadingUsers && users.length === 0 && (
+          <p className="mb-4 text-xs text-gray-400">
+            No users available to start a new conversation.
+          </p>
+        )}
 
         {/* Actions */}
         <div className="flex justify-end gap-3">
@@ -71,7 +124,7 @@ export default function NewConversationModal({ onClose, onCreated }) {
           </button>
           <button
             onClick={handleCreate}
-            disabled={!selectedUser || loading}
+            disabled={!selectedUser || loading || isLoadingUsers || users.length === 0}
             className="px-4 py-2 rounded-lg bg-pink-600 hover:bg-pink-500 transition flex items-center gap-2 disabled:opacity-50"
           >
             <Send size={16} />

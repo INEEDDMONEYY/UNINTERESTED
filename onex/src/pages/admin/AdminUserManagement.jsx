@@ -13,6 +13,7 @@ export default function AdminUserManagement() {
   const [postsError, setPostsError] = useState("");
 
   const postsRailRef = useRef(null);
+  const usersRailRef = useRef(null);
 
   const scrollPosts = (direction) => {
     const container = postsRailRef.current;
@@ -24,6 +25,33 @@ export default function AdminUserManagement() {
       behavior: "smooth",
     });
   };
+
+  const scrollUsers = (direction) => {
+    const container = usersRailRef.current;
+    if (!container) return;
+
+    const amount = Math.max(container.clientWidth * 0.8, 280);
+    container.scrollBy({
+      left: direction === "left" ? -amount : amount,
+      behavior: "smooth",
+    });
+  };
+
+  const sortedUsersForProfiles = [...users].sort((a, b) => {
+    const aHasProfilePic = Boolean(a?.profilePic);
+    const bHasProfilePic = Boolean(b?.profilePic);
+    const aHasBio = Boolean(a?.bio?.trim());
+    const bHasBio = Boolean(b?.bio?.trim());
+
+    const aScore = Number(aHasProfilePic) + Number(aHasBio);
+    const bScore = Number(bHasProfilePic) + Number(bHasBio);
+
+    if (aScore !== bScore) return bScore - aScore;
+
+    const aName = (a?.username || a?.email || "").toLowerCase();
+    const bName = (b?.username || b?.email || "").toLowerCase();
+    return aName.localeCompare(bName);
+  });
 
   useEffect(() => {
     const fetchUsersAndPosts = async () => {
@@ -152,6 +180,84 @@ export default function AdminUserManagement() {
           </div>
         ) : (
           <p className="text-gray-500">No posts available.</p>
+        )}
+      </div>
+
+      <div className="mb-8 rounded-xl border border-pink-100 bg-white/90 p-4 shadow-sm">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-pink-700">User Profiles</h2>
+            <p className="text-sm text-gray-500">
+              Profiles with both profile picture and bio are shown first. Swipe/scroll or use arrows.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => scrollUsers("left")}
+              className="rounded-full border border-pink-200 px-3 py-1 text-sm font-medium text-pink-700 transition hover:bg-pink-50"
+              aria-label="Scroll users left"
+            >
+              Left
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollUsers("right")}
+              className="rounded-full border border-pink-200 px-3 py-1 text-sm font-medium text-pink-700 transition hover:bg-pink-50"
+              aria-label="Scroll users right"
+            >
+              Right
+            </button>
+          </div>
+        </div>
+
+        {usersLoading ? (
+          <p className="text-gray-500">Loading user profiles...</p>
+        ) : sortedUsersForProfiles.length > 0 ? (
+          <div
+            ref={usersRailRef}
+            className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2"
+          >
+            {sortedUsersForProfiles.map((u) => {
+              const hasCompleteProfile = Boolean(u?.profilePic) && Boolean(u?.bio?.trim());
+              return (
+                <article
+                  key={u._id}
+                  className="min-w-[260px] max-w-[260px] snap-start rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-transform duration-300 hover:-translate-y-1"
+                >
+                  <img
+                    src={u?.profilePic || "https://cdn-icons-png.flaticon.com/512/9131/9131529.png"}
+                    alt={u?.username || "User profile"}
+                    className="mb-3 h-36 w-full rounded-md object-cover"
+                  />
+
+                  <div className="mb-1 flex items-center justify-between gap-2">
+                    <h3 className="line-clamp-1 text-sm font-semibold text-gray-900">
+                      @{u?.username || "unknown"}
+                    </h3>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                        hasCompleteProfile
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {hasCompleteProfile ? "Complete" : "Incomplete"}
+                    </span>
+                  </div>
+
+                  <p className="line-clamp-2 text-xs text-gray-600">
+                    {u?.bio?.trim() || "No bio added yet."}
+                  </p>
+
+                  <p className="mt-2 text-xs text-pink-700">{u?.email || "No email"}</p>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-gray-500">No users available.</p>
         )}
       </div>
 

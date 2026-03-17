@@ -12,7 +12,7 @@ export default function HomePage() {
   const [showAgeToast, setShowAgeToast] = useState(false);
 
   useEffect(() => {
-    document.title = 'Mystery Mansion | Home';
+    document.title = 'Find Escorts Near You | Search Profiles & Reviews | Mystery Mansion';
     const description = document.querySelector('meta[name="description"]');
     if (description) {
       description.setAttribute(

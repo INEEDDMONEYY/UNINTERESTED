@@ -5,6 +5,7 @@ import CategoryPostsLoader from "../Loaders/CategoryPostsLoader";
 import PostCard from "../Posts/PostCard";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
 import { statesMatch } from "../../utils/stateNormalizer";
+import { hasPermanentProviderBadge } from "../../utils/providerBadgeEligibility";
 
 // Strip punctuation and normalize whitespace so inputs like ".Great falls." match "Great Falls"
 const sanitizeLocation = (str) =>
@@ -89,14 +90,7 @@ export default function CategoryDisplay({ selectedCategory, users = [], posts = 
       const isFoundingProvider = (post) => {
         if (hasActivePromotion(post)) return false;
 
-        const createdAt = post?.userId?.createdAt;
-        if (!createdAt) return false;
-
-        const createdDate = new Date(createdAt);
-        if (Number.isNaN(createdDate.getTime())) return false;
-
-        const oneYearMs = 365 * 24 * 60 * 60 * 1000;
-        return now - createdDate.getTime() < oneYearMs;
+        return hasPermanentProviderBadge(post?.userId?.createdAt);
       };
 
       const getPriority = (post) => {

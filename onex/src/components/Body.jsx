@@ -11,6 +11,7 @@ import EmptyCategoryLoader from "./Loaders/EmptyCategoryLoader";
 import PostCard from "../components/Posts/PostCard";
 import { FEATURE_FLAGS } from "../config/featureFlags";
 import { statesMatch } from "../utils/stateNormalizer";
+import { setLocationSEO } from "../utils/seo";
 
 // Strip punctuation and normalize whitespace so inputs like ".Great falls." match "Great Falls"
 const sanitizeLocation = (str) =>
@@ -23,6 +24,19 @@ const dedupePostsById = (items = []) => {
     if (!id || seen.has(id)) return false;
     seen.add(id);
     return true;
+  });
+};
+
+const formatUploadDateLabel = (createdAt) => {
+  if (!createdAt) return "Date unavailable";
+  const created = new Date(createdAt);
+  if (Number.isNaN(created.getTime())) return "Date unavailable";
+
+  return created.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
   });
 };
 
@@ -147,6 +161,12 @@ export default function Body() {
     fetchUsers();
   }, []);
 
+  // Update page title/description based on selected location so search engines
+  // index location-specific phrases like "Escorts in Denver".
+  useEffect(() => {
+    setLocationSEO(location);
+  }, [location]);
+
   // --------------------------- Load More -----------------------------
   const handleLoadMore = () => {
     setVisibleCount((prev) => prev + LOAD_MORE_STEP);
@@ -197,6 +217,37 @@ export default function Body() {
   ;
 
   const filteredUncategorizedPosts = filteredUncategorizedPool.slice(0, visibleCount);
+  const listingRows = filteredUncategorizedPosts.flatMap((post, i) => {
+    const currentLabel = formatUploadDateLabel(post?.createdAt);
+    const previousLabel = i > 0
+      ? formatUploadDateLabel(filteredUncategorizedPosts[i - 1]?.createdAt)
+      : "";
+    const showDateHeader = i === 0 || currentLabel !== previousLabel;
+
+    const rows = [];
+
+    if (showDateHeader) {
+      rows.push(
+        <div key={`date-${post._id || i}-${currentLabel}`} className="col-span-full mt-1">
+          <p className="text-xs sm:text-sm font-semibold text-gray-500 border-b border-gray-200 pb-1">
+            {currentLabel}
+          </p>
+        </div>
+      );
+    }
+
+    rows.push(
+      <PostCard
+        key={post._id || i}
+        post={post}
+        onDelete={(id) => {
+          setPosts((prev) => prev.filter((p) => p._id !== id));
+        }}
+      />
+    );
+
+    return rows;
+  });
   const areaLabel = getAreaLabel(location);
 
   // 🐛 Debug logging
@@ -286,15 +337,7 @@ export default function Body() {
         ref={postsRef}
       >
         {filteredUncategorizedPosts.length > 0 ? (
-          filteredUncategorizedPosts.map((post, i) => (
-            <PostCard
-              key={post._id || i}
-              post={post}
-              onDelete={(id) => {
-                setPosts((prev) => prev.filter((p) => p._id !== id));
-              }}
-            />
-          ))
+          listingRows
         ) : (
           <EmptyCategoryLoader />
         )}

@@ -2,6 +2,7 @@ import { useEffect, useState, useContext, useRef } from "react";
 import { UserContext } from "../../context/UserContext";
 import { Camera, Pencil, CheckCircle2, Star } from "lucide-react";
 import api from "../../utils/api";
+import { hasPermanentProviderBadge } from "../../utils/providerBadgeEligibility";
 
 /*
   UserProfileHeader
@@ -19,6 +20,7 @@ export default function UserProfileHeader({
     username: "",
     bio: "",
     age: null,
+    createdAt: null,
     location: "",
     profilePic: null,
     bannerPic: null,
@@ -67,6 +69,7 @@ export default function UserProfileHeader({
         username: profileData.username || "",
         bio: profileData.bio || "",
         age: profileData.age ?? null,
+        createdAt: profileData.createdAt || null,
         location: profileData.location || "",
         profilePic: profileData.profilePic || null,
         bannerPic: profileData.bannerPic || null,
@@ -208,6 +211,7 @@ export default function UserProfileHeader({
   const isPromotedAccount = Boolean(
     user.activePromoExpiry && new Date(user.activePromoExpiry).getTime() > Date.now()
   );
+  const isPermanentProvider = hasPermanentProviderBadge(user?.createdAt);
 
   if (loading && !user.username) {
     return (
@@ -286,14 +290,16 @@ export default function UserProfileHeader({
               className={isPromotedAccount ? "text-pink-500" : "text-gray-400"}
               aria-label={isPromotedAccount ? "Promoted account" : "Standard account"}
             />
-            <span
-              className="inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white text-[11px] md:text-xs font-semibold px-2 py-0.5"
-              aria-label="Founding Provider"
-              title="Founding Provider"
-            >
-              <Star size={12} className="fill-current" />
-              Founding Provider
-            </span>
+            {isPermanentProvider && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white text-[11px] md:text-xs font-semibold px-2 py-0.5"
+                aria-label="Founding Provider"
+                title="Founding Provider"
+              >
+                <Star size={12} className="fill-current" />
+                Founding Provider
+              </span>
+            )}
           </h1>
 
           {/* Bio Section */}

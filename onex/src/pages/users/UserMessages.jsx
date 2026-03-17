@@ -21,6 +21,17 @@ export default function UserMessages() {
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const adminParticipantIds = Array.from(
+    new Set(
+      conversations.flatMap((conversation) =>
+        (conversation?.participants || [])
+          .filter((participant) => participant?.role === "admin" && participant?._id)
+          .map((participant) => String(participant?._id))
+      )
+    )
+  );
+  const hasAdminConversation = adminParticipantIds.length > 0;
+
   // 🔹 Fetch conversations from backend
   useEffect(() => {
     if (!user || userLoading) return;
@@ -97,8 +108,13 @@ export default function UserMessages() {
           <h2 className="text-lg font-semibold tracking-wide">Messages</h2>
           <button
             onClick={() => setShowNewModal(true)}
-            className="p-1.5 bg-pink-600 rounded-lg hover:bg-pink-500 transition"
-            title="Start New Conversation"
+            disabled={hasAdminConversation}
+            className="p-1.5 bg-pink-600 rounded-lg hover:bg-pink-500 transition disabled:cursor-not-allowed disabled:opacity-50"
+            title={
+              hasAdminConversation
+                ? "Admin already exists in your message list"
+                : "Start New Conversation"
+            }
           >
             <Plus size={18} />
           </button>
@@ -184,6 +200,9 @@ export default function UserMessages() {
       {showNewModal && (
         <NewConversationModal
           onClose={() => setShowNewModal(false)}
+          currentUserId={user?._id}
+          restrictToRole="admin"
+          excludedRecipientIds={adminParticipantIds}
           onCreate={(newConversation) => {
             setConversations((prev) => [newConversation, ...prev]);
             setShowNewModal(false);

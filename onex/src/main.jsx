@@ -23,6 +23,7 @@ const AdminDashboard = lazy(() => import("./pages/admin/dashboard.jsx"));
 const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics.jsx"));
 const UserDashboard = lazy(() => import("./pages/users/dashboard.jsx"));
 const UserProfileSettings = lazy(() => import("./pages/users/UserProfileSettings.jsx"));
+const UserMessages = lazy(() => import("./pages/users/UserMessages.jsx"));
 const PromoteAccount = lazy(() => import("./pages/promoteAccount.jsx"));
 const TermsOfUsePage = lazy(() => import("./pages/policies/TermsOfUsePage.jsx"));
 const PrivacyPolicy = lazy(() => import("./pages/policies/PrivacyPolicyPage.jsx"));
@@ -48,6 +49,14 @@ const router = createBrowserRouter([
   { path: "analytics", element: <AdminAnalytics /> },
   { path: "user/dashboard", element: <UserDashboard /> },
   { path: "user/profile", element: <UserProfileSettings /> },
+  {
+    path: "user/messages",
+    element: (
+      <ProtectedRoute role="user">
+        <UserMessages />
+      </ProtectedRoute>
+    ),
+  },
   {
     path: "user/profilepage",
     element: (

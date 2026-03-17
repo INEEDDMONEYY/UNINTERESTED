@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Trash2, ChevronLeft, ChevronRight, Star, BadgeCheck, Rocket } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "../../utils/api";
+import { hasPermanentProviderBadge } from "../../utils/providerBadgeEligibility";
 
 export default function PostCard({ post, onDelete }) {
   // -------------------- Carousel State --------------------
@@ -61,6 +62,7 @@ export default function PostCard({ post, onDelete }) {
   };
 
   const isTrustedProvider = hasTrustedAccountAge();
+  const isPermanentProvider = hasPermanentProviderBadge(post?.userId?.createdAt);
 
   const getPostedAgoLabel = (createdAt) => {
     if (!createdAt) return "";
@@ -233,16 +235,22 @@ export default function PostCard({ post, onDelete }) {
             {/* Founding Provider / Promotion Indicator */}
             <div className="inline-flex items-center gap-1 sm:gap-2">
               {isPromoted ? (
-                <div className="inline-flex items-center gap-1 rounded-full bg-pink-600 text-white text-[10px] sm:text-xs md:text-sm font-semibold px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 shadow-md">
-                  <BadgeCheck size={12} className="text-white" />
-                  <span>Promo</span>
+                <div className="relative inline-flex rounded-full p-[1px] overflow-hidden shadow-md">
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 rounded-full bg-[conic-gradient(from_180deg_at_50%_50%,#e9d5ff_0deg,#c4b5fd_90deg,#a78bfa_180deg,#ddd6fe_270deg,#e9d5ff_360deg)] animate-[spin_8s_linear_infinite]"
+                  />
+                  <div className="relative inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-violet-500/90 via-purple-500/90 to-indigo-500/90 text-white text-[10px] sm:text-xs md:text-sm font-semibold px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1">
+                    <BadgeCheck size={12} className="text-white" />
+                    <span>Promo</span>
+                  </div>
                 </div>
               ) : isTrustedProvider ? (
                 <div className="inline-flex items-center gap-1 rounded-full bg-yellow-400 text-yellow-950 text-[10px] sm:text-xs md:text-sm font-semibold px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 shadow-md ring-1 ring-yellow-300">
                   <Rocket size={12} className="text-yellow-900" />
                   <span>Trusted provider</span>
                 </div>
-              ) : (
+              ) : isPermanentProvider ? (
                 <div className="relative inline-flex rounded-full p-[1px] overflow-hidden shadow-md">
                   <span
                     aria-hidden="true"
@@ -253,7 +261,8 @@ export default function PostCard({ post, onDelete }) {
                     <span>Founding Provider</span>
                   </div>
                 </div>
-              )}
+              ) : null
+              }
             </div>
 
             {/* Visibility Badge */}
@@ -281,7 +290,7 @@ export default function PostCard({ post, onDelete }) {
           </div>
 
           {bio && (
-            <p className="text-sm sm:text-base text-gray-500 mb-2 break-words">
+            <p className="text-sm sm:text-base text-gray-500 mb-2 break-words line-clamp-1">
               {bio}
             </p>
           )}

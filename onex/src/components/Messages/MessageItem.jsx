@@ -8,10 +8,13 @@ import React from "react";
  * - currentRole: "admin" | "user" (used to determine alignment)
  */
 export default function MessageItem({ message, currentRole = "user" }) {
-  const isOwnMessage = message.sender === currentRole;
+  const senderRole = message?.sender?.role || message?.senderRole || "user";
+  const senderName = message?.sender?.username || senderRole;
+  const senderAvatar = message?.sender?.profilePic || message?.avatarUrl || "";
+  const isOwnMessage = senderRole === currentRole;
 
-  const formattedTime = message.timestamp
-    ? new Date(message.timestamp).toLocaleTimeString([], {
+  const formattedTime = message?.createdAt
+    ? new Date(message.createdAt).toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
       })
@@ -26,14 +29,14 @@ export default function MessageItem({ message, currentRole = "user" }) {
       {/* Avatar for other side */}
       {!isOwnMessage && (
         <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-semibold mr-2">
-          {message.avatarUrl ? (
+          {senderAvatar ? (
             <img
-              src={message.avatarUrl}
-              alt={`${message.sender} avatar`}
+              src={senderAvatar}
+              alt={`${senderName} avatar`}
               className="w-8 h-8 rounded-full object-cover"
             />
           ) : (
-            message.sender.charAt(0).toUpperCase()
+            senderName.charAt(0).toUpperCase()
           )}
         </div>
       )}
@@ -57,14 +60,14 @@ export default function MessageItem({ message, currentRole = "user" }) {
       {/* Avatar for own messages */}
       {isOwnMessage && (
         <div className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-sm font-semibold ml-2">
-          {message.avatarUrl ? (
+          {senderAvatar ? (
             <img
-              src={message.avatarUrl}
-              alt={`${message.sender} avatar`}
+              src={senderAvatar}
+              alt={`${senderName} avatar`}
               className="w-8 h-8 rounded-full object-cover"
             />
           ) : (
-            message.sender.charAt(0).toUpperCase()
+            senderName.charAt(0).toUpperCase()
           )}
         </div>
       )}

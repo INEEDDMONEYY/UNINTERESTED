@@ -6,7 +6,7 @@ import {
   BarChart2,
   LogOut,
   Home,
-  // Mail,
+  Mail,
   ArrowLeftCircle,
   ImageIcon,
   UserPlus,
@@ -18,10 +18,12 @@ import {
 
 import AdminAnalytics from "./AdminAnalytics";
 import AdminSettings from "./AdminSettings";
-// import AdminMessages from "./AdminMessages";
+import AdminMessages from "./AdminMessages";
 import AdminUserManagement from "./AdminUserManagement";
 import AdminCreateUserForm from "./AdminCreateUserForm";
+import UserProfileHeader from "../../components/Users/UserProfileHeader.jsx";
 import { useUser } from "../../context/useUser";
+import api from "../../utils/api";
 
 const API_BASE =
   import.meta.env.VITE_BACKEND_URL ||
@@ -38,10 +40,10 @@ export default function AdminDashboard() {
 
   const [stats, setStats] = useState({ totalUsers: 0, totalAdmins: 0 });
   const [restrictedAccounts, setRestrictedAccounts] = useState([]);
-  // const [messages, setMessages] = useState([]);
   const [settings, setSettings] = useState(null);
   const [posts, setPosts] = useState([]);
   const [promoCodes, setPromoCodes] = useState([]);
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const [nowMs, setNowMs] = useState(Date.now());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -50,6 +52,37 @@ export default function AdminDashboard() {
     const timer = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setUnreadMessages(0);
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchUnreadCount = async () => {
+      try {
+        const { data } = await api.get("/messages/unread/count");
+        if (!isMounted) return;
+
+        const count = Number(data?.unreadCount);
+        setUnreadMessages(Number.isFinite(count) && count >= 0 ? count : 0);
+      } catch {
+        if (!isMounted) return;
+        setUnreadMessages(0);
+      }
+    };
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [user?._id]);
 
   const profilePictureSrc =
     user?.profilePic ||
@@ -148,7 +181,7 @@ export default function AdminDashboard() {
     navigate("/home");
   };
 
-  const SidebarButton = ({ icon, label, view }) => {
+  const SidebarButton = ({ icon, label, view, badgeCount }) => {
     const IconComponent = icon;
     return (
     <button
@@ -163,42 +196,57 @@ export default function AdminDashboard() {
       }`}
     >
       <IconComponent size={18} />
-      {label}
+      <span>{label}</span>
+      {typeof badgeCount === "number" && (
+        <span
+          className={`ml-auto inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-xs font-semibold ${
+            badgeCount > 0
+              ? "bg-pink-100 text-pink-700"
+              : "bg-gray-200 text-gray-600"
+          }`}
+          aria-label={`Unread messages: ${badgeCount}`}
+        >
+          {badgeCount}
+        </span>
+      )}
     </button>
     );
   };
 
-  const activePromoEntries = promoCodes.flatMap((promo) => {
-    const code = promo?.code || "";
-    const assignedUser = promo?.assignedUser?.username || promo?.assignedUser?.email || "Any user";
-    const redemptions = Array.isArray(promo?.redemptions) ? promo.redemptions : [];
-
-    return redemptions
-      .filter((entry) => {
+  const activePromoEntries = promoCodes
+    .map((promo) => {
+      const code = promo?.code || "";
+      const assignedUser = promo?.assignedUser?.username || promo?.assignedUser?.email || "Any user";
+      const redemptions = Array.isArray(promo?.redemptions) ? promo.redemptions : [];
+      const activeRedemptions = redemptions.filter((entry) => {
         const expiresAtMs = new Date(entry?.expiresAt || 0).getTime();
         return Number.isFinite(expiresAtMs) && expiresAtMs > nowMs;
-      })
-      .map((entry) => {
-        const expiresAtMs = new Date(entry.expiresAt).getTime();
-        const diff = Math.max(0, expiresAtMs - nowMs);
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-        const countdown = days > 0
-          ? `${days}d ${hours}h ${minutes}m ${seconds}s`
-          : `${hours}h ${minutes}m ${seconds}s`;
-
-        return {
-          code,
-          assignedUser,
-          countdown,
-          expiresAt: new Date(entry.expiresAt).toLocaleString(),
-          userId: entry?.userId || "",
-        };
       });
-  });
+
+      if (activeRedemptions.length === 0) return null;
+
+      const nearestExpiryMs = Math.min(
+        ...activeRedemptions.map((entry) => new Date(entry.expiresAt).getTime()),
+      );
+      const diff = Math.max(0, nearestExpiryMs - nowMs);
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      const countdown = days > 0
+        ? `${days}d ${hours}h ${minutes}m ${seconds}s`
+        : `${hours}h ${minutes}m ${seconds}s`;
+
+      return {
+        code,
+        assignedUser,
+        countdown,
+        expiresAt: new Date(nearestExpiryMs).toLocaleString(),
+        redeemedCount: activeRedemptions.length,
+      };
+    })
+    .filter(Boolean);
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-black via-gray-900 to-pink-800">
@@ -246,6 +294,7 @@ export default function AdminDashboard() {
 
           <nav className="space-y-4 text-sm">
             <SidebarButton icon={Home} label="Dashboard" view="dashboard" />
+            <SidebarButton icon={ImageIcon} label="Profile" view="profile" />
             <SidebarButton icon={Users} label="User Management" view="users" />
             <SidebarButton
               icon={UserPlus}
@@ -258,9 +307,12 @@ export default function AdminDashboard() {
               label="Site Analytics"
               view="analytics"
             />
-            {/*
-            <SidebarButton icon={Mail} label="Messages" view="messages" />
-            */}
+            <SidebarButton
+              icon={Mail}
+              label="Messages"
+              view="messages"
+              badgeCount={unreadMessages}
+            />
           </nav>
         </div>
 
@@ -334,6 +386,16 @@ export default function AdminDashboard() {
           />
         )}
 
+        {activeView === "profile" && (
+          <div className="bg-white rounded-lg p-6 shadow-md border border-pink-200 space-y-4">
+            <h1 className="text-2xl font-bold text-pink-700">Profile</h1>
+            <p className="text-sm text-gray-600">
+              Update your banner/background, bio, and location from your profile header below.
+            </p>
+            <UserProfileHeader userId={user?._id || user?.id || null} />
+          </div>
+        )}
+
         {activeView === "analytics" && (
           <div className="bg-white rounded-lg p-6 shadow-md border border-pink-200">
             <AdminAnalytics embed />
@@ -389,18 +451,21 @@ export default function AdminDashboard() {
             ) : (
               activePromoEntries.map((entry, index) => (
                 <div
-                  key={`${entry.code}-${entry.userId}-${index}`}
-                  className="bg-white rounded-lg p-6 shadow-md border border-pink-200"
+                  key={`${entry.code}-${index}`}
+                  className="relative bg-white rounded-lg p-6 shadow-md border border-pink-200"
                 >
+                  <span className="absolute right-4 top-4 inline-flex rounded-full bg-pink-100 px-2.5 py-1 text-xs font-semibold text-pink-700">
+                    {entry.redeemedCount} redeemed
+                  </span>
                   <div className="flex items-center gap-2 text-pink-700 mb-2">
                     <Ticket size={18} />
                     <h4 className="font-semibold">{entry.code}</h4>
                   </div>
                   <p className="text-xs text-gray-500 mb-3">Assigned: {entry.assignedUser}</p>
                   <div className="bg-pink-50 border border-pink-200 rounded-md px-3 py-2 text-pink-800 font-semibold text-sm">
-                    Time Left: {entry.countdown}
+                    Next Expiry In: {entry.countdown}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">Expires: {entry.expiresAt}</p>
+                  <p className="text-xs text-gray-500 mt-2">Nearest Expiry: {entry.expiresAt}</p>
                 </div>
               ))
             )}
@@ -469,13 +534,11 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/*
         {activeView === "messages" && (
-          <div className="bg-gradient-to-br from-black via-gray-900 to-pink-800 min-h-[80vh] rounded-lg p-6 shadow-lg border border-pink-400">
-            <AdminMessages messages={messages} />
+          <div className="bg-white rounded-lg p-0 shadow-md border border-pink-200 overflow-hidden">
+            <AdminMessages />
           </div>
         )}
-        */}
       </main>
     </div>
   );

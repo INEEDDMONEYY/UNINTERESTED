@@ -13,28 +13,24 @@ function escapeHtml(value = "") {
 }
 
 export async function sendPlatformUpdateEmail({ to, username, title, description, type }) {
-  if (!to || !title || !description) {
+  if (!to) {
     throw new Error("Missing required email parameters for platform update notification");
   }
 
   const updateUrl = `${env.CLIENT_URL}/platform-updates`;
-  const safeTitle = escapeHtml(title);
-  const safeDescription = escapeHtml(description).replace(/\n/g, "<br />");
-  const safeType = type === "feature" ? "Feature Update" : "Platform Update";
+  const safeType = type === "feature" ? "feature" : "platform";
 
   await resend.emails.send({
     from: "Mystery Mansion <no-reply@mysterymansion.xyz>",
     to,
-    subject: `New ${safeType}: ${title}`,
+    subject: "New platform updates are available",
     html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
-        <h2 style="margin-bottom: 8px;">A new ${safeType.toLowerCase()} has shipped</h2>
+        <h2 style="margin-bottom: 8px;">Platform updates are available</h2>
         <p>Hi ${escapeHtml(username || "there")},</p>
-        <p>We just published a new update on <strong>Mystery Mansion</strong>.</p>
+        <p>We posted new ${safeType} updates on <strong>Mystery Mansion</strong>.</p>
         <div style="margin: 20px 0; padding: 16px; border: 1px solid #eee; border-radius: 10px; background: #fafafa;">
-          <p style="margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #666;">${safeType}</p>
-          <h3 style="margin: 0 0 10px;">${safeTitle}</h3>
-          <p style="margin: 0;">${safeDescription}</p>
+          <p style="margin: 0;">Check the platform updates page to see what new features and fixes are now available.</p>
         </div>
         <p style="margin: 20px 0;">
           <a

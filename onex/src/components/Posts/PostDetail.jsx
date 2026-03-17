@@ -5,6 +5,7 @@ import { BadgeCheck, Star, Rocket } from "lucide-react";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
 import api from "../../utils/api";
 import { UserContext } from "../../context/UserContext";
+import { hasPermanentProviderBadge } from "../../utils/providerBadgeEligibility";
 
 // 🌀 Loaders & Components
 import PostDetailLoader from "../Loaders/PostDetailLoader";
@@ -89,6 +90,10 @@ export default function PostDetail() {
     : post?.userId;
   const locationParts = [post?.city, post?.state, post?.country].filter(Boolean);
   const displayLocation = locationParts.length > 0 ? locationParts.join(", ") : "";
+  const rawCategory = post?.category?.trim();
+  const displayCategory = rawCategory && rawCategory.toLowerCase() !== "uncategorized"
+    ? rawCategory
+    : "";
   const displayPhoneNumber = effectiveUser?.phoneNumber
     ? formatPhoneNumber(effectiveUser.phoneNumber)
     : "";
@@ -102,6 +107,7 @@ export default function PostDetail() {
     return Date.now() - createdDate.getTime() >= oneYearMs;
   };
   const isTrustedProvider = hasTrustedAccountAge();
+  const isPermanentProvider = hasPermanentProviderBadge(effectiveUser?.createdAt);
   const availability = effectiveUser?.availability || { status: "" };
   const incallPrice = effectiveUser?.incallPrice || "";
   const outcallPrice = effectiveUser?.outcallPrice || "";
@@ -171,14 +177,20 @@ export default function PostDetail() {
     <div className="max-w-3xl mx-auto px-6 py-10 bg-white rounded-xl shadow-md m-5 relative">
       <div className="absolute right-4 top-4 inline-flex items-center gap-1 sm:gap-2">
         {isPromotedUser ? (
-          <span
-            className="inline-flex items-center gap-1 rounded-full bg-pink-600 text-white text-xs font-semibold px-2.5 py-1 shadow-sm"
-            aria-label="Promoted user"
-            title="Promoted user"
-          >
-            <BadgeCheck size={14} className="text-white" />
-            Promo
-          </span>
+          <div className="relative inline-flex rounded-full p-[1px] overflow-hidden shadow-sm">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 rounded-full bg-[conic-gradient(from_180deg_at_50%_50%,#e9d5ff_0deg,#c4b5fd_90deg,#a78bfa_180deg,#ddd6fe_270deg,#e9d5ff_360deg)] animate-[spin_8s_linear_infinite]"
+            />
+            <span
+              className="relative inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-violet-500/90 via-purple-500/90 to-indigo-500/90 text-white text-xs font-semibold px-2.5 py-1"
+              aria-label="Promoted user"
+              title="Promoted user"
+            >
+              <BadgeCheck size={14} className="text-white" />
+              Promo
+            </span>
+          </div>
         ) : isTrustedProvider ? (
           <span
             className="inline-flex items-center gap-1 rounded-full bg-yellow-400 text-yellow-950 text-xs font-semibold px-2.5 py-1 shadow-sm ring-1 ring-yellow-300"
@@ -188,7 +200,7 @@ export default function PostDetail() {
             <Rocket size={14} className="text-yellow-900" />
             Trusted provider
           </span>
-        ) : (
+        ) : isPermanentProvider ? (
           <span
             className="inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white text-xs font-semibold px-2.5 py-1 shadow-sm"
             aria-label="Founding Provider"
@@ -197,7 +209,7 @@ export default function PostDetail() {
             <Star size={14} className="fill-current" />
             Founding Provider
           </span>
-        )}
+        ) : null}
 
         <span
           className="inline-flex items-center justify-center h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white/95 ring-1 ring-gray-300 shadow-sm"
@@ -262,6 +274,14 @@ export default function PostDetail() {
         {displayLocation && (
           <p className="text-sm text-gray-500 mt-1">
             Location: {displayLocation}
+          </p>
+        )}
+        {displayCategory && (
+          <p className="text-sm text-gray-500 mt-1 inline-flex items-center gap-2 flex-wrap">
+            <span>Categories:</span>
+            <span className="inline-flex items-center rounded-full border border-pink-300 bg-pink-50 px-2.5 py-0.5 text-xs font-semibold text-pink-700">
+              {displayCategory}
+            </span>
           </p>
         )}
 

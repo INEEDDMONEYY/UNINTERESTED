@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { MessageSquareText, Shield, RefreshCw, Plus } from "lucide-react";
 import MessageInput from "../../components/Messages/MessageInput";
 import MessageList from "../../components/Messages/MessageList";
 import ConversationList from "../../components/Messages/ConversationList";
 import NewConversationModal from "../../components/Messages/NewConversationModal";
+import { UserContext } from "../../context/UserContext";
 import api from "../../utils/api";
 
 export default function AdminMessages() {
+  const { user, loading: userLoading } = useContext(UserContext);
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -16,8 +18,9 @@ export default function AdminMessages() {
 
   // Fetch conversations
   useEffect(() => {
+    if (!user || userLoading) return;
     fetchConversations();
-  }, []);
+  }, [user, userLoading]);
 
   const fetchConversations = async () => {
     setLoading(true);
@@ -67,6 +70,21 @@ export default function AdminMessages() {
     if (selectedConversation) fetchMessages(selectedConversation._id);
   };
 
+  const conversationTitle = selectedConversation
+    ? selectedConversation.participants
+        .filter((p) => String(p._id) !== String(user?._id))
+        .map((p) => p.username)
+        .join(", ") || "Conversation"
+    : "Admin Messages";
+
+  if (userLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-black text-white">
+        <p>Loading messages...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="relative min-h-screen flex bg-gradient-to-br from-black via-gray-900 to-pink-700 text-white">
       {/* Sidebar */}
@@ -115,11 +133,7 @@ export default function AdminMessages() {
             </button>
             <MessageSquareText className="text-pink-400" size={20} />
             <h1 className="text-lg font-semibold truncate max-w-[150px] sm:max-w-none">
-              {selectedConversation
-                ? selectedConversation.participants
-                    .map((p) => p.username)
-                    .join(", ")
-                : "Admin Messages"}
+              {conversationTitle}
             </h1>
           </div>
 
@@ -149,12 +163,8 @@ export default function AdminMessages() {
           <div className="border-t border-pink-500/30 bg-black/30">
             <MessageInput
               onSend={handleSend}
-              senderRole="admin"
-              placeholder={`Message ${
-                selectedConversation.participants
-                  .map((p) => p.username)
-                  .join(", ")
-              }...`}
+              senderRole={user?.role || "admin"}
+              placeholder={`Message ${conversationTitle}...`}
             />
           </div>
         )}
@@ -164,6 +174,7 @@ export default function AdminMessages() {
       {showNewModal && (
         <NewConversationModal
           onClose={() => setShowNewModal(false)}
+          currentUserId={user?._id}
           onCreate={(newConversation) => {
             setConversations((prev) => [newConversation, ...prev]);
             setShowNewModal(false);

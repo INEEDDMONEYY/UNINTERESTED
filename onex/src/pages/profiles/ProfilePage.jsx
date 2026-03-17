@@ -2,9 +2,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../utils/api';
 import UserProfileView from '../users/UserProfileViewPage';
+import { setSEO } from '../../utils/seo';
 
 export default function ProfilePage({ userId = null, disableActionButtons = false }) {
   const { username } = useParams();
+
+  useEffect(() => {
+    if (username) {
+      setSEO(
+        `${username}'s Escort Profile | Mystery Mansion`,
+        `View ${username}'s escort profile on Mystery Mansion. Browse listings, read client reviews, and get contact details for ${username}.`
+      );
+    }
+  }, [username]);
   const [resolvedUserId, setResolvedUserId] = useState('');
   const [loading, setLoading] = useState(Boolean(!userId && username));
   const [error, setError] = useState('');

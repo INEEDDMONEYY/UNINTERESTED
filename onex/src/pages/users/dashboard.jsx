@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import {
   User,
   BarChart3,
+  MessageSquareText,
   LogOut,
   Home,
   UserRound,
@@ -35,6 +36,7 @@ export default function UserDashboard() {
   const [promoInput, setPromoInput] = useState("");
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoMessage, setPromoMessage] = useState(null);
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const SHOW_WHATS_NEW_BADGE = true;
 
   const setupChecklist = [
@@ -68,6 +70,35 @@ export default function UserDashboard() {
   useEffect(() => {
     setProfilePic(user?.profilePic || "");
   }, [user]);
+
+  useEffect(() => {
+    if (!user?._id) {
+      setUnreadMessages(0);
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchUnreadCount = async () => {
+      try {
+        const { data } = await api.get("/messages/unread/count");
+        if (!isMounted) return;
+        const count = Number(data?.unreadCount);
+        setUnreadMessages(Number.isFinite(count) && count >= 0 ? count : 0);
+      } catch {
+        if (!isMounted) return;
+        setUnreadMessages(0);
+      }
+    };
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [user?._id]);
 
   // -------- Promo Countdown Timer --------
   useEffect(() => {
@@ -177,6 +208,29 @@ export default function UserDashboard() {
               )}
             </span>
           </button>
+
+          <Link
+            to="/user/messages"
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg transition hover:bg-gray-100"
+          >
+            <MessageSquareText size={18} />
+            <span className="inline-flex items-center gap-2">
+              Messages
+              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.04em] text-blue-700">
+                Beta
+              </span>
+            </span>
+            <span
+              className={`ml-auto inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-xs font-semibold ${
+                unreadMessages > 0
+                  ? "bg-pink-100 text-pink-700"
+                  : "bg-gray-200 text-gray-600"
+              }`}
+              aria-label={`Unread messages: ${unreadMessages}`}
+            >
+              {unreadMessages}
+            </span>
+          </Link>
 
           {FEATURE_FLAGS.ENABLE_VIEW_ACTIVITY && (
             <button
@@ -419,6 +473,12 @@ export default function UserDashboard() {
               </div>
 
               <ul className="space-y-3 text-sm text-gray-700">
+                <li className="flex items-start gap-2">
+                  <MessageSquareText size={16} className="mt-0.5 text-blue-600" />
+                  <span>
+                    <strong>Messages (Beta)</strong> is currently for contacting a site admin only: report platform bugs, ask platform questions, or report harmful/unsafe client activity.
+                  </span>
+                </li>
                 <li className="flex items-start gap-2">
                   <Link2 size={16} className="mt-0.5 text-pink-600" />
                   <span>

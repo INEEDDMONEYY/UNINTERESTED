@@ -23,8 +23,8 @@ export default function MessageList({ messages = [], currentRole = "user", class
       style={{ minHeight: "0px" }} // ensures proper flex scroll behavior
     >
       {messages.length > 0 ? (
-        messages.map((msg, index) => (
-          <MessageItem key={index} message={msg} currentRole={currentRole} />
+        messages.map((msg) => (
+          <MessageItem key={msg._id || `${msg.createdAt}-${msg.text}`} message={msg} currentRole={currentRole} />
         ))
       ) : (
         <div className="text-center text-gray-400 mt-10">
