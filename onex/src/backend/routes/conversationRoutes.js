@@ -1,49 +1,14 @@
 import express from "express";
 import Conversation from "../models/Conversation.js";
 import User from "../models/User.js";
-import Message from "../models/Message.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { enforceRestriction } from "../middleware/restrictionMiddleware.js";
+import {
+  ensureAdminConversationsForAllUsers,
+  ensureUserAdminConversation,
+} from "../utils/ensureAdminWelcomeConversation.js";
 
 const router = express.Router();
-const WELCOME_MESSAGE =
-  "Welcome to Mystery Mansion, thank you for joining our platform we are looking to make it the safest experience you could have regarding a platform like this.";
-
-const ensureUserAdminConversation = async (userId) => {
-  const admin = await User.findOne({ role: "admin" }).sort({ createdAt: 1 }).select("_id");
-  if (!admin) return;
-
-  let conversation = await Conversation.findOne({
-    participants: { $all: [userId, admin._id] },
-  });
-
-  if (!conversation) {
-    conversation = await Conversation.create({ participants: [userId, admin._id] });
-  }
-
-  const existingWelcome = await Message.findOne({
-    conversationId: conversation._id,
-    sender: admin._id,
-    text: WELCOME_MESSAGE,
-  }).select("_id");
-
-  if (!existingWelcome) {
-    const welcome = await Message.create({
-      conversationId: conversation._id,
-      sender: admin._id,
-      senderId: admin._id,
-      receiverId: userId,
-      senderRole: "admin",
-      text: WELCOME_MESSAGE,
-      readBy: [admin._id],
-    });
-
-    await Conversation.findByIdAndUpdate(conversation._id, {
-      lastMessage: welcome._id,
-      updatedAt: Date.now(),
-    });
-  }
-};
 
 // GET all conversations for logged-in user
 router.get("/", authMiddleware, async (req, res) => {
@@ -52,6 +17,10 @@ router.get("/", authMiddleware, async (req, res) => {
 
     if (req.user.role === "user") {
       await ensureUserAdminConversation(userId);
+    }
+
+    if (req.user.role === "admin") {
+      await ensureAdminConversationsForAllUsers(userId);
     }
 
     const conversations = await Conversation.find({ participants: userId })

@@ -139,7 +139,7 @@ export const UserProvider = ({ children }) => {
     setUser(null);
   };
 
-  const updateProfile = async (data, field = null, isFormData = false) => {
+  const updateProfile = async (data, isFormData = false) => {
     try {
       let res;
 

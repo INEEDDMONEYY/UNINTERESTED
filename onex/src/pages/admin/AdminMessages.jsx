@@ -170,6 +170,16 @@ export default function AdminMessages() {
         )}
       </main>
 
+      {/* Mobile quick action: create conversation without opening sidebar */}
+      <button
+        onClick={() => setShowNewModal(true)}
+        className="md:hidden fixed bottom-5 left-5 z-40 p-3 rounded-full bg-pink-600 hover:bg-pink-500 shadow-lg shadow-pink-900/40 transition"
+        title="Start New Conversation"
+        aria-label="Start new conversation"
+      >
+        <Plus size={22} />
+      </button>
+
       {/* New Conversation Modal */}
       {showNewModal && (
         <NewConversationModal

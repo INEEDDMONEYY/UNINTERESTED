@@ -1,8 +1,10 @@
 import { faker } from '@faker-js/faker';
+import mongoose from 'mongoose';
 import Post from '../models/Post.js';
 
 const seedPosts = async (count = 5) => {
   const mockPosts = Array.from({ length: count }).map(() => ({
+    userId: new mongoose.Types.ObjectId(),
     username: faker.internet.username(),               // ✅ required
     title: faker.lorem.words(3),                       // ✅ required
     description: faker.lorem.paragraph(),              // ✅ required

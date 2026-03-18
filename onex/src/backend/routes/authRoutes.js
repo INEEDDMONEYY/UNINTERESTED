@@ -7,6 +7,7 @@ import User from "../models/User.js";
 import env from "../config/env.js";
 import sendWelcomeEmail from "../utils/sendWelcomeEmail.js";
 import sendResetEmail from "../utils/sendResetEmail.js";
+import { ensureUserAdminConversation } from "../utils/ensureAdminWelcomeConversation.js";
 
 // 🔐 NEW: import combined middleware
 import { authMiddleware, adminOnlyMiddleware } from "../middleware/authMiddleware.js";
@@ -53,6 +54,10 @@ router.post("/signup", async (req, res) => {
     });
 
     await user.save();
+
+    if (user.role === "user") {
+      await ensureUserAdminConversation(user._id);
+    }
 
     // Send welcome email after successful signup. Do not fail signup if email service has issues.
     if (user.email) {
@@ -169,6 +174,10 @@ router.post("/admin/create-user", authMiddleware, adminOnlyMiddleware, async (re
     });
 
     await newUser.save();
+
+    if (newUser.role === "user") {
+      await ensureUserAdminConversation(newUser._id);
+    }
 
     if (newUser.email) {
       const resetToken = crypto.randomBytes(32).toString("hex");
