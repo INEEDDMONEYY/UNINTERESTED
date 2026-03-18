@@ -476,7 +476,7 @@ export default function UserDashboard() {
                 <li className="flex items-start gap-2">
                   <ShieldAlert size={16} className="mt-0.5 text-amber-600" />
                   <span>
-                    <strong>Contact privacy update:</strong> anonymity now applies to whichever contact method is not set in your settings. If one contact method is hidden for anonymity, the other available method remains visible as your alternate contact.
+                    <strong>Contact privacy update:</strong> phone number and email now display directly on your profile and post details when they are set in your settings. Contact masking will return later when the payment system is ready.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">

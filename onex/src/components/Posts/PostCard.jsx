@@ -31,7 +31,9 @@ export default function PostCard({ post, onDelete }) {
   const username = post.userId?.username || "Unknown";
   const bio = post.userId?.bio || "";
   const profilePic = post.userId?.profilePic || "";
-  const displayCategories = getPostCategories(post);
+  const displayCategories = getPostCategories(post).filter(
+    (category) => String(category).trim().toLowerCase() !== "uncategorized",
+  );
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isOwner = user._id && post.userId?._id === user._id;

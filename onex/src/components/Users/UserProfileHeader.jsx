@@ -3,7 +3,6 @@ import { UserContext } from "../../context/UserContext";
 import { Camera, Pencil, CheckCircle2, Star } from "lucide-react";
 import api from "../../utils/api";
 import { hasPermanentProviderBadge } from "../../utils/providerBadgeEligibility";
-import { FEATURE_FLAGS } from "../../config/featureFlags";
 
 /*
   UserProfileHeader
@@ -39,7 +38,6 @@ export default function UserProfileHeader({
   const [savingBanner, setSavingBanner] = useState(false);
   const [savingBio, setSavingBio] = useState(false);
   const [savingLocation, setSavingLocation] = useState(false);
-  const [contactNotice, setContactNotice] = useState("");
 
   const fileInputRef = useRef(null);
   const isOwner = Boolean(ctxUser?._id && displayUserId && String(ctxUser._id) === String(displayUserId));
@@ -228,14 +226,6 @@ export default function UserProfileHeader({
   const usernameStyle = usernameLength >= 20 ? { fontSize: "10px" } : {};
   const hasPhoneNumber = Boolean(displayPhoneNumber);
   const hasEmail = Boolean(displayEmail);
-  const hidePhoneForAnonymity = FEATURE_FLAGS.ANONYMITY_MODE && hasPhoneNumber;
-  const contactCautionMessage =
-    "Payment features are being added to ensure the safety and security of our providers. Features are subject to change.";
-
-  const handleAnonymousContactClick = (e) => {
-    e.preventDefault();
-    setContactNotice(contactCautionMessage);
-  };
 
   if (loading && !user.username) {
     return (
@@ -387,22 +377,12 @@ export default function UserProfileHeader({
               <p className="text-gray-700 text-sm md:text-base break-all">
                 Phone:{" "}
                 {hasPhoneNumber ? (
-                  hidePhoneForAnonymity ? (
-                    <button
-                      type="button"
-                      onClick={handleAnonymousContactClick}
-                      className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
-                    >
-                      Hidden for anonymity
-                    </button>
-                  ) : (
-                    <a
-                      href={`tel:${String(displayPhoneNumber).replace(/\D/g, "")}`}
-                      className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
-                    >
-                      {displayPhoneNumber}
-                    </a>
-                  )
+                  <a
+                    href={`tel:${String(displayPhoneNumber).replace(/\D/g, "")}`}
+                    className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
+                  >
+                    {displayPhoneNumber}
+                  </a>
                 ) : (
                   <span className="italic text-gray-400">Not provided</span>
                 )}
@@ -421,12 +401,6 @@ export default function UserProfileHeader({
                   <span className="italic text-gray-400">Not provided</span>
                 )}
               </p>
-
-              {contactNotice && (
-                <p className="inline-flex items-start rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                  {contactNotice}
-                </p>
-              )}
 
               {!editingLocation ? (
                 <div className="flex items-start gap-2">

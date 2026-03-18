@@ -82,7 +82,6 @@ export default function PostDetail() {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
-  const [contactNotice, setContactNotice] = useState("");
   const mediaItems = [
     ...(Array.isArray(post?.pictures)
       ? post.pictures.map((url) => ({ type: "image", url }))
@@ -107,7 +106,6 @@ export default function PostDetail() {
   const emailHref = displayEmail ? `mailto:${displayEmail}` : "";
   const hasPhoneNumber = Boolean(displayPhoneNumber);
   const hasEmail = Boolean(displayEmail);
-  const hidePhoneForAnonymity = FEATURE_FLAGS.ANONYMITY_MODE && hasPhoneNumber;
   const isPromotedUser = hasActivePromotion(effectiveUser?.activePromoExpiry);
   const hasTrustedAccountAge = () => {
     const createdAt = effectiveUser?.createdAt;
@@ -122,14 +120,6 @@ export default function PostDetail() {
   const availability = effectiveUser?.availability || { status: "" };
   const incallPrice = effectiveUser?.incallPrice || "";
   const outcallPrice = effectiveUser?.outcallPrice || "";
-
-  const contactCautionMessage =
-    "Payment features are being added to ensure the safety and security of our providers. Features are subject to change.";
-
-  const handleAnonymousContactClick = (e) => {
-    e.preventDefault();
-    setContactNotice(contactCautionMessage);
-  };
 
   useEffect(() => {
     let cancelled = false;
@@ -288,22 +278,12 @@ export default function PostDetail() {
         <p className="text-sm text-gray-500 mt-1 break-all">
           Phone:{" "}
           {hasPhoneNumber ? (
-            hidePhoneForAnonymity ? (
-              <button
-                type="button"
-                onClick={handleAnonymousContactClick}
-                className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
-              >
-                Hidden for anonymity
-              </button>
-            ) : (
-              <a
-                href={phoneHref}
-                className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
-              >
-                {displayPhoneNumber}
-              </a>
-            )
+            <a
+              href={phoneHref}
+              className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
+            >
+              {displayPhoneNumber}
+            </a>
           ) : (
             <span className="italic text-gray-400">Not provided</span>
           )}
@@ -321,11 +301,6 @@ export default function PostDetail() {
             <span className="italic text-gray-400">Not provided</span>
           )}
         </p>
-        {contactNotice && (
-          <p className="mt-2 inline-flex items-start rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-            {contactNotice}
-          </p>
-        )}
         {displayLocation && (
           <p className="text-sm text-gray-500 mt-1">
             Location: {displayLocation}
