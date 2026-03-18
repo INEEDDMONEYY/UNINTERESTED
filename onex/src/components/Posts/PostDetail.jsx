@@ -29,12 +29,6 @@ const getPhoneHref = (value = "") => {
   return `tel:${digits}`;
 };
 
-const maskEmail = (email = "") => {
-  const atIndex = email.indexOf("@");
-  if (atIndex < 0) return email;
-  return `${email.slice(0, atIndex)}-xxx-xxxxxxx`;
-};
-
 const hasActivePromotion = (expiry) => {
   if (!expiry) return false;
   const date = new Date(expiry);
@@ -110,8 +104,10 @@ export default function PostDetail() {
     : "";
   const phoneHref = getPhoneHref(effectiveUser?.phoneNumber || "");
   const displayEmail = typeof effectiveUser?.email === "string" ? effectiveUser.email.trim() : "";
-  const maskedEmail = maskEmail(displayEmail);
   const emailHref = displayEmail ? `mailto:${displayEmail}` : "";
+  const hasPhoneNumber = Boolean(displayPhoneNumber);
+  const hasEmail = Boolean(displayEmail);
+  const hidePhoneForAnonymity = FEATURE_FLAGS.ANONYMITY_MODE && hasPhoneNumber;
   const isPromotedUser = hasActivePromotion(effectiveUser?.activePromoExpiry);
   const hasTrustedAccountAge = () => {
     const createdAt = effectiveUser?.createdAt;
@@ -128,7 +124,7 @@ export default function PostDetail() {
   const outcallPrice = effectiveUser?.outcallPrice || "";
 
   const contactCautionMessage =
-    "Payment features are being added to ensure the safety and security of our providers. Anonymity will be added to users — phone numbers & email will be hidden. Features are subject to change. Please use the phone number provided as an alternative form of contact.";
+    "Payment features are being added to ensure the safety and security of our providers. Features are subject to change.";
 
   const handleAnonymousContactClick = (e) => {
     e.preventDefault();
@@ -289,16 +285,16 @@ export default function PostDetail() {
             Age: {effectiveUser.age}
           </p>
         )}
-        {displayPhoneNumber && (
-          <p className="text-sm text-gray-500 mt-1">
-            Phone:{" "}
-            {FEATURE_FLAGS.ANONYMITY_MODE ? (
+        <p className="text-sm text-gray-500 mt-1 break-all">
+          Phone:{" "}
+          {hasPhoneNumber ? (
+            hidePhoneForAnonymity ? (
               <button
                 type="button"
                 onClick={handleAnonymousContactClick}
                 className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
               >
-                {displayPhoneNumber}
+                Hidden for anonymity
               </button>
             ) : (
               <a
@@ -307,30 +303,24 @@ export default function PostDetail() {
               >
                 {displayPhoneNumber}
               </a>
-            )}
-          </p>
-        )}
-        {displayEmail && (
-          <p className="text-sm text-gray-500 mt-1 break-all">
-            Email:{" "}
-            {FEATURE_FLAGS.ANONYMITY_MODE ? (
-              <button
-                type="button"
-                onClick={handleAnonymousContactClick}
-                className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
-              >
-                {maskedEmail}
-              </button>
-            ) : (
-              <a
-                href={emailHref}
-                className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
-              >
-                {displayEmail}
-              </a>
-            )}
-          </p>
-        )}
+            )
+          ) : (
+            <span className="italic text-gray-400">Not provided</span>
+          )}
+        </p>
+        <p className="text-sm text-gray-500 mt-1 break-all">
+          Email:{" "}
+          {hasEmail ? (
+            <a
+              href={emailHref}
+              className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
+            >
+              {displayEmail}
+            </a>
+          ) : (
+            <span className="italic text-gray-400">Not provided</span>
+          )}
+        </p>
         {contactNotice && (
           <p className="mt-2 inline-flex items-start rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
             {contactNotice}

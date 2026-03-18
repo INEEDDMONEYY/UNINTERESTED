@@ -2,8 +2,19 @@ import Conversation from "../models/Conversation.js";
 import User from "../models/User.js";
 import Message from "../models/Message.js";
 
-const WELCOME_MESSAGE =
-  "Welcome to Mystery Mansion, thank you for joining our platform we are looking to make it the safest experience you could have regarding a platform like this.";
+const WELCOME_MESSAGE = `Welcome to Mystery Mansion 🎉🎊 — glad to have you here.
+
+You can post your ad for free and start getting exposure right away.
+
+To activate your promo:
+
+• Complete your profile (photo + bio + age + gender).
+• Create your first post & redeem code upon post creation (or activate it in dashboard settings).
+
+
+Early profiles are getting homepage promotion + a Founding Provider badge (limited).
+
+If you need anything, just message support — the platform is actively monitored for safety.`;
 
 export const getPrimaryAdminId = async () => {
   const admin = await User.findOne({ role: "admin" }).sort({ createdAt: 1 }).select("_id");

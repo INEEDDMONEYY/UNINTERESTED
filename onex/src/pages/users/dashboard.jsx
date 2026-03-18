@@ -463,7 +463,7 @@ export default function UserDashboard() {
               <div className="flex items-center justify-between gap-3 mb-3">
                 <h2 className="text-lg font-semibold inline-flex items-center gap-2">
                   <Sparkles size={18} className="text-pink-600" />
-                  What's New in Settings
+                  What's New for Users
                 </h2>
                 {SHOW_WHATS_NEW_BADGE && (
                   <span className="rounded-full bg-pink-600 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.05em] text-white">
@@ -473,6 +473,18 @@ export default function UserDashboard() {
               </div>
 
               <ul className="space-y-3 text-sm text-gray-700">
+                <li className="flex items-start gap-2">
+                  <ShieldAlert size={16} className="mt-0.5 text-amber-600" />
+                  <span>
+                    <strong>Contact privacy update:</strong> anonymity now applies to whichever contact method is not set in your settings. If one contact method is hidden for anonymity, the other available method remains visible as your alternate contact.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="mt-0.5 text-green-600" />
+                  <span>
+                    <strong>Profile header improvement:</strong> very long usernames now scale down automatically so badges remain visible on smaller screens.
+                  </span>
+                </li>
                 <li className="flex items-start gap-2">
                   <MessageSquareText size={16} className="mt-0.5 text-blue-600" />
                   <span>

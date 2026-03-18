@@ -14,10 +14,17 @@ async function sendWelcomeEmail({ to, username }) {
     subject: "Welcome to Mystery Mansion",
     html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
-        <h2>Welcome to Mystery Mansion</h2>
+        <h2>Welcome to Mystery Mansion 🎉🎊</h2>
         <p>Hi ${username || "there"},</p>
-        <p>Congratulations and welcome to the platform.</p>
-        <p>Your account is now active and you can start exploring posts, profiles, and updates.</p>
+        <p>Glad to have you here.</p>
+        <p>You can post your ad for free and start getting exposure right away.</p>
+        <p><strong>To activate your promo:</strong></p>
+        <ul style="margin: 8px 0 16px 18px; padding: 0;">
+          <li>Complete your profile (photo + bio + age + gender).</li>
+          <li>Create your first post &amp; redeem code upon post creation (or activate it in dashboard settings).</li>
+        </ul>
+        <p>Early profiles are getting homepage promotion + a Founding Provider badge (limited).</p>
+        <p>If you need anything, just message support — the platform is actively monitored for safety.</p>
         <p style="margin: 20px 0;">
           <a
             href="${env.CLIENT_URL}/home"

@@ -218,16 +218,19 @@ export default function UserProfileHeader({
     user.activePromoExpiry && new Date(user.activePromoExpiry).getTime() > Date.now()
   );
   const isPermanentProvider = hasPermanentProviderBadge(user?.createdAt);
-  const maskEmail = (email = "") => {
-    const atIndex = email.indexOf("@");
-    if (atIndex < 0) return email;
-    return `${email.slice(0, atIndex)}-xxx-xxxxxxx`;
-  };
   const displayPhoneNumber = user?.phoneNumber || "";
   const displayEmail = user?.email || "";
-  const maskedEmail = maskEmail(displayEmail);
+  const usernameLength = (user?.username || "").trim().length;
+  const usernameSizeClass =
+    usernameLength >= 20
+      ? "text-xs sm:text-xs md:text-xs"
+      : "text-sm sm:text-base md:text-lg";
+  const usernameStyle = usernameLength >= 20 ? { fontSize: "10px" } : {};
+  const hasPhoneNumber = Boolean(displayPhoneNumber);
+  const hasEmail = Boolean(displayEmail);
+  const hidePhoneForAnonymity = FEATURE_FLAGS.ANONYMITY_MODE && hasPhoneNumber;
   const contactCautionMessage =
-    "Payment features are being added to ensure the safety and security of our providers. Anonymity will be added to users — phone numbers & email will be hidden. Features are subject to change. Please use the phone number provided as an alternative form of contact.";
+    "Payment features are being added to ensure the safety and security of our providers. Features are subject to change.";
 
   const handleAnonymousContactClick = (e) => {
     e.preventDefault();
@@ -304,7 +307,7 @@ export default function UserProfileHeader({
         {/* Username + Bio */}
         <div className="pt-16 md:pt-20">
 
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900 inline-flex items-center gap-2">
+          <h1 className={`${usernameSizeClass} font-bold text-gray-900 inline-flex items-center gap-2 break-words leading-tight`} style={usernameStyle}>
             <span>{user.username || "Unnamed User"}</span>
             <CheckCircle2
               size={18}
@@ -381,16 +384,16 @@ export default function UserProfileHeader({
                 </p>
               )}
 
-              {displayPhoneNumber && (
-                <p className="text-gray-700 text-sm md:text-base break-all">
-                  Phone:{" "}
-                  {FEATURE_FLAGS.ANONYMITY_MODE ? (
+              <p className="text-gray-700 text-sm md:text-base break-all">
+                Phone:{" "}
+                {hasPhoneNumber ? (
+                  hidePhoneForAnonymity ? (
                     <button
                       type="button"
                       onClick={handleAnonymousContactClick}
                       className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
                     >
-                      {displayPhoneNumber}
+                      Hidden for anonymity
                     </button>
                   ) : (
                     <a
@@ -399,31 +402,25 @@ export default function UserProfileHeader({
                     >
                       {displayPhoneNumber}
                     </a>
-                  )}
-                </p>
-              )}
+                  )
+                ) : (
+                  <span className="italic text-gray-400">Not provided</span>
+                )}
+              </p>
 
-              {displayEmail && (
-                <p className="text-gray-700 text-sm md:text-base break-all">
-                  Email:{" "}
-                  {FEATURE_FLAGS.ANONYMITY_MODE ? (
-                    <button
-                      type="button"
-                      onClick={handleAnonymousContactClick}
-                      className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700 break-all"
-                    >
-                      {maskedEmail}
-                    </button>
-                  ) : (
-                    <a
-                      href={`mailto:${displayEmail}`}
-                      className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
-                    >
-                      {displayEmail}
-                    </a>
-                  )}
-                </p>
-              )}
+              <p className="text-gray-700 text-sm md:text-base break-all">
+                Email:{" "}
+                {hasEmail ? (
+                  <a
+                    href={`mailto:${displayEmail}`}
+                    className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
+                  >
+                    {displayEmail}
+                  </a>
+                ) : (
+                  <span className="italic text-gray-400">Not provided</span>
+                )}
+              </p>
 
               {contactNotice && (
                 <p className="inline-flex items-start rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
