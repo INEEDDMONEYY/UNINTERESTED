@@ -22,6 +22,7 @@ const normalizeUsername = (value = "") =>
     .replace(/\u00A0/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+  const looksLikeEmail = (value = "") => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
 
 /* -------------------------- 🔑 Signup -------------------------- */
 router.post("/signup", async (req, res) => {
@@ -34,6 +35,10 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({
         error: "Username, email, and password are required"
       });
+    }
+
+    if (looksLikeEmail(normalizedUsername)) {
+      return res.status(400).json({ error: "Username cannot be an email address" });
     }
 
     const existingUser = await User.findOne({
@@ -153,22 +158,30 @@ router.get("/me", async (req, res) => {
 router.post("/admin/create-user", authMiddleware, adminOnlyMiddleware, async (req, res) => {
   try {
     const { username, email, password, role = "user" } = req.body;
+    const normalizedUsername = normalizeUsername(username || "");
+    const normalizedEmail = (email || "").trim().toLowerCase();
 
-    if (!username || !email || !password) {
+    if (!normalizedUsername || !normalizedEmail || !password) {
       return res.status(400).json({ error: "Username, email, and password are required" });
     }
 
-    const existingUser = await User.findOne({ username });
+    if (looksLikeEmail(normalizedUsername)) {
+      return res.status(400).json({ error: "Username cannot be an email address" });
+    }
+
+    const existingUser = await User.findOne({
+      username: { $regex: `^${escapeRegex(normalizedUsername)}$`, $options: "i" },
+    });
     if (existingUser) return res.status(409).json({ error: "Username already exists" });
 
-    const existingEmail = await User.findOne({ email });
+    const existingEmail = await User.findOne({ email: normalizedEmail });
     if (existingEmail) return res.status(409).json({ error: "Email already registered" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
-      username,
-      email,
+      username: normalizedUsername,
+      email: normalizedEmail,
       password: hashedPassword,
       role,
     });

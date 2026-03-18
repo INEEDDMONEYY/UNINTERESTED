@@ -19,7 +19,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
     city: "",
     state: "",
     country: "",
-    category: "",
+    categories: ["uncategorized"],
     pictures: [],
     videos: [],
     visibility: "",
@@ -57,7 +57,29 @@ export default function PostForm({ onSuccess, embedded = false }) {
 
   // ----------------------- Handlers -----------------------
   const handleCategorySelect = (category) => {
-    setFormData((prev) => ({ ...prev, category }));
+    const normalized = String(category || "").trim().toLowerCase();
+
+    setFormData((prev) => {
+      const existing = Array.isArray(prev.categories) ? prev.categories : [];
+      const cleanedExisting = existing.filter(
+        (item) => String(item || "").trim().toLowerCase() !== "uncategorized"
+      );
+
+      const alreadySelected = cleanedExisting.some(
+        (item) => String(item || "").trim().toLowerCase() === normalized
+      );
+
+      const nextCategories = alreadySelected
+        ? cleanedExisting.filter(
+            (item) => String(item || "").trim().toLowerCase() !== normalized
+          )
+        : [...cleanedExisting, category];
+
+      return {
+        ...prev,
+        categories: nextCategories.length > 0 ? nextCategories : ["uncategorized"],
+      };
+    });
   };
 
   const handleChange = (e) => {
@@ -108,8 +130,19 @@ export default function PostForm({ onSuccess, embedded = false }) {
       }
 
       const fd = new FormData();
-      const effectiveCategory = formData.category?.trim() || "uncategorized";
-      const payload = { ...formData, category: effectiveCategory };
+      const selectedCategories = Array.isArray(formData.categories)
+        ? formData.categories.map((value) => String(value || "").trim()).filter(Boolean)
+        : [];
+      const effectiveCategories = selectedCategories.length
+        ? selectedCategories
+        : ["uncategorized"];
+      const primaryCategory = effectiveCategories[0];
+      const payload = {
+        ...formData,
+        categories: effectiveCategories,
+        // Keep legacy category in sync so old views/queries still work.
+        category: primaryCategory,
+      };
 
       Object.entries(payload).forEach(([key, value]) => {
         if (value !== null) {
@@ -117,6 +150,8 @@ export default function PostForm({ onSuccess, embedded = false }) {
             value.forEach((file) => fd.append("pictures", file));
           } else if (key === "videos") {
             value.forEach((file) => fd.append("videos", file));
+          } else if (key === "categories") {
+            value.forEach((selectedCategory) => fd.append("categories", selectedCategory));
           } else if (key === "promoCode") {
             // promo code is handled by redeem endpoint and is not part of post payload
           } else {
@@ -141,14 +176,14 @@ export default function PostForm({ onSuccess, embedded = false }) {
       if (onSuccess) onSuccess();
 
       // reset form
-      const category = effectiveCategory;
+      const category = primaryCategory;
       setFormData({
         title: "",
         description: "",
         city: "",
         state: "",
         country: "",
-        category: "",
+        categories: ["uncategorized"],
         pictures: [],
         videos: [],
         visibility: "",
@@ -191,18 +226,25 @@ export default function PostForm({ onSuccess, embedded = false }) {
 
       <div className="mb-4">
         <label className="block mb-2 font-semibold text-sm sm:text-base md:text-lg">
-          Choose Category:
+          Choose Categories:
         </label>
         <div className="overflow-x-auto">
-          <CategoryList onSelect={handleCategorySelect} />
+          <CategoryList
+            onSelect={handleCategorySelect}
+            selectedCategories={formData.categories}
+            multiple
+          />
         </div>
         <p className="text-xs sm:text-sm text-gray-500 mt-2 text-center sm:text-center">
-          Leave category blank to post to uncategorized, or select one to place your post there.
+          Select one or more categories. If none are selected, your post is automatically
+          placed in uncategorized.
         </p>
-        {formData.category && (
+        {Array.isArray(formData.categories) && formData.categories.length > 0 && (
           <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1 text-center sm:text-center">
             Selected:{" "}
-            <span className="font-medium text-gray-800">{formData.category}</span>
+            <span className="font-medium text-gray-800">
+              {formData.categories.join(", ")}
+            </span>
           </p>
         )}
       </div>

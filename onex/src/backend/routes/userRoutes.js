@@ -12,6 +12,7 @@ import PromoCode from "../models/PromoCode.js";
 import { enforceRestriction } from "../middleware/restrictionMiddleware.js";
 
 const router = express.Router();
+const looksLikeEmail = (value = "") => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
 
 // ✅ Multer setup for handling file uploads
 const upload = multer({ dest: "uploads/" });
@@ -34,6 +35,48 @@ router.post("/update-profile", enforceRestriction("profile:update"), upload.fiel
     let updateData = { ...req.body };
     const profilePicFile = req.files?.profilePic?.[0] || null;
     const bannerPicFile = req.files?.bannerPic?.[0] || null;
+
+    if (typeof updateData.username === "string") {
+      const normalizedUsername = updateData.username.trim();
+      if (!normalizedUsername) {
+        return res.status(400).json({ error: "Username cannot be empty" });
+      }
+      if (looksLikeEmail(normalizedUsername)) {
+        return res.status(400).json({ error: "Username cannot be an email address" });
+      }
+
+      const existingUser = await User.findOne({
+        username: { $regex: `^${normalizedUsername.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" },
+        _id: { $ne: req.user._id },
+      }).select("_id");
+
+      if (existingUser) {
+        return res.status(409).json({ error: "Username already exists" });
+      }
+
+      updateData.username = normalizedUsername;
+    }
+
+    if (typeof updateData.email === "string") {
+      const normalizedEmail = updateData.email.trim().toLowerCase();
+      if (!normalizedEmail) {
+        return res.status(400).json({ error: "Email cannot be empty" });
+      }
+      if (!looksLikeEmail(normalizedEmail)) {
+        return res.status(400).json({ error: "Please provide a valid email address" });
+      }
+
+      const existingEmail = await User.findOne({
+        email: normalizedEmail,
+        _id: { $ne: req.user._id },
+      }).select("_id");
+
+      if (existingEmail) {
+        return res.status(409).json({ error: "Email already registered" });
+      }
+
+      updateData.email = normalizedEmail;
+    }
 
     // ✅ Handle profilePic upload if file is present
     if (profilePicFile) {

@@ -3,6 +3,7 @@ import { UserContext } from "../../context/UserContext";
 import { Camera, Pencil, CheckCircle2, Star } from "lucide-react";
 import api from "../../utils/api";
 import { hasPermanentProviderBadge } from "../../utils/providerBadgeEligibility";
+import { FEATURE_FLAGS } from "../../config/featureFlags";
 
 /*
   UserProfileHeader
@@ -22,6 +23,8 @@ export default function UserProfileHeader({
     age: null,
     createdAt: null,
     location: "",
+    phoneNumber: "",
+    email: "",
     profilePic: null,
     bannerPic: null,
     activePromoExpiry: null,
@@ -36,6 +39,7 @@ export default function UserProfileHeader({
   const [savingBanner, setSavingBanner] = useState(false);
   const [savingBio, setSavingBio] = useState(false);
   const [savingLocation, setSavingLocation] = useState(false);
+  const [contactNotice, setContactNotice] = useState("");
 
   const fileInputRef = useRef(null);
   const isOwner = Boolean(ctxUser?._id && displayUserId && String(ctxUser._id) === String(displayUserId));
@@ -71,6 +75,8 @@ export default function UserProfileHeader({
         age: profileData.age ?? null,
         createdAt: profileData.createdAt || null,
         location: profileData.location || "",
+        phoneNumber: profileData.phoneNumber || "",
+        email: profileData.email || "",
         profilePic: profileData.profilePic || null,
         bannerPic: profileData.bannerPic || null,
         activePromoExpiry: profileData.activePromoExpiry || null,
@@ -212,6 +218,21 @@ export default function UserProfileHeader({
     user.activePromoExpiry && new Date(user.activePromoExpiry).getTime() > Date.now()
   );
   const isPermanentProvider = hasPermanentProviderBadge(user?.createdAt);
+  const maskEmail = (email = "") => {
+    const atIndex = email.indexOf("@");
+    if (atIndex < 0) return email;
+    return `${email.slice(0, atIndex)}-xxx-xxxxxxx`;
+  };
+  const displayPhoneNumber = user?.phoneNumber || "";
+  const displayEmail = user?.email || "";
+  const maskedEmail = maskEmail(displayEmail);
+  const contactCautionMessage =
+    "Payment features are being added to ensure the safety and security of our providers. Anonymity will be added to users — phone numbers & email will be hidden. Features are subject to change. Please use the phone number provided as an alternative form of contact.";
+
+  const handleAnonymousContactClick = (e) => {
+    e.preventDefault();
+    setContactNotice(contactCautionMessage);
+  };
 
   if (loading && !user.username) {
     return (
@@ -357,6 +378,56 @@ export default function UserProfileHeader({
               {Number.isFinite(Number(user.age)) && Number(user.age) > 0 && (
                 <p className="text-gray-700 text-sm md:text-base">
                   Age: {user.age}
+                </p>
+              )}
+
+              {displayPhoneNumber && (
+                <p className="text-gray-700 text-sm md:text-base break-all">
+                  Phone:{" "}
+                  {FEATURE_FLAGS.ANONYMITY_MODE ? (
+                    <button
+                      type="button"
+                      onClick={handleAnonymousContactClick}
+                      className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
+                    >
+                      {displayPhoneNumber}
+                    </button>
+                  ) : (
+                    <a
+                      href={`tel:${String(displayPhoneNumber).replace(/\D/g, "")}`}
+                      className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
+                    >
+                      {displayPhoneNumber}
+                    </a>
+                  )}
+                </p>
+              )}
+
+              {displayEmail && (
+                <p className="text-gray-700 text-sm md:text-base break-all">
+                  Email:{" "}
+                  {FEATURE_FLAGS.ANONYMITY_MODE ? (
+                    <button
+                      type="button"
+                      onClick={handleAnonymousContactClick}
+                      className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700 break-all"
+                    >
+                      {maskedEmail}
+                    </button>
+                  ) : (
+                    <a
+                      href={`mailto:${displayEmail}`}
+                      className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
+                    >
+                      {displayEmail}
+                    </a>
+                  )}
+                </p>
+              )}
+
+              {contactNotice && (
+                <p className="inline-flex items-start rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  {contactNotice}
                 </p>
               )}
 

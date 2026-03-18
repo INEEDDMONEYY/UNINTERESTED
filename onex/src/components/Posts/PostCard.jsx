@@ -3,6 +3,7 @@ import { Trash2, ChevronLeft, ChevronRight, Star, BadgeCheck, Rocket } from "luc
 import { useState, useEffect } from "react";
 import api from "../../utils/api";
 import { hasPermanentProviderBadge } from "../../utils/providerBadgeEligibility";
+import { getPostCategories } from "../../utils/postCategories";
 
 export default function PostCard({ post, onDelete }) {
   // -------------------- Carousel State --------------------
@@ -30,6 +31,7 @@ export default function PostCard({ post, onDelete }) {
   const username = post.userId?.username || "Unknown";
   const bio = post.userId?.bio || "";
   const profilePic = post.userId?.profilePic || "";
+  const displayCategories = getPostCategories(post);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isOwner = user._id && post.userId?._id === user._id;
@@ -310,6 +312,20 @@ export default function PostCard({ post, onDelete }) {
               ? `${post.city}, ${post.state}`
               : "Location not specified."}
           </p>
+
+          {displayCategories.length > 0 && (
+            <div className="mt-2 inline-flex items-center gap-1.5 flex-wrap">
+              <span className="text-xs text-gray-500">Categories:</span>
+              {displayCategories.map((category) => (
+                <span
+                  key={category}
+                  className="inline-flex items-center rounded-full border border-pink-300 bg-pink-50 px-2 py-0.5 text-[10px] sm:text-xs font-semibold text-pink-700"
+                >
+                  {category}
+                </span>
+              ))}
+            </div>
+          )}
 
           {post.createdAt && (
             <p className="text-gray-400 text-xs mt-1">

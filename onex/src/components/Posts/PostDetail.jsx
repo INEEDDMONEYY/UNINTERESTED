@@ -6,6 +6,7 @@ import { FEATURE_FLAGS } from "../../config/featureFlags";
 import api from "../../utils/api";
 import { UserContext } from "../../context/UserContext";
 import { hasPermanentProviderBadge } from "../../utils/providerBadgeEligibility";
+import { getPostCategories } from "../../utils/postCategories";
 
 // 🌀 Loaders & Components
 import PostDetailLoader from "../Loaders/PostDetailLoader";
@@ -20,6 +21,18 @@ const formatPhoneNumber = (value = "") => {
   if (digits.length <= 3) return digits;
   if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
   return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+};
+
+const getPhoneHref = (value = "") => {
+  const digits = String(value).replace(/\D/g, "");
+  if (!digits) return "";
+  return `tel:${digits}`;
+};
+
+const maskEmail = (email = "") => {
+  const atIndex = email.indexOf("@");
+  if (atIndex < 0) return email;
+  return `${email.slice(0, atIndex)}-xxx-xxxxxxx`;
 };
 
 const hasActivePromotion = (expiry) => {
@@ -75,6 +88,7 @@ export default function PostDetail() {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
+  const [contactNotice, setContactNotice] = useState("");
   const mediaItems = [
     ...(Array.isArray(post?.pictures)
       ? post.pictures.map((url) => ({ type: "image", url }))
@@ -90,13 +104,14 @@ export default function PostDetail() {
     : post?.userId;
   const locationParts = [post?.city, post?.state, post?.country].filter(Boolean);
   const displayLocation = locationParts.length > 0 ? locationParts.join(", ") : "";
-  const rawCategory = post?.category?.trim();
-  const displayCategory = rawCategory && rawCategory.toLowerCase() !== "uncategorized"
-    ? rawCategory
-    : "";
+  const displayCategories = getPostCategories(post);
   const displayPhoneNumber = effectiveUser?.phoneNumber
     ? formatPhoneNumber(effectiveUser.phoneNumber)
     : "";
+  const phoneHref = getPhoneHref(effectiveUser?.phoneNumber || "");
+  const displayEmail = typeof effectiveUser?.email === "string" ? effectiveUser.email.trim() : "";
+  const maskedEmail = maskEmail(displayEmail);
+  const emailHref = displayEmail ? `mailto:${displayEmail}` : "";
   const isPromotedUser = hasActivePromotion(effectiveUser?.activePromoExpiry);
   const hasTrustedAccountAge = () => {
     const createdAt = effectiveUser?.createdAt;
@@ -111,6 +126,14 @@ export default function PostDetail() {
   const availability = effectiveUser?.availability || { status: "" };
   const incallPrice = effectiveUser?.incallPrice || "";
   const outcallPrice = effectiveUser?.outcallPrice || "";
+
+  const contactCautionMessage =
+    "Payment features are being added to ensure the safety and security of our providers. Anonymity will be added to users — phone numbers & email will be hidden. Features are subject to change. Please use the phone number provided as an alternative form of contact.";
+
+  const handleAnonymousContactClick = (e) => {
+    e.preventDefault();
+    setContactNotice(contactCautionMessage);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -268,7 +291,49 @@ export default function PostDetail() {
         )}
         {displayPhoneNumber && (
           <p className="text-sm text-gray-500 mt-1">
-            Phone: {displayPhoneNumber}
+            Phone:{" "}
+            {FEATURE_FLAGS.ANONYMITY_MODE ? (
+              <button
+                type="button"
+                onClick={handleAnonymousContactClick}
+                className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
+              >
+                {displayPhoneNumber}
+              </button>
+            ) : (
+              <a
+                href={phoneHref}
+                className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
+              >
+                {displayPhoneNumber}
+              </a>
+            )}
+          </p>
+        )}
+        {displayEmail && (
+          <p className="text-sm text-gray-500 mt-1 break-all">
+            Email:{" "}
+            {FEATURE_FLAGS.ANONYMITY_MODE ? (
+              <button
+                type="button"
+                onClick={handleAnonymousContactClick}
+                className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
+              >
+                {maskedEmail}
+              </button>
+            ) : (
+              <a
+                href={emailHref}
+                className="text-pink-600 underline decoration-pink-400 underline-offset-2 hover:text-pink-700"
+              >
+                {displayEmail}
+              </a>
+            )}
+          </p>
+        )}
+        {contactNotice && (
+          <p className="mt-2 inline-flex items-start rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            {contactNotice}
           </p>
         )}
         {displayLocation && (
@@ -276,12 +341,17 @@ export default function PostDetail() {
             Location: {displayLocation}
           </p>
         )}
-        {displayCategory && (
+        {displayCategories.length > 0 && (
           <p className="text-sm text-gray-500 mt-1 inline-flex items-center gap-2 flex-wrap">
             <span>Categories:</span>
-            <span className="inline-flex items-center rounded-full border border-pink-300 bg-pink-50 px-2.5 py-0.5 text-xs font-semibold text-pink-700">
-              {displayCategory}
-            </span>
+            {displayCategories.map((category) => (
+              <span
+                key={category}
+                className="inline-flex items-center rounded-full border border-pink-300 bg-pink-50 px-2.5 py-0.5 text-xs font-semibold text-pink-700"
+              >
+                {category}
+              </span>
+            ))}
           </p>
         )}
 

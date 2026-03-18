@@ -8,10 +8,11 @@ import MeetupServiceSettings from "../../components/Settings/UserDashboardSettin
 import RedeemPromoSettings from "../../components/Settings/UserDashboardSettings/RedeemPromoSettings.jsx";
 import UserAvailabilityDisplay from "../../components/UserDisplay/UserAvailabilityDisplay";
 import PhoneNumberSettings from "../../components/Settings/UserDashboardSettings/PhoneNumberSettings.jsx";
+import EmailSettings from "../../components/Settings/UserDashboardSettings/EmailSettings.jsx";
 import DeleteAccountSettings from "../../components/Settings/UserDashboardSettings/DeleteAccountSettings.jsx";
 import ReferencesLinks from "../../components/References/ReferencesLinks.jsx";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
-import { DollarSign, Cake, Phone, Trash2 } from "lucide-react";
+import { DollarSign, Cake, Phone, Mail, Trash2 } from "lucide-react";
 
 export default function UserProfileSettings({ onProfileUpdate }) {
   const { user } = useContext(UserContext);
@@ -183,6 +184,17 @@ export default function UserProfileSettings({ onProfileUpdate }) {
           </div>
         </section>
       )}
+
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 font-medium text-gray-700">
+          <Mail size={18} className="text-pink-600" />
+          Email Settings
+        </h2>
+
+        <div className="border border-pink-100 rounded-lg p-4 bg-white shadow-sm">
+          <EmailSettings user={user} />
+        </div>
+      </section>
 
       {/* =====================================================================================
     PROMO CODE SETTINGS

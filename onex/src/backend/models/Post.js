@@ -11,6 +11,10 @@ const PostSchema = new mongoose.Schema(
     state: { type: String },
     country: { type: String },
     category: { type: String, default: "" },
+    categories: {
+      type: [{ type: String, trim: true }],
+      default: ["uncategorized"],
+    },
     visibility: {
       type: String,
       enum: ["Men", "Women", "Both"],

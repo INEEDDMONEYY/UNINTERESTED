@@ -4,18 +4,41 @@ import cloudinary from '../utils/cloudinary.js';
 import streamifier from 'streamifier';
 import { normalizeState } from '../utils/stateNormalizer.js';
 
+const normalizeCategories = ({ categories, category }) => {
+  const rawCategories = Array.isArray(categories)
+    ? categories
+    : typeof categories === 'string'
+      ? [categories]
+      : [];
+
+  const cleaned = rawCategories
+    .map((value) => String(value || '').trim())
+    .filter(Boolean);
+
+  if (!cleaned.length && category?.trim()) {
+    cleaned.push(category.trim());
+  }
+
+  if (!cleaned.length) {
+    cleaned.push('uncategorized');
+  }
+
+  return Array.from(new Set(cleaned));
+};
+
 // ---------------- Create a new post ----------------
 export async function createPost(req, res) {
   try {
     if (!req.user?._id) return res.status(401).json({ error: 'Unauthorized' });
 
-    const { title, description, city, state, country, category, visibility } = req.body;
+    const { title, description, city, state, country, category, categories, visibility } = req.body;
     if (!title || !description)
       return res.status(400).json({ error: 'Title and description required' });
 
     const promoExpiry = req.user.activePromoExpiry ? new Date(req.user.activePromoExpiry) : null;
     const hasActivePromo = Boolean(promoExpiry && !Number.isNaN(promoExpiry.getTime()) && promoExpiry > new Date());
-    const effectiveCategory = category?.trim() || 'uncategorized';
+    const effectiveCategories = normalizeCategories({ categories, category });
+    const effectiveCategory = effectiveCategories[0];
     const normalizedCity = city?.trim() || '';
     const normalizedState = normalizeState(state);
     const normalizedCountry = country?.trim() || '';
@@ -64,6 +87,7 @@ export async function createPost(req, res) {
       state: normalizedState,
       country: normalizedCountry,
       category: effectiveCategory,
+      categories: effectiveCategories,
       visibility,
       pictures: imageUrls,
       videos: videoUrls,
@@ -75,7 +99,7 @@ export async function createPost(req, res) {
 
     const populatedPost = await Post.findById(savedPost._id).populate({
       path: 'userId',
-      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry createdAt',
+      select: 'username email bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry createdAt',
     });
 
     res.status(201).json(populatedPost);
@@ -98,7 +122,7 @@ export async function getPosts(req, res) {
 
     const posts = await Post.find(filter)
       .sort({ createdAt: -1 })
-      .populate({ path: 'userId', select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry createdAt' });
+      .populate({ path: 'userId', select: 'username email bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry createdAt' });
 
     res.json(posts);
   } catch (err) {
@@ -112,7 +136,7 @@ export async function getPostById(req, res) {
   try {
     const post = await Post.findById(req.params.id).populate({
       path: 'userId',
-      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry createdAt',
+      select: 'username email bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry createdAt',
     });
 
     if (!post) return res.status(404).json({ error: 'Post not found' });
@@ -134,9 +158,20 @@ export async function updatePost(req, res) {
       return res.status(403).json({ error: 'Not authorized to update this post' });
     }
 
-    const updatedPost = await Post.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate({
+    const updateData = { ...req.body };
+
+    if (Object.prototype.hasOwnProperty.call(updateData, 'categories') || Object.prototype.hasOwnProperty.call(updateData, 'category')) {
+      const effectiveCategories = normalizeCategories({
+        categories: updateData.categories,
+        category: updateData.category,
+      });
+      updateData.categories = effectiveCategories;
+      updateData.category = effectiveCategories[0];
+    }
+
+    const updatedPost = await Post.findByIdAndUpdate(req.params.id, updateData, { new: true }).populate({
       path: 'userId',
-      select: 'username bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry',
+      select: 'username email bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry',
     });
 
     res.json(updatedPost);

@@ -19,6 +19,8 @@ export const FEATURE_FLAGS = {
   ENABLE_COMMENTS: false,
   //User Search Flag
   ENABLE_USER_SEARCH: true,
+  // Temporary safety mode: hide direct contact handoff until paid safety features launch
+  ANONYMITY_MODE: true,
   //Social Media Integration Flags (future use)
   ENABLE_FOLLOW_US: false,
   //Onboarding Tutorial Flag

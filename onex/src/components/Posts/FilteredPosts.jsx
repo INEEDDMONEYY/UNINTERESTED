@@ -3,6 +3,7 @@ import PostCard from "./PostCard";
 import EmptyCategoryLoader from "../Loaders/EmptyCategoryLoader";
 import { statesMatch } from "../../utils/stateNormalizer";
 import { hasPermanentProviderBadge } from "../../utils/providerBadgeEligibility";
+import { postHasCategory } from "../../utils/postCategories";
 
 // Strip punctuation and normalize whitespace so inputs like ".Great falls." match "Great Falls"
 const sanitizeLocation = (str) =>
@@ -78,7 +79,7 @@ export default function FilteredPosts({
       // ✅ Safe optional chaining for category filter
       const matchesCategory =
         !selectedCategory ||
-        post.category?.toLowerCase() === selectedCategory?.toLowerCase();
+        postHasCategory(post, selectedCategory);
 
       return matchesLocation && matchesCategory;
     })

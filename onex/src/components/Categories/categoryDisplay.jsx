@@ -6,6 +6,7 @@ import PostCard from "../Posts/PostCard";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
 import { statesMatch } from "../../utils/stateNormalizer";
 import { hasPermanentProviderBadge } from "../../utils/providerBadgeEligibility";
+import { postHasCategory } from "../../utils/postCategories";
 
 // Strip punctuation and normalize whitespace so inputs like ".Great falls." match "Great Falls"
 const sanitizeLocation = (str) =>
@@ -104,7 +105,7 @@ export default function CategoryDisplay({ selectedCategory, users = [], posts = 
 
   // Filter posts by category, location, and optionally user
   const categoryPosts = sortPostsByPriority(visiblePosts).filter((post) => {
-    const matchesCategory = post.category?.trim().toLowerCase() === category?.trim().toLowerCase();
+    const matchesCategory = postHasCategory(post, category);
     const matchesLocation = locationMatchesPost(post);
     const matchesUser = selectedUser ? post.userId?.username === selectedUser : true;
 
