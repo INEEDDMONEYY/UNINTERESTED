@@ -157,8 +157,8 @@ export default function PostCard({ post, onDelete }) {
   };
 
   return (
-    <div className="relative bg-gradient-to-r from-pink-500 via-black to-yellow-500 p-[2px] rounded-lg shadow-lg max-w-sm sm:max-w-md md:max-w-lg lg:max-w-sm mx-auto sm:mx-0 transition-transform hover:scale-[1.02]">
-      <div className="bg-white rounded-lg p-4 relative">
+    <div className="relative bg-gradient-to-r from-pink-500 via-black to-yellow-500 p-[1.5px] rounded-md shadow-md w-full transition-transform hover:scale-[1.01]">
+      <div className="bg-white rounded-md p-3 relative">
         {/* -------------------- Image Carousel -------------------- */}
         <div className="mb-4 relative">
           {totalImages > 0 ? (
@@ -167,16 +167,16 @@ export default function PostCard({ post, onDelete }) {
                 <video
                   src={mediaItems[currentImage]?.url}
                   controls
-                  className="w-full h-48 sm:h-40 md:h-52 lg:h-48 rounded-md object-cover border border-pink-300"
+                  className="w-full h-40 sm:h-36 md:h-40 lg:h-40 rounded-md object-cover border border-pink-300"
                 />
               ) : mediaItems[currentImage]?.url ? (
                 <img
                   src={mediaItems[currentImage]?.url}
                   alt={`Post image ${currentImage + 1}`}
-                  className="w-full h-48 sm:h-40 md:h-52 lg:h-48 rounded-md object-cover border border-pink-300"
+                  className="w-full h-40 sm:h-36 md:h-40 lg:h-40 rounded-md object-cover border border-pink-300"
                 />
               ) : (
-                <div className="w-full h-48 sm:h-40 md:h-52 lg:h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-sm rounded-md">
+                <div className="w-full h-40 sm:h-36 md:h-40 lg:h-40 bg-gray-200 flex items-center justify-center text-gray-500 text-xs rounded-md">
                   No Media
                 </div>
               )}
@@ -223,7 +223,7 @@ export default function PostCard({ post, onDelete }) {
               </div>
             </>
           ) : (
-            <div className="w-full h-48 sm:h-40 md:h-52 lg:h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-sm rounded-md">
+            <div className="w-full h-40 sm:h-36 md:h-40 lg:h-40 bg-gray-200 flex items-center justify-center text-gray-500 text-xs rounded-md">
               No Media
             </div>
           )}
@@ -244,13 +244,13 @@ export default function PostCard({ post, onDelete }) {
                     aria-hidden="true"
                     className="pointer-events-none absolute inset-0 rounded-full bg-[conic-gradient(from_180deg_at_50%_50%,#e9d5ff_0deg,#c4b5fd_90deg,#a78bfa_180deg,#ddd6fe_270deg,#e9d5ff_360deg)] animate-[spin_8s_linear_infinite]"
                   />
-                  <div className="relative inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-violet-500/90 via-purple-500/90 to-indigo-500/90 text-white text-[10px] sm:text-xs md:text-sm font-semibold px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1">
+                  <div className="relative inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-violet-500/90 via-purple-500/90 to-indigo-500/90 text-white text-[9px] sm:text-[10px] md:text-xs font-semibold px-1.5 sm:px-2 py-0.5">
                     <BadgeCheck size={12} className="text-white" />
                     <span>Promo</span>
                   </div>
                 </div>
               ) : isTrustedProvider ? (
-                <div className="inline-flex items-center gap-1 rounded-full bg-yellow-400 text-yellow-950 text-[10px] sm:text-xs md:text-sm font-semibold px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 shadow-md ring-1 ring-yellow-300">
+                <div className="inline-flex items-center gap-1 rounded-full bg-yellow-400 text-yellow-950 text-[9px] sm:text-[10px] md:text-xs font-semibold px-1.5 sm:px-2 py-0.5 shadow-md ring-1 ring-yellow-300">
                   <Rocket size={12} className="text-yellow-900" />
                   <span>Trusted provider</span>
                 </div>
@@ -260,7 +260,7 @@ export default function PostCard({ post, onDelete }) {
                     aria-hidden="true"
                     className="pointer-events-none absolute inset-0 rounded-full bg-[conic-gradient(from_180deg_at_50%_50%,#86efac_0deg,#4ade80_90deg,#22c55e_180deg,#bbf7d0_270deg,#86efac_360deg)] animate-[spin_8s_linear_infinite]"
                   />
-                  <div className="relative inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500/90 via-green-500/90 to-lime-500/90 text-white text-[10px] sm:text-xs md:text-sm font-bold px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 rounded-full backdrop-blur-[1px]">
+                  <div className="relative inline-flex items-center gap-1 bg-gradient-to-r from-emerald-500/90 via-green-500/90 to-lime-500/90 text-white text-[9px] sm:text-[10px] md:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full backdrop-blur-[1px]">
                     <Star size={12} className="fill-current" />
                     <span>Founding Provider</span>
                   </div>
@@ -271,7 +271,7 @@ export default function PostCard({ post, onDelete }) {
 
             {/* Visibility Badge */}
             {post.visibility && (
-              <div className="bg-pink-600 text-white text-[10px] sm:text-xs md:text-sm font-semibold px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 rounded-full shadow-md">
+              <div className="bg-pink-600 text-white text-[9px] sm:text-[10px] md:text-xs font-semibold px-1.5 sm:px-2 py-0.5 rounded-full shadow-md">
                 {post.visibility === "Both"
                   ? "See's Both"
                   : `See's Only: ${post.visibility}`}
@@ -285,31 +285,31 @@ export default function PostCard({ post, onDelete }) {
               <img
                 src={profilePic}
                 alt={username}
-                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-pink-300"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-pink-300"
               />
             )}
-            <h2 className="text-xl sm:text-2xl font-bold text-pink-600 break-words">
+            <h2 className="text-base sm:text-lg font-bold text-pink-600 break-words leading-tight">
               {username}
             </h2>
           </div>
 
           {bio && (
-            <p className="text-sm sm:text-base text-gray-500 mb-2 break-words line-clamp-1">
+            <p className="text-xs sm:text-sm text-gray-500 mb-2 break-words line-clamp-1">
               {bio}
             </p>
           )}
 
-          <h4 className="text-sm sm:text-base text-black mt-2 break-words font-semibold">
+          <h4 className="text-xs sm:text-sm text-black mt-2 break-words font-semibold leading-tight">
             {post.title || "No title provided."}
           </h4>
 
           <div className="overflow-hidden">
-            <p className="text-sm sm:text-base text-gray-700 mt-2 break-words line-clamp-3">
+            <p className="text-xs sm:text-sm text-gray-700 mt-2 break-words line-clamp-2">
               {post.description || "No description provided."}
             </p>
           </div>
 
-          <p className="text-sm sm:text-base text-gray-700 mt-2 break-words">
+          <p className="text-xs sm:text-sm text-gray-700 mt-2 break-words">
             {post.city && post.state
               ? `${post.city}, ${post.state}`
               : "Location not specified."}
@@ -341,10 +341,10 @@ export default function PostCard({ post, onDelete }) {
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="absolute bottom-2 right-2 p-1 rounded-full bg-red-500 hover:bg-red-600 text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className="absolute bottom-2 right-2 p-0.5 rounded-full bg-red-500 hover:bg-red-600 text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
             title="Delete Post"
           >
-            <Trash2 size={18} />
+            <Trash2 size={16} />
           </button>
         )}
       </div>

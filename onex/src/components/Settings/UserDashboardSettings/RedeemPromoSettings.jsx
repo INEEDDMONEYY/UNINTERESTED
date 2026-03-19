@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { Ticket, Gift, Sparkles, BadgeCheck, Rocket, Star } from "lucide-react";
+import { Ticket, Gift, Sparkles, BadgeCheck, Rocket, Star, ShieldAlert } from "lucide-react";
 import { UserContext } from "../../../context/UserContext";
 import api from "../../../utils/api";
 import confetti from "canvas-confetti";
@@ -28,10 +28,12 @@ export default function RedeemPromoSettings() {
   const [promoCode, setPromoCode] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [maxRedeemTooltip, setMaxRedeemTooltip] = useState("");
 
   const handleRedeem = async (e) => {
     e.preventDefault();
     setStatusMessage("");
+    setMaxRedeemTooltip("");
 
     if (!promoCode.trim()) {
       const message = "Please enter a promo code.";
@@ -65,6 +67,7 @@ export default function RedeemPromoSettings() {
       }
 
       setStatusMessage(successMessage);
+      setMaxRedeemTooltip("");
       emitAppToast("success", successMessage);
       emitPromoRefresh();
 
@@ -78,6 +81,19 @@ export default function RedeemPromoSettings() {
       const message =
         err.response?.data?.error ||
         "Failed to redeem promo code. Please try again.";
+
+      const isMaxRedeemedError =
+        err?.response?.status === 409 || /max usage limit/i.test(String(message));
+
+      if (isMaxRedeemedError) {
+        const warningMessage =
+          "All codes have been redeemed, look at the homepage dev message, if there isn't a code reach out to support via messages to see if the dev has anymore deals available!";
+
+        setStatusMessage("");
+        setMaxRedeemTooltip(warningMessage);
+        emitAppToast("error", warningMessage);
+        return;
+      }
 
       setStatusMessage(message);
       emitAppToast("error", message);
@@ -153,7 +169,10 @@ export default function RedeemPromoSettings() {
         <input
           type="text"
           value={promoCode}
-          onChange={(e) => setPromoCode(e.target.value)}
+          onChange={(e) => {
+            setPromoCode(e.target.value);
+            if (maxRedeemTooltip) setMaxRedeemTooltip("");
+          }}
           placeholder="Enter promo code"
           className="flex-1 border border-pink-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500 transition"
         />
@@ -171,6 +190,19 @@ export default function RedeemPromoSettings() {
           </button>
         </span>
       </form>
+
+      {maxRedeemTooltip && (
+        <div className="relative rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-sm">
+          <span
+            aria-hidden="true"
+            className="absolute -top-1.5 left-6 h-3 w-3 rotate-45 border-l border-t border-amber-300 bg-amber-50"
+          />
+          <p className="inline-flex items-start gap-2">
+            <ShieldAlert size={16} className="mt-0.5 shrink-0 text-amber-700" />
+            <span>{maxRedeemTooltip}</span>
+          </p>
+        </div>
+      )}
 
     </div>
   );

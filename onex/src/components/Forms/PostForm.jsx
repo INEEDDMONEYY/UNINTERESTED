@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, ArrowLeft, ShieldAlert } from "lucide-react";
 import CategoryList from "../Categories/categoryList";
 import api, { getAuthToken } from "../../utils/api";
 import { UserContext } from "../../context/UserContext";
@@ -10,6 +10,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
   const { user } = useContext(UserContext);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [maxRedeemTooltip, setMaxRedeemTooltip] = useState("");
   const [hasActivePromo, setHasActivePromo] = useState(false);
   const [promoExpiryAt, setPromoExpiryAt] = useState("");
 
@@ -95,6 +96,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setToast(null);
+    setMaxRedeemTooltip("");
 
     if (!acknowledged) {
       setToast({ type: "error", msg: "Please acknowledge the posting terms before submitting." });
@@ -202,9 +204,23 @@ export default function PostForm({ onSuccess, embedded = false }) {
       }
     } catch (err) {
       console.error("[PostForm] Error:", err.response?.data || err.message);
+
+      const backendMessage =
+        err.response?.data?.error || "Error creating post. Make sure you are logged in.";
+      const isMaxRedeemedError =
+        err?.response?.status === 409 || /max usage limit/i.test(String(backendMessage));
+
+      if (isMaxRedeemedError) {
+        const warningMessage =
+          "All codes have been redeemed, look at the homepage dev message, if there isn't a code reach out to support via messages to see if the dev has anymore deals available!";
+        setMaxRedeemTooltip(warningMessage);
+        setToast({ type: "error", msg: warningMessage });
+        return;
+      }
+
       setToast({
         type: "error",
-        msg: err.response?.data?.error || "Error creating post. Make sure you are logged in.",
+        msg: backendMessage,
       });
     } finally {
       setLoading(false);
@@ -302,9 +318,25 @@ export default function PostForm({ onSuccess, embedded = false }) {
           name="promoCode"
           placeholder="Promo code (optional)"
           value={formData.promoCode}
-          onChange={handleChange}
+          onChange={(e) => {
+            handleChange(e);
+            if (maxRedeemTooltip) setMaxRedeemTooltip("");
+          }}
           className="w-full border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg focus:ring-2 focus:ring-pink-400 focus:outline-none text-sm sm:text-base md:text-lg"
         />
+
+        {maxRedeemTooltip && (
+          <div className="relative rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-sm">
+            <span
+              aria-hidden="true"
+              className="absolute -top-1.5 left-6 h-3 w-3 rotate-45 border-l border-t border-amber-300 bg-amber-50"
+            />
+            <p className="inline-flex items-start gap-2">
+              <ShieldAlert size={16} className="mt-0.5 shrink-0 text-amber-700" />
+              <span>{maxRedeemTooltip}</span>
+            </p>
+          </div>
+        )}
 
         <input
           type="file"
