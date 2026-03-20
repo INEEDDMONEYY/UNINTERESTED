@@ -24,7 +24,7 @@ async function sendResetEmail({ to, username, resetToken }) {
     const resetUrl = `${env.CLIENT_URL}/reset-password/${resetToken}`;
 
     await resend.emails.send({
-      from: "Mystery Mansion <no-reply@mysterymansion.xyz>",
+      from: "Mystery Mansion <no-reply@mysterymansion.app>",
       to,
       subject: "Reset Your Mystery Mansion Password",
       html: `

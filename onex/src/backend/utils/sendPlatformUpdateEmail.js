@@ -21,7 +21,7 @@ export async function sendPlatformUpdateEmail({ to, username, title, description
   const safeType = type === "feature" ? "feature" : "platform";
 
   await resend.emails.send({
-    from: "Mystery Mansion <no-reply@mysterymansion.xyz>",
+    from: "Mystery Mansion <no-reply@mysterymansion.app>",
     to,
     subject: "New platform updates are available",
     html: `

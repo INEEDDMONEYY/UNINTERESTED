@@ -53,6 +53,7 @@ const allowedOrigins = [
   'https://uninterested.onrender.com',
   'https://urban-rotary-phone-9vw7vw7prww26j4-5173.app.github.dev',
   'https://mysterymansion.xyz',
+  'https://mysterymansion.app',
 ];
 
 app.use(

@@ -9,7 +9,7 @@ async function sendWelcomeEmail({ to, username }) {
   }
 
   await resend.emails.send({
-    from: "Mystery Mansion <no-reply@mysterymansion.xyz>",
+    from: "Mystery Mansion <no-reply@mysterymansion.app>",
     to,
     subject: "Welcome to Mystery Mansion",
     html: `
