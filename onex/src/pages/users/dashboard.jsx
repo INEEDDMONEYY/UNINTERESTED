@@ -474,7 +474,7 @@ export default function UserDashboard() {
 
               <ul className="space-y-3 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
-                  <ShieldAlert size={16} className="mt-0.5 text-amber-600" />
+                  <ShieldAlert size={19} className="mt-0.5 text-amber-600" />
                   <span>
                     <strong>Contact privacy update:</strong> phone number and email now display directly on your profile and post details when they are set in your settings. Contact masking will return later when the payment system is ready.
                   </span>
@@ -500,7 +500,7 @@ export default function UserDashboard() {
                 <li className="flex items-start gap-2">
                   <CheckCircle2 size={16} className="mt-0.5 text-green-600" />
                   <span>
-                    When creating a post, you can now upload <strong>saved videos directly from your device library</strong>. Recording a new video is no longer required.
+                    When creating a post, there is now <strong>one media uploader</strong> for both photos and videos from your device gallery.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -585,7 +585,7 @@ export default function UserDashboard() {
                   Active promo codes always display in your dashboard while live, including the countdown timer.
                 </li>
                 <li>
-                  New feature: you can upload saved videos from your phone or device archive when creating a post, so you do not need to record one live.
+                  New feature: one media upload field now supports both photos and videos from your phone or device gallery.
                 </li>
                 <li>
                   Add clear photos/videos and a complete description to improve trust and visibility.

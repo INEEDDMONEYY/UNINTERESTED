@@ -306,11 +306,11 @@ export default function UserProfileHeader({
             />
             {isPermanentProvider && (
               <span
-                className="inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white text-[11px] md:text-xs font-semibold px-2 py-0.5"
+                className="inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white text-[9px] sm:text-[10px] md:text-xs font-semibold px-1.5 sm:px-2 py-0.5 whitespace-nowrap leading-none"
                 aria-label="Founding Provider"
                 title="Founding Provider"
               >
-                <Star size={12} className="fill-current" />
+                <Star size={10} className="fill-current" />
                 Founding Provider
               </span>
             )}
