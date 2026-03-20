@@ -4,16 +4,38 @@
 export function setSEO(title, description) {
   if (title) document.title = title;
 
+  const canonicalOrigin =
+    import.meta.env.VITE_SITE_URL?.trim().replace(/\/+$/, '') ||
+    'https://mysterymansion.app';
+  const canonicalUrl =
+    typeof window !== 'undefined'
+      ? `${canonicalOrigin}${window.location.pathname}${window.location.search}`
+      : canonicalOrigin;
+
   const set = (selector, attr, value) => {
     const el = document.querySelector(selector);
     if (el && value) el.setAttribute(attr, value);
   };
 
+  const setCanonical = (value) => {
+    if (!value) return;
+    let link = document.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      document.head.appendChild(link);
+    }
+    link.setAttribute('href', value);
+  };
+
   set('meta[name="description"]', 'content', description);
   set('meta[property="og:title"]', 'content', title);
   set('meta[property="og:description"]', 'content', description);
+  set('meta[property="og:url"]', 'content', canonicalUrl);
   set('meta[name="twitter:title"]', 'content', title);
   set('meta[name="twitter:description"]', 'content', description);
+  set('meta[name="twitter:url"]', 'content', canonicalUrl);
+  setCanonical(canonicalUrl);
 }
 
 /**
