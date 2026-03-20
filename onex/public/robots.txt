@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://mysterymansion.xyz/sitemap.xml
+Sitemap: https://mysterymansion.app/sitemap.xml
