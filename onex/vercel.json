@@ -1,6 +1,22 @@
 {
   "redirects": [
     {
+      "source": "/",
+      "has": [
+        { "type": "host", "value": "mysterymansion.xyz" }
+      ],
+      "destination": "https://mysterymansion.app/",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "host", "value": "www.mysterymansion.xyz" }
+      ],
+      "destination": "https://mysterymansion.app/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [
         { "type": "host", "value": "mysterymansion.xyz" }
