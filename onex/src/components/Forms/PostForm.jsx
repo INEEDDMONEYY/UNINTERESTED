@@ -394,14 +394,11 @@ export default function PostForm({ onSuccess, embedded = false }) {
             className="mt-1 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-pink-500 border-gray-300 rounded focus:ring-pink-400"
           />
           <span>
-            By acknowledging this checkbox, you confirm your post follows platform rules and understand promo codes are optional but required for promoted placement. If you have any questions, please look at our{" "}
+            By acknowledging this checkbox, you confirm your post follows platform rules and understand promo codes are optional but required for promoted placement.  For extra exposure on the platform, you will be required to pay. If you have any questions, please look at our{" "}
             <a href="/terms-policy" className="text-pink-600 underline">policy page</a>.
           </span>
         </label>
 
-        <p className="mx-auto max-w-xs px-2 text-center text-xs leading-relaxed text-gray-600 sm:max-w-sm sm:px-0 sm:text-sm">
-          For extra exposure on the platform, you will be required to pay.
-        </p>
 
         {hasActivePromo && (
           <div className="mx-auto inline-flex items-center rounded-md border border-green-300 bg-green-50 px-2.5 py-1 text-[11px] sm:text-xs font-medium text-green-700">
