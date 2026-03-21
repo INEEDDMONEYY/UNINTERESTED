@@ -6,12 +6,16 @@ export default function NewConversationModal({
   onClose,
   onCreated,
   onCreate,
+  onBroadcast,
   currentUserId,
   restrictToRole,
   excludedRecipientIds,
+  allowBroadcast = false,
 }) {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState("");
+  const [announcementText, setAnnouncementText] = useState("");
+  const [mode, setMode] = useState("direct");
   const [loading, setLoading] = useState(false);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
@@ -79,6 +83,26 @@ export default function NewConversationModal({
     }
   };
 
+  const handleBroadcast = async () => {
+    if (!announcementText.trim()) return;
+    setLoading(true);
+    try {
+      const { data } = await api.post("/conversations/broadcast", {
+        text: announcementText.trim(),
+      });
+
+      if (typeof onBroadcast === "function") {
+        onBroadcast(data);
+      }
+
+      onClose();
+    } catch (err) {
+      console.error("Broadcast error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-gray-900 rounded-2xl shadow-xl w-full max-w-md p-6 border border-pink-600/40">
@@ -90,28 +114,73 @@ export default function NewConversationModal({
           </button>
         </div>
 
-        {/* Dropdown */}
-        <label className="block text-sm text-gray-300 mb-2">Select a user:</label>
-        <select
-          value={selectedUser}
-          onChange={(e) => setSelectedUser(e.target.value)}
-          disabled={isLoadingUsers || users.length === 0}
-          className="w-full bg-gray-800 text-white p-2 rounded-lg border border-gray-700 focus:ring-2 focus:ring-pink-500 mb-4"
-        >
-          <option value="">
-            {isLoadingUsers ? "Loading users..." : "-- Choose User --"}
-          </option>
-          {users.map((user) => (
-            <option key={user._id} value={user._id}>
-              {user.username}
-            </option>
-          ))}
-        </select>
+        {allowBroadcast && (
+          <div className="mb-4 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setMode("direct")}
+              className={`rounded-lg px-3 py-2 text-sm transition ${
+                mode === "direct"
+                  ? "bg-pink-600 text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+              }`}
+            >
+              Single User
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("broadcast")}
+              className={`rounded-lg px-3 py-2 text-sm transition ${
+                mode === "broadcast"
+                  ? "bg-pink-600 text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+              }`}
+            >
+              Message All Users
+            </button>
+          </div>
+        )}
 
-        {!isLoadingUsers && users.length === 0 && (
-          <p className="mb-4 text-xs text-gray-400">
-            No users available to start a new conversation.
-          </p>
+        {mode === "direct" ? (
+          <>
+            {/* Dropdown */}
+            <label className="block text-sm text-gray-300 mb-2">Select a user:</label>
+            <select
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              disabled={isLoadingUsers || users.length === 0}
+              className="w-full bg-gray-800 text-white p-2 rounded-lg border border-gray-700 focus:ring-2 focus:ring-pink-500 mb-4"
+            >
+              <option value="">
+                {isLoadingUsers ? "Loading users..." : "-- Choose User --"}
+              </option>
+              {users.map((user) => (
+                <option key={user._id} value={user._id}>
+                  {user.username}
+                </option>
+              ))}
+            </select>
+
+            {!isLoadingUsers && users.length === 0 && (
+              <p className="mb-4 text-xs text-gray-400">
+                No users available to start a new conversation.
+              </p>
+            )}
+          </>
+        ) : (
+          <>
+            <label className="block text-sm text-gray-300 mb-2">Message to all users:</label>
+            <textarea
+              value={announcementText}
+              onChange={(e) => setAnnouncementText(e.target.value)}
+              rows={5}
+              placeholder="Write one message that will be sent to every user..."
+              className="w-full bg-gray-800 text-white p-3 rounded-lg border border-gray-700 focus:ring-2 focus:ring-pink-500 mb-2 resize-none"
+            />
+            <p className="mb-4 text-xs text-gray-400">
+              This creates or reuses each user conversation and sends this message once.
+            </p>
+          </>
         )}
 
         {/* Actions */}
@@ -123,12 +192,16 @@ export default function NewConversationModal({
             Cancel
           </button>
           <button
-            onClick={handleCreate}
-            disabled={!selectedUser || loading || isLoadingUsers || users.length === 0}
+            onClick={mode === "broadcast" ? handleBroadcast : handleCreate}
+            disabled={
+              mode === "broadcast"
+                ? !announcementText.trim() || loading
+                : !selectedUser || loading || isLoadingUsers || users.length === 0
+            }
             className="px-4 py-2 rounded-lg bg-pink-600 hover:bg-pink-500 transition flex items-center gap-2 disabled:opacity-50"
           >
             <Send size={16} />
-            {loading ? "Creating..." : "Start Chat"}
+            {loading ? "Sending..." : mode === "broadcast" ? "Send to All" : "Start Chat"}
           </button>
         </div>
       </div>

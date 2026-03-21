@@ -32,7 +32,7 @@ function useCountdown(expiryDate) {
       if (!next) clearInterval(id);
     }, 1000);
     return () => clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expiryDate]);
 
   return remaining;
@@ -101,7 +101,7 @@ function ProfileCard({ profile, isPlaceholder = false }) {
   const cardContent = (
     <>
       <img
-        src={profile.profilePic || "https://via.placeholder.com/64?text=?"}  
+        src={profile.profilePic || "https://via.placeholder.com/64?text=?"}
         alt={username || "Promoted user"}
         className="w-16 h-16 rounded-full object-cover border-2 border-pink-300 mx-auto mb-3"
       />

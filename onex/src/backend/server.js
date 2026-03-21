@@ -35,6 +35,7 @@ import publicSettingsRoutes from './routes/publicSettings.js';
 import publicUsersRoutes from './routes/publicUsers.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import { startPromoExpiryReminderJob } from './utils/promoExpiryReminderJob.js';
 
 // 🛡️ Middleware
 import { authMiddleware, adminOnlyMiddleware } from './middleware/authMiddleware.js';
@@ -107,7 +108,10 @@ app.use((req, res, next) => {
 if (process.env.NODE_ENV !== 'test') {
   mongoose
     .connect(env.MONGO_URI)
-    .then(() => console.log('✅ MongoDB connected successfully'))
+    .then(() => {
+      console.log('✅ MongoDB connected successfully');
+      startPromoExpiryReminderJob();
+    })
     .catch((err) => console.error('❌ MongoDB connection error:', err));
 }
 

@@ -110,6 +110,10 @@ const UserSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    lastPromoExpiryReminderFor: {
+      type: Date,
+      default: null,
+    },
     /* ----------------------------------------------------------- */
   },
   { timestamps: true },

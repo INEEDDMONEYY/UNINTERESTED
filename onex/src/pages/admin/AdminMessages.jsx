@@ -185,6 +185,14 @@ export default function AdminMessages() {
         <NewConversationModal
           onClose={() => setShowNewModal(false)}
           currentUserId={user?._id}
+          allowBroadcast={user?.role === "admin"}
+          onBroadcast={async (result) => {
+            await fetchConversations();
+            const latestConversationId = result?.data?.latestConversationId;
+            if (latestConversationId) {
+              fetchMessages(latestConversationId);
+            }
+          }}
           onCreate={(newConversation) => {
             setConversations((prev) => [newConversation, ...prev]);
             setShowNewModal(false);

@@ -1,5 +1,6 @@
 import express from "express";
 import Conversation from "../models/Conversation.js";
+import Message from "../models/Message.js";
 import User from "../models/User.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { enforceRestriction } from "../middleware/restrictionMiddleware.js";
@@ -73,5 +74,81 @@ router.post("/", authMiddleware, enforceRestriction("conversation:create"), asyn
     res.status(500).json({ error: "Failed to create conversation" });
   }
 });
+
+// POST broadcast a single message to all users (admin only)
+router.post(
+  "/broadcast",
+  authMiddleware,
+  enforceRestriction("message:send"),
+  async (req, res) => {
+    try {
+      if (req.user.role !== "admin") {
+        return res.status(403).json({ error: "Admins only" });
+      }
+
+      const text = String(req.body?.text || "").trim();
+      if (!text) {
+        return res.status(400).json({ error: "text is required" });
+      }
+
+      const adminId = req.user._id;
+      const users = await User.find({ role: "user" }).select("_id");
+
+      if (!users.length) {
+        return res.status(200).json({
+          success: true,
+          message: "No users available for broadcast",
+          data: { totalRecipients: 0, createdMessages: 0, latestConversationId: null },
+        });
+      }
+
+      let latestConversationId = null;
+      let createdMessages = 0;
+
+      for (const target of users) {
+        let conversation = await Conversation.findOne({
+          participants: { $all: [adminId, target._id] },
+        });
+
+        if (!conversation) {
+          conversation = await Conversation.create({
+            participants: [adminId, target._id],
+          });
+        }
+
+        const message = await Message.create({
+          conversationId: conversation._id,
+          sender: adminId,
+          senderId: adminId,
+          receiverId: target._id,
+          senderRole: "admin",
+          text,
+          readBy: [adminId],
+        });
+
+        await Conversation.findByIdAndUpdate(conversation._id, {
+          lastMessage: message._id,
+          updatedAt: Date.now(),
+        });
+
+        latestConversationId = conversation._id;
+        createdMessages += 1;
+      }
+
+      return res.status(201).json({
+        success: true,
+        message: `Broadcast sent to ${createdMessages} user${createdMessages === 1 ? "" : "s"}`,
+        data: {
+          totalRecipients: users.length,
+          createdMessages,
+          latestConversationId,
+        },
+      });
+    } catch (err) {
+      console.error("❌ Failed to send broadcast:", err);
+      return res.status(500).json({ error: "Failed to send broadcast" });
+    }
+  }
+);
 
 export default router;

@@ -229,9 +229,17 @@ export default function Body() {
     if (showDateHeader) {
       rows.push(
         <div key={`date-${post._id || i}-${currentLabel}`} className="col-span-full mt-1">
-          <p className="text-xs sm:text-sm font-semibold text-gray-500 border-b border-gray-200 pb-1">
-            {currentLabel}
-          </p>
+          <div className="relative inline-flex overflow-hidden rounded-full p-[1px] align-middle">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-[-160%] bg-[conic-gradient(from_0deg,#ec4899,#f59e0b,#111827,#ec4899)] animate-[spin_4s_linear_infinite]"
+            />
+            <span className="relative inline-flex items-center rounded-full bg-gradient-to-r from-pink-100 via-rose-100 to-amber-100 px-3 py-1">
+              <p className="text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">
+                {currentLabel}
+              </p>
+            </span>
+          </div>
         </div>
       );
     }
