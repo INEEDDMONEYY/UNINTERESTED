@@ -25,6 +25,7 @@ const UserDashboard = lazy(() => import("./pages/users/dashboard.jsx"));
 const UserProfileSettings = lazy(() => import("./pages/users/UserProfileSettings.jsx"));
 const UserMessages = lazy(() => import("./pages/users/UserMessages.jsx"));
 const PromoteAccount = lazy(() => import("./pages/promoteAccount.jsx"));
+const FAQPage = lazy(() => import("./pages/FAQPage.jsx"));
 const TermsOfUsePage = lazy(() => import("./pages/policies/TermsOfUsePage.jsx"));
 const PrivacyPolicy = lazy(() => import("./pages/policies/PrivacyPolicyPage.jsx"));
 const ProfilePage = lazy(() => import("./pages/profiles/ProfilePage.jsx"));
@@ -72,6 +73,7 @@ const router = createBrowserRouter([
   { path: "post", element: <Post /> },
   { path: "posts/:postId", element: <PostDetail /> },
   { path: "promote", element: <PromoteAccount /> },
+  { path: "faq", element: <FAQPage /> },
   { path: "terms-policy", element: <TermsOfUsePage /> },
   { path: "privacy-policy", element: <PrivacyPolicy /> },
   { path: "platform-updates", element: <PlatformUpdates /> },

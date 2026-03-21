@@ -16,7 +16,7 @@ export const FEATURE_FLAGS = {
   ENABLE_PROMOTE_ACCOUNT: true,
   ENABLE_PROMOTE_ACCOUNT_NAV: false,
   //Post Details comment flag
-  ENABLE_COMMENTS: false,
+  ENABLE_COMMENTS: true,
   //User Search Flag
   ENABLE_USER_SEARCH: true,
   // Temporary safety mode: hide direct contact handoff until paid safety features launch

@@ -1,7 +1,7 @@
 // 📦 External Libraries
 import { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BadgeCheck, Star, Rocket } from "lucide-react";
+import { BadgeCheck, Star, Rocket, Send, Pencil, Trash2, X } from "lucide-react";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
 import api from "../../utils/api";
 import { UserContext } from "../../context/UserContext";
@@ -82,6 +82,13 @@ export default function PostDetail() {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState("");
+  const [editingText, setEditingText] = useState("");
+  const [commentBusyId, setCommentBusyId] = useState("");
+  const [commentError, setCommentError] = useState("");
   const mediaItems = [
     ...(Array.isArray(post?.pictures)
       ? post.pictures.map((url) => ({ type: "image", url }))
@@ -120,6 +127,21 @@ export default function PostDetail() {
   const availability = effectiveUser?.availability || { status: "" };
   const incallPrice = effectiveUser?.incallPrice || "";
   const outcallPrice = effectiveUser?.outcallPrice || "";
+
+  const loadComments = async () => {
+    try {
+      setCommentsLoading(true);
+      setCommentError("");
+      const { data } = await api.get(`/posts/${postId}/comments`);
+      setComments(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch comments:", err);
+      setComments([]);
+      setCommentError(err?.response?.data?.error || "Failed to load comments.");
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -171,6 +193,76 @@ export default function PostDetail() {
       cancelled = true;
     };
   }, [postId]);
+
+  useEffect(() => {
+    if (!FEATURE_FLAGS.ENABLE_COMMENTS) return;
+    loadComments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postId]);
+
+  const handleCreateComment = async (e) => {
+    e.preventDefault();
+    const text = String(commentText || "").trim();
+    if (!text) return;
+
+    try {
+      setCommentBusyId("new");
+      setCommentError("");
+      const { data } = await api.post(`/posts/${postId}/comments`, { text });
+      setComments((prev) => [data, ...prev]);
+      setCommentText("");
+    } catch (err) {
+      console.error("Failed to create comment:", err);
+      setCommentError(err?.response?.data?.error || "Failed to add comment.");
+    } finally {
+      setCommentBusyId("");
+    }
+  };
+
+  const startEditingComment = (comment) => {
+    setEditingCommentId(comment?._id || "");
+    setEditingText(comment?.text || "");
+  };
+
+  const cancelEditingComment = () => {
+    setEditingCommentId("");
+    setEditingText("");
+  };
+
+  const handleUpdateComment = async (commentId) => {
+    const text = String(editingText || "").trim();
+    if (!text) return;
+
+    try {
+      setCommentBusyId(commentId);
+      setCommentError("");
+      const { data } = await api.put(`/posts/${postId}/comments/${commentId}`, { text });
+      setComments((prev) => prev.map((comment) => (comment._id === commentId ? data : comment)));
+      cancelEditingComment();
+    } catch (err) {
+      console.error("Failed to update comment:", err);
+      setCommentError(err?.response?.data?.error || "Failed to update comment.");
+    } finally {
+      setCommentBusyId("");
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      setCommentBusyId(commentId);
+      setCommentError("");
+      await api.delete(`/posts/${postId}/comments/${commentId}`);
+      setComments((prev) => prev.filter((comment) => comment._id !== commentId));
+      if (editingCommentId === commentId) {
+        cancelEditingComment();
+      }
+    } catch (err) {
+      console.error("Failed to delete comment:", err);
+      setCommentError(err?.response?.data?.error || "Failed to delete comment.");
+    } finally {
+      setCommentBusyId("");
+    }
+  };
 
   if (loading) return <PostDetailLoader />;
   if (!post) {
@@ -369,9 +461,149 @@ export default function PostDetail() {
       {FEATURE_FLAGS.ENABLE_COMMENTS && (
         <div className="mt-8 border-t pt-6 mb-7">
           <h3 className="text-lg font-semibold text-pink-500 mb-2">Comments</h3>
-          <p className="text-sm text-gray-500">
-            Comment functionality coming soon...
-          </p>
+
+          {currentUserId ? (
+            <form onSubmit={handleCreateComment} className="mb-5">
+              <textarea
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                rows={3}
+                placeholder="Add your comment..."
+                className="w-full rounded-lg border border-pink-200 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+              />
+              <div className="mt-2 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={!String(commentText || "").trim() || commentBusyId === "new"}
+                  className="inline-flex items-center gap-2 rounded-lg bg-pink-600 px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-pink-500 disabled:opacity-60"
+                >
+                  <Send size={14} />
+                  {commentBusyId === "new" ? "Posting..." : "Post Comment"}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="mb-5 rounded-lg border border-pink-100 bg-pink-50 px-4 py-3 text-sm text-pink-700">
+              <p className="font-medium">You need to be logged in to comment.</p>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate("/signin")}
+                  className="rounded-md bg-pink-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-pink-500"
+                >
+                  Sign in
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/signup")}
+                  className="rounded-md border border-pink-400 px-3 py-1.5 text-xs font-semibold text-pink-700 hover:bg-white"
+                >
+                  Sign up
+                </button>
+              </div>
+            </div>
+          )}
+
+          {commentError && (
+            <p className="mb-3 text-sm text-red-500">{commentError}</p>
+          )}
+
+          {commentsLoading ? (
+            <p className="text-sm text-gray-500">Loading comments...</p>
+          ) : comments.length === 0 ? (
+            <p className="text-sm text-gray-500">No comments yet. Be the first to comment.</p>
+          ) : (
+            <div className="max-h-[320px] overflow-y-auto pr-1 sm:max-h-[420px] space-y-4">
+              {comments.map((comment) => {
+                const commentUser = comment?.userId || {};
+                const commentUserId = commentUser?._id || "";
+                const canManage =
+                  Boolean(currentUserId) &&
+                  (String(currentUserId) === String(commentUserId) || currentUser?.role === "admin");
+                const isEditing = editingCommentId === comment._id;
+
+                return (
+                  <div key={comment._id} className="rounded-lg border border-gray-200 p-3 sm:p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <img
+                          src={commentUser?.profilePic || "https://via.placeholder.com/40?text=?"}
+                          alt={commentUser?.username || "User"}
+                          className="h-10 w-10 rounded-full object-cover border border-pink-200"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-gray-800 truncate">
+                            {commentUser?.username || "User"}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {comment?.createdAt ? new Date(comment.createdAt).toLocaleString() : ""}
+                          </p>
+                        </div>
+                      </div>
+
+                      {canManage && (
+                        <div className="flex items-center gap-1">
+                          {!isEditing && (
+                            <button
+                              type="button"
+                              onClick={() => startEditingComment(comment)}
+                              className="rounded-md p-1.5 text-gray-600 hover:bg-gray-100"
+                              title="Edit comment"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteComment(comment._id)}
+                            disabled={commentBusyId === comment._id}
+                            className="rounded-md p-1.5 text-red-500 hover:bg-red-50 disabled:opacity-60"
+                            title="Delete comment"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {isEditing ? (
+                      <div className="mt-3">
+                        <textarea
+                          value={editingText}
+                          onChange={(e) => setEditingText(e.target.value)}
+                          rows={3}
+                          className="w-full rounded-lg border border-pink-200 p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+                        />
+                        <div className="mt-2 flex justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={cancelEditingComment}
+                            className="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+                          >
+                            <X size={13} />
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateComment(comment._id)}
+                            disabled={!String(editingText || "").trim() || commentBusyId === comment._id}
+                            className="inline-flex items-center gap-1 rounded-md bg-pink-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-pink-500 disabled:opacity-60"
+                          >
+                            <Send size={13} />
+                            {commentBusyId === comment._id ? "Saving..." : "Save"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mt-3 max-h-28 overflow-y-auto pr-1 text-sm text-gray-700 whitespace-pre-wrap break-words">
+                        {comment?.text || ""}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

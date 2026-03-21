@@ -12,6 +12,9 @@ const ACTION_BLOCKLIST = {
   "post:delete": ["no-posting", "read-only"],
   "message:send": ["no-comments", "read-only"],
   "conversation:create": ["no-comments", "read-only"],
+  "comment:create": ["no-comments", "read-only"],
+  "comment:update": ["no-comments", "read-only"],
+  "comment:delete": ["no-comments", "read-only"],
   "profile:update": ["read-only"],
 };
 

@@ -1,5 +1,6 @@
 // backend/controllers/postController.js
 import Post from '../models/Post.js';
+import Comment from '../models/Comment.js';
 import cloudinary from '../utils/cloudinary.js';
 import streamifier from 'streamifier';
 import { normalizeState } from '../utils/stateNormalizer.js';
@@ -196,5 +197,127 @@ export async function deletePost(req, res) {
   } catch (err) {
     console.error('❌ [deletePost] Error:', err);
     res.status(500).json({ error: 'Failed to delete post', details: err.message });
+  }
+}
+
+// ---------------- Get comments for a post ----------------
+export async function getPostComments(req, res) {
+  try {
+    const { id: postId } = req.params;
+
+    const postExists = await Post.exists({ _id: postId });
+    if (!postExists) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    const comments = await Comment.find({ postId })
+      .populate({ path: 'userId', select: 'username profilePic role' })
+      .sort({ createdAt: -1 });
+
+    return res.json(comments);
+  } catch (err) {
+    console.error('❌ [getPostComments] Error:', err);
+    return res.status(500).json({ error: 'Failed to fetch comments', details: err.message });
+  }
+}
+
+// ---------------- Create comment ----------------
+export async function createPostComment(req, res) {
+  try {
+    const { id: postId } = req.params;
+    const userId = req.user?._id;
+    const text = String(req.body?.text || '').trim();
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    if (!text) {
+      return res.status(400).json({ error: 'Comment text is required' });
+    }
+
+    const postExists = await Post.exists({ _id: postId });
+    if (!postExists) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    const created = await Comment.create({ postId, userId, text });
+    const populated = await Comment.findById(created._id).populate({
+      path: 'userId',
+      select: 'username profilePic role',
+    });
+
+    return res.status(201).json(populated);
+  } catch (err) {
+    console.error('❌ [createPostComment] Error:', err);
+    return res.status(500).json({ error: 'Failed to create comment', details: err.message });
+  }
+}
+
+// ---------------- Update comment ----------------
+export async function updatePostComment(req, res) {
+  try {
+    const { id: postId, commentId } = req.params;
+    const userId = req.user?._id;
+    const text = String(req.body?.text || '').trim();
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    if (!text) {
+      return res.status(400).json({ error: 'Comment text is required' });
+    }
+
+    const comment = await Comment.findOne({ _id: commentId, postId });
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    const isOwner = String(comment.userId) === String(userId);
+    const isAdmin = req.user?.role === 'admin';
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ error: 'Not authorized to edit this comment' });
+    }
+
+    comment.text = text;
+    await comment.save();
+
+    const populated = await Comment.findById(comment._id).populate({
+      path: 'userId',
+      select: 'username profilePic role',
+    });
+
+    return res.json(populated);
+  } catch (err) {
+    console.error('❌ [updatePostComment] Error:', err);
+    return res.status(500).json({ error: 'Failed to update comment', details: err.message });
+  }
+}
+
+// ---------------- Delete comment ----------------
+export async function deletePostComment(req, res) {
+  try {
+    const { id: postId, commentId } = req.params;
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const comment = await Comment.findOne({ _id: commentId, postId });
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    const isOwner = String(comment.userId) === String(userId);
+    const isAdmin = req.user?.role === 'admin';
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ error: 'Not authorized to delete this comment' });
+    }
+
+    await Comment.findByIdAndDelete(comment._id);
+    return res.json({ message: 'Comment deleted successfully' });
+  } catch (err) {
+    console.error('❌ [deletePostComment] Error:', err);
+    return res.status(500).json({ error: 'Failed to delete comment', details: err.message });
   }
 }

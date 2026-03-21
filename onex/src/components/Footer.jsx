@@ -46,6 +46,9 @@ export default function Footer() {
               <Link to="/privacy-policy" className="hover:text-pink-400 transition-colors duration-200">
                 Privacy Policy
               </Link>
+              <Link to="/faq" className="hover:text-pink-400 transition-colors duration-200">
+                FAQ
+              </Link>
               <span className="text-gray-600 cursor-default">Community Guidelines</span>
             </div>
 
