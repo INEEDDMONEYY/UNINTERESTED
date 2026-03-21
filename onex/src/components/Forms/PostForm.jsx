@@ -111,6 +111,13 @@ export default function PostForm({ onSuccess, embedded = false }) {
     setToast(null);
     setMaxRedeemTooltip("");
 
+    const imageCount = Array.isArray(formData.pictures) ? formData.pictures.length : 0;
+    const videoCount = Array.isArray(formData.videos) ? formData.videos.length : 0;
+    if (imageCount + videoCount === 0) {
+      setToast({ type: "error", msg: "Please upload at least one image or video before posting." });
+      return;
+    }
+
     if (!acknowledged) {
       setToast({ type: "error", msg: "Please acknowledge the posting terms before submitting." });
       return;
