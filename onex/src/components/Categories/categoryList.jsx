@@ -5,16 +5,20 @@ export default function CategoryList({ onSelect, selectedCategories = [], multip
     'Restrictions 🚫',
     'Only AA 🔥',
     ' Baddies 💝',
-    ' Latinas 🏳️',
+    ' Latinas ❤️‍🔥',
     ' BBW ⛱️',
     ' Asians 🌏',
     ' LGBQT+ 🌈',
-    ' Party N Play 💘',
+    ' Party N Play ❄️',
     '40+ 🔞',
     ' MILF 💅',
     ' Request Pickup/Dropoff 💳',
     ' Car Dates 🚘',
     'No AA ❌',
+    'GFE 💋',
+    'Mature 💦',
+    'BDSM 👣',
+    '24/7 ☀️',
   ];
 
   const selectedSet = new Set(
