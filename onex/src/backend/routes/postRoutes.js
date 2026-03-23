@@ -9,7 +9,69 @@ const router = express.Router();
 
 // Memory storage for multer
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const MAX_MEDIA_FILES = 10;
+const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB per file
+
+const upload = multer({
+  storage,
+  limits: {
+    files: MAX_MEDIA_FILES,
+    fileSize: MAX_FILE_SIZE_BYTES,
+  },
+  fileFilter: (req, file, cb) => {
+    const mime = String(file?.mimetype || "").toLowerCase();
+    const isImage = mime.startsWith("image/");
+    const isVideo = mime.startsWith("video/");
+
+    if (!isImage && !isVideo) {
+      return cb(new multer.MulterError("LIMIT_UNEXPECTED_FILE", file?.fieldname || "media"));
+    }
+
+    return cb(null, true);
+  },
+});
+
+const uploadPostMedia = (req, res, next) => {
+  const uploadHandler = upload.fields([
+    { name: 'pictures', maxCount: 5 },
+    { name: 'videos', maxCount: 5 },
+  ]);
+
+  uploadHandler(req, res, (err) => {
+    if (!err) return next();
+
+    if (err instanceof multer.MulterError) {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(413).json({
+          error: "Each media file must be 25MB or smaller.",
+          code: err.code,
+        });
+      }
+
+      if (err.code === "LIMIT_FILE_COUNT") {
+        return res.status(400).json({
+          error: "Too many files uploaded. Maximum is 10 total files.",
+          code: err.code,
+        });
+      }
+
+      if (err.code === "LIMIT_UNEXPECTED_FILE") {
+        return res.status(400).json({
+          error: "Only image and video uploads are allowed, with up to 5 images and 5 videos.",
+          code: err.code,
+          field: err.field,
+        });
+      }
+
+      return res.status(400).json({
+        error: "Invalid upload payload.",
+        code: err.code,
+      });
+    }
+
+    return res.status(400).json({ error: err?.message || "Upload failed" });
+  });
+};
 
 // Debug middleware to log headers and content-type
 router.use('/', (req, res, next) => {
@@ -23,10 +85,7 @@ router.post(
   '/',
   authMiddleware,
   enforceRestriction('post:create'),
-  upload.fields([
-    { name: 'pictures', maxCount: 5 },
-    { name: 'videos', maxCount: 5 },
-  ]),
+  uploadPostMedia,
   postController.createPost
 );
 

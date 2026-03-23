@@ -106,6 +106,24 @@ export async function createPost(req, res) {
     res.status(201).json(populatedPost);
   } catch (err) {
     console.error('❌ [createPost] Error:', err);
+
+    const rawMessage = String(err?.message || '').toLowerCase();
+    if (
+      rawMessage.includes('file size too large') ||
+      rawMessage.includes('request entity too large') ||
+      err?.http_code === 413
+    ) {
+      return res.status(413).json({ error: 'Uploaded media exceeds size limits.' });
+    }
+
+    if (
+      rawMessage.includes('invalid image file') ||
+      rawMessage.includes('unsupported') ||
+      rawMessage.includes('invalid file')
+    ) {
+      return res.status(400).json({ error: 'One or more media files are invalid or unsupported.' });
+    }
+
     res
       .status(500)
       .json({ error: 'Failed to create post', details: err.message });
