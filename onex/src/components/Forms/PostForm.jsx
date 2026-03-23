@@ -87,16 +87,40 @@ export default function PostForm({ onSuccess, embedded = false }) {
     const { name, value, files } = e.target;
     if (files && files.length > 0) {
       const selectedFiles = Array.from(files);
+      // Validation constants (should match backend)
+      const MAX_TOTAL_FILES = 10;
+      const MAX_IMAGES = 5;
+      const MAX_VIDEOS = 5;
+      const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 
-      // Single picker can include both images and videos.
+      // Only allow images and videos
+      const pictures = selectedFiles.filter((file) => String(file?.type || "").startsWith("image/"));
+      const videos = selectedFiles.filter((file) => String(file?.type || "").startsWith("video/"));
+      const invalidFiles = selectedFiles.filter((file) => !String(file?.type || "").startsWith("image/") && !String(file?.type || "").startsWith("video/"));
+
+      if (invalidFiles.length > 0) {
+        setToast({ type: "error", msg: "Only image and video files are allowed." });
+        return;
+      }
+      if (pictures.length > MAX_IMAGES) {
+        setToast({ type: "error", msg: `You can upload up to ${MAX_IMAGES} images.` });
+        return;
+      }
+      if (videos.length > MAX_VIDEOS) {
+        setToast({ type: "error", msg: `You can upload up to ${MAX_VIDEOS} videos.` });
+        return;
+      }
+      if (pictures.length + videos.length > MAX_TOTAL_FILES) {
+        setToast({ type: "error", msg: `You can upload up to ${MAX_TOTAL_FILES} files total.` });
+        return;
+      }
+      const tooLarge = selectedFiles.find((file) => file.size > MAX_FILE_SIZE);
+      if (tooLarge) {
+        setToast({ type: "error", msg: `Each file must be 25MB or smaller.` });
+        return;
+      }
+
       if (name === "media") {
-        const pictures = selectedFiles.filter((file) =>
-          String(file?.type || "").startsWith("image/")
-        );
-        const videos = selectedFiles.filter((file) =>
-          String(file?.type || "").startsWith("video/")
-        );
-
         setFormData((prev) => ({ ...prev, pictures, videos }));
       } else {
         setFormData((prev) => ({ ...prev, [name]: selectedFiles }));
