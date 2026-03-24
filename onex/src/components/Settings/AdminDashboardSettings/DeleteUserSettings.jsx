@@ -2,19 +2,26 @@ import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import api from "../../../utils/api";
 
+
 export default function DeleteUserSetting({ users }) {
   const [userId, setUserId] = useState("");
+  const [reason, setReason] = useState("");
 
   const deleteUser = async () => {
     if (!userId) return alert("Select a user");
+    if (!reason) return alert("Select a reason for deletion");
 
     if (!window.confirm("Are you sure?")) return;
 
     try {
-      const { data } = await api.delete(`/admin/users/${userId}`);
+      // Send reason as query param or in body (adjust backend as needed)
+      const { data } = await api.delete(`/admin/users/${userId}`, { data: { reason } });
 
-      alert(data?.message || "User deleted");
+      alert(
+        `User deleted.\nMessage to user: Your account has been deleted by our team due to ${reason}.`
+      );
       setUserId("");
+      setReason("");
     } catch (err) {
       alert(err?.response?.data?.error || "Failed to delete user");
     }
@@ -38,6 +45,16 @@ export default function DeleteUserSetting({ users }) {
               {u.username}
             </option>
           ))}
+        </select>
+
+        <select
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          className="flex-1 border border-gray-300 rounded px-3 py-2"
+        >
+          <option value="">Select reason</option>
+          <option value="Intent to use fake or stolen content">Intent to use fake or stolen content</option>
+          <option value="Fake account">Fake account</option>
         </select>
 
         <button

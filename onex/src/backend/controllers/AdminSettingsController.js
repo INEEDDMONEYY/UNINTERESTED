@@ -283,16 +283,52 @@ export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
     const adminId = req.user?.id || req.user?._id;
+    // Accept reason from frontend (body or query)
+    const reason = req.body?.reason || req.query?.reason || "violation of our terms";
 
     if (!adminId) return res.status(401).json({ success: false, error: "Unauthorized" });
     if (id === adminId.toString()) {
       return res.status(400).json({ success: false, error: "Cannot delete yourself" });
     }
 
-    const deletedUser = await User.findByIdAndDelete(id);
-    if (!deletedUser) return res.status(404).json({ success: false, error: "User not found" });
+    // Find user before deleting to get email/username
+    const userToDelete = await User.findById(id);
+    if (!userToDelete) return res.status(404).json({ success: false, error: "User not found" });
 
-    res.json({ success: true, message: "User deleted successfully" });
+    // Delete all posts by user
+    await import("../models/Post.js").then(async ({ default: Post }) => {
+      await Post.deleteMany({ userId: id });
+    });
+    // Delete all comments by user
+    await import("../models/Comment.js").then(async ({ default: Comment }) => {
+      await Comment.deleteMany({ userId: id });
+    });
+    // Delete all messages by user (as sender or recipient)
+    await import("../models/Message.js").then(async ({ default: Message }) => {
+      await Message.deleteMany({ $or: [ { sender: id }, { recipient: id }, { userId: id } ] });
+    });
+    // Delete user profile
+    await import("../models/Profiles.js").then(async ({ default: Profiles }) => {
+      await Profiles.deleteMany({ userId: id });
+    });
+    // Delete conversations where user is a participant
+    await import("../models/Conversation.js").then(async ({ default: Conversation }) => {
+      await Conversation.deleteMany({ participants: id });
+    });
+
+    // Delete user
+    await User.findByIdAndDelete(id);
+
+    // Send account deletion email (non-blocking)
+    import("../utils/sendAccountDeletionEmail.js").then(({ sendAccountDeletionEmail }) => {
+      sendAccountDeletionEmail({
+        to: userToDelete.email,
+        username: userToDelete.username,
+        reason,
+      }).catch((err) => console.error("Failed to send account deletion email:", err));
+    });
+
+    res.json({ success: true, message: "User and all related data deleted successfully" });
   } catch (err) {
     console.error("❌ Error deleting user:", err);
     res.status(500).json({ success: false, error: "Failed to delete user" });
