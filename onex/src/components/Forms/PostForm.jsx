@@ -87,44 +87,48 @@ export default function PostForm({ onSuccess, embedded = false }) {
     const { name, value, files } = e.target;
     if (files && files.length > 0) {
       const selectedFiles = Array.from(files);
-      // Validation constants (should match backend)
-      const MAX_TOTAL_FILES = 10;
       const MAX_IMAGES = 5;
       const MAX_VIDEOS = 5;
       const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 
-      // Only allow images and videos
-      const pictures = selectedFiles.filter((file) => String(file?.type || "").startsWith("image/"));
-      const videos = selectedFiles.filter((file) => String(file?.type || "").startsWith("video/"));
-      const invalidFiles = selectedFiles.filter((file) => !String(file?.type || "").startsWith("image/") && !String(file?.type || "").startsWith("video/"));
-
-      if (invalidFiles.length > 0) {
-        setToast({ type: "error", msg: "Only image and video files are allowed." });
+      if (name === "pictures") {
+        const invalid = selectedFiles.filter((file) => !String(file?.type || "").startsWith("image/"));
+        if (invalid.length > 0) {
+          setToast({ type: "error", msg: "Only image files are allowed in the image upload." });
+          return;
+        }
+        if (selectedFiles.length > MAX_IMAGES) {
+          setToast({ type: "error", msg: `You can upload up to ${MAX_IMAGES} images.` });
+          return;
+        }
+        const tooLarge = selectedFiles.find((file) => file.size > MAX_FILE_SIZE);
+        if (tooLarge) {
+          setToast({ type: "error", msg: `Each image must be 25MB or smaller.` });
+          return;
+        }
+        setFormData((prev) => ({ ...prev, pictures: selectedFiles }));
         return;
       }
-      if (pictures.length > MAX_IMAGES) {
-        setToast({ type: "error", msg: `You can upload up to ${MAX_IMAGES} images.` });
+      if (name === "videos") {
+        const invalid = selectedFiles.filter((file) => !String(file?.type || "").startsWith("video/"));
+        if (invalid.length > 0) {
+          setToast({ type: "error", msg: "Only video files are allowed in the video upload." });
+          return;
+        }
+        if (selectedFiles.length > MAX_VIDEOS) {
+          setToast({ type: "error", msg: `You can upload up to ${MAX_VIDEOS} videos.` });
+          return;
+        }
+        const tooLarge = selectedFiles.find((file) => file.size > MAX_FILE_SIZE);
+        if (tooLarge) {
+          setToast({ type: "error", msg: `Each video must be 25MB or smaller.` });
+          return;
+        }
+        setFormData((prev) => ({ ...prev, videos: selectedFiles }));
         return;
       }
-      if (videos.length > MAX_VIDEOS) {
-        setToast({ type: "error", msg: `You can upload up to ${MAX_VIDEOS} videos.` });
-        return;
-      }
-      if (pictures.length + videos.length > MAX_TOTAL_FILES) {
-        setToast({ type: "error", msg: `You can upload up to ${MAX_TOTAL_FILES} files total.` });
-        return;
-      }
-      const tooLarge = selectedFiles.find((file) => file.size > MAX_FILE_SIZE);
-      if (tooLarge) {
-        setToast({ type: "error", msg: `Each file must be 25MB or smaller.` });
-        return;
-      }
-
-      if (name === "media") {
-        setFormData((prev) => ({ ...prev, pictures, videos }));
-      } else {
-        setFormData((prev) => ({ ...prev, [name]: selectedFiles }));
-      }
+      // fallback for other file inputs
+      setFormData((prev) => ({ ...prev, [name]: selectedFiles }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -382,17 +386,31 @@ export default function PostForm({ onSuccess, embedded = false }) {
           </div>
         )}
 
+        {/* Image Upload */}
+       
         <input
           type="file"
-          name="media"
-          accept="image/*,video/*"
+          name="pictures"
+          accept="image/*"
           multiple
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg text-sm sm:text-base md:text-lg"
         />
+        <p className="text-xs sm:text-sm text-gray-500 -mt-1 mb-2">
+          Select up to 5 images. Only image files are allowed.
+        </p>
 
-        <p className="text-xs sm:text-sm text-gray-500 -mt-1">
-          Upload saved videos directly from your device library. Recording a new video is optional.
+        {/* Video Upload */}
+        <input
+          type="file"
+          name="videos"
+          accept="video/*"
+          multiple
+          onChange={handleChange}
+          className="w-full border border-gray-300 p-2 sm:p-3 md:p-4 rounded-lg text-sm sm:text-base md:text-lg"
+        />
+        <p className="text-xs sm:text-sm text-gray-500 -mt-1 mb-2">
+          Select up to 5 videos. Only video files are allowed. If you don’t see your videos, try using the “Files” or “Browse” option in your picker.
         </p>
 
         <select
