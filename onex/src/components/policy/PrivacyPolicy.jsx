@@ -72,7 +72,7 @@ export default function PrivacyPolicy() {
 
         <h3 className="text-lg font-semibold underline">10. Contact Us</h3>
         <p>
-          If you have questions or concerns about this Privacy Policy, contact us at: 📧 <a href="mailto:fantometechnologies@gmail.com" className="text-blue-600 underline">fantometechnologies@gmail.com</a>
+          If you have questions or concerns about this Privacy Policy, contact us at: 📧 <a href="mailto:support.mysterymansion@gmail.com" className="text-blue-600 underline">support.mysterymansion@gmail.com</a>
         </p>
       </section>
     </div>

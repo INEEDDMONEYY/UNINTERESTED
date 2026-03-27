@@ -94,7 +94,7 @@ export default function TermsPolicy() {
 
         <h3 className="text-lg font-semibold underline">11. Contact Us</h3>
         <p>
-          For questions or concerns, contact us at <a href="mailto:fantometechnologies@gmail.com" className="text-blue-600 underline">fantometechnologies@gmail.com</a>.
+          For questions or concerns, contact us at <a href="mailto:support.mysterymansion@gmail.com" className="text-blue-600 underline">support.mysterymansion@gmail.com</a>.
         </p>
       </section>
     </div>

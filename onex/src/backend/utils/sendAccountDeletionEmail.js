@@ -26,7 +26,7 @@ export async function sendAccountDeletionEmail({ to, username, reason }) {
           <p>Hi ${username || "there"},</p>
           <p>Your account has been deleted by our team due to the following reason:</p>
           <blockquote style="background: #ffeaea; padding: 10px; border-left: 4px solid #e53e3e;">${reason}</blockquote>
-          <p>If you believe this was a mistake or wish to appeal, please contact our development team at <a href="mailto:support@mysterymansion.app">support@mysterymansion.app</a> with your username and any relevant information.</p>
+          <p>If you believe this was a mistake or wish to appeal, please contact our development team at <a href="mailto:support.mysterymansion@gmail.com">support.mysterymansion@gmail.com</a> with your username and any relevant information.</p>
           <p>Thank you,<br/>Mystery Mansion Team</p>
         </div>
       `,
