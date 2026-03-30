@@ -1,9 +1,12 @@
+import React from "react";
+import { Link } from "react-router-dom";
+
 export default function TermsPolicy() {
   return (
     <div className="terms-policy-container bg-white text-black px-6 py-10 md:px-12 lg:px-20">
       {/* Header Section */}
       <header className="mb-10 text-center">
-        <h1 className="text-3xl md:text-4xl font-bold mb-4">UNINTERESTED Policies</h1>
+        <h1 className="text-3xl font-bold mb-4">Terms of Service</h1>
         <p className="text-lg text-gray-700 italic max-w-3xl mx-auto">
           "Please review the policy page before contacting admins. Many common issues already have answers here."
         </p>
@@ -52,7 +55,10 @@ export default function TermsPolicy() {
         <h3 className="text-lg font-semibold underline">5. Payments and Fees</h3>
         <ul className="list-disc pl-6">
           <li>Some features may require payment. All transactions are final unless otherwise stated.</li>
-          <li>We use third-party payment processors and do not store payment details.</li>
+          <li>We process payments primarily through Cash App. You will be provided with a secure Cash App payment link or username to complete your transaction.</li>
+          <li>Payments made via Cash App are subject to Cash App's own terms and conditions.</li>
+          <li>We do not store your Cash App account details or payment credentials on our platform.</li>
+          <li>If you have any issues with a payment, please contact support with your payment confirmation and details.</li>
         </ul>
 
         <h3 className="text-lg font-semibold underline">5A. Current Platform Rules and Feature Notices</h3>
@@ -68,7 +74,7 @@ export default function TermsPolicy() {
 
         <h3 className="text-lg font-semibold underline">6. Privacy</h3>
         <p>
-          Your privacy is important to us. Please review our <a href="/privacy-policy" className="text-blue-600 underline">Privacy Policy</a> for details on how we collect and use your data.
+          Your privacy is important to us. Please review our <Link to="/privacy-policy" className="text-blue-600 underline">Privacy Policy</Link> for details on how we collect and use your data.
         </p>
 
         <h3 className="text-lg font-semibold underline">7. Account Suspension or Termination</h3>

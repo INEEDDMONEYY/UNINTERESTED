@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Loader2, CheckCircle, XCircle, ArrowLeft, ShieldAlert } from "lucide-react";
 import CategoryList from "../Categories/categoryList";
 import api, { getAuthToken } from "../../utils/api";
@@ -437,7 +437,7 @@ export default function PostForm({ onSuccess, embedded = false }) {
           />
           <span>
             By acknowledging this checkbox, you confirm your post follows platform rules and understand promo codes are optional but required for promoted placement.  For extra exposure on the platform, you will be required to pay. If you have any questions, please look at our{" "}
-            <a href="/terms-policy" className="text-pink-600 underline">policy page</a>.
+            <Link to="/terms-policy" className="text-pink-600 underline">policy page</Link>.
           </span>
         </label>
 

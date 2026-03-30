@@ -29,11 +29,7 @@ const getPhoneHref = (value = "") => {
   return `tel:${digits}`;
 };
 
-const hasActivePromotion = (expiry) => {
-  if (!expiry) return false;
-  const date = new Date(expiry);
-  return !Number.isNaN(date.getTime()) && date.getTime() > Date.now();
-};
+
 
 const getPostedAgoLabel = (createdAt) => {
   if (!createdAt) return "";
@@ -113,7 +109,8 @@ export default function PostDetail() {
   const emailHref = displayEmail ? `mailto:${displayEmail}` : "";
   const hasPhoneNumber = Boolean(displayPhoneNumber);
   const hasEmail = Boolean(displayEmail);
-  const isPromotedUser = hasActivePromotion(effectiveUser?.activePromoExpiry);
+  // BADGE LOGIC (NEW): Use post.badgeType as primary, fallback to user badgeType
+  const badgeType = post?.badgeType || effectiveUser?.badgeType || "";
   const hasTrustedAccountAge = () => {
     const createdAt = effectiveUser?.createdAt;
     if (!createdAt) return false;
@@ -277,22 +274,18 @@ export default function PostDetail() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-10 bg-white rounded-xl shadow-md m-5 relative">
       <div className="absolute right-4 top-4 inline-flex items-center gap-1 sm:gap-2">
-        {isPromotedUser ? (
-          <div className="relative inline-flex rounded-full p-[1px] overflow-hidden shadow-sm">
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 rounded-full bg-[conic-gradient(from_180deg_at_50%_50%,#e9d5ff_0deg,#c4b5fd_90deg,#a78bfa_180deg,#ddd6fe_270deg,#e9d5ff_360deg)] animate-[spin_8s_linear_infinite]"
-            />
-            <span
-              className="relative inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-violet-500/90 via-purple-500/90 to-indigo-500/90 text-white text-xs font-semibold px-2.5 py-1"
-              aria-label="Promoted user"
-              title="Promoted user"
-            >
-              <BadgeCheck size={14} className="text-white" />
-              Promo
-            </span>
-          </div>
-        ) : isTrustedProvider ? (
+        {/* Always show check mark badge, color by badgeType */}
+        <span
+          className={`inline-flex items-center gap-1 rounded-full font-semibold px-2.5 py-1 text-xs shadow-sm
+            ${badgeType === 'blue' ? 'bg-blue-600 text-white' : badgeType === 'pink' ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-fuchsia-500 text-white' : 'bg-gray-200 text-gray-400'}`}
+          aria-label={badgeType === 'blue' ? 'Verified' : badgeType === 'pink' ? 'Paid Promo' : 'Unverified'}
+          title={badgeType === 'blue' ? 'Verified (Monthly Badge)' : badgeType === 'pink' ? 'Paid Promo' : 'Unverified'}
+        >
+          <BadgeCheck size={16} className={badgeType === 'blue' || badgeType === 'pink' ? 'text-white' : 'text-gray-400'} />
+          {badgeType === 'blue' && 'Verified'}
+          {badgeType === 'pink' && 'Paid Promo'}
+        </span>
+        {isTrustedProvider ? (
           <span
             className="inline-flex items-center gap-1 rounded-full bg-yellow-400 text-yellow-950 text-xs font-semibold px-2.5 py-1 shadow-sm ring-1 ring-yellow-300"
             aria-label="Trusted provider"
@@ -311,14 +304,6 @@ export default function PostDetail() {
             Founding Provider
           </span>
         ) : null}
-
-        <span
-          className="inline-flex items-center justify-center h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white/95 ring-1 ring-gray-300 shadow-sm"
-          aria-label={isPromotedUser ? "Promoted account" : "Not promoted"}
-          title={isPromotedUser ? "Promoted account" : "Not promoted"}
-        >
-          <BadgeCheck size={16} className={isPromotedUser ? "text-pink-500" : "text-gray-400"} />
-        </span>
       </div>
 
       {/* 🖼️ Post Images Grid */}

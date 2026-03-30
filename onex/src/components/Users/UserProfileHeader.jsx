@@ -2,7 +2,9 @@ import { useEffect, useState, useContext, useRef } from "react";
 import { UserContext } from "../../context/UserContext";
 import { Camera, Pencil, CheckCircle2, Star } from "lucide-react";
 import api from "../../utils/api";
-import { hasPermanentProviderBadge } from "../../utils/providerBadgeEligibility";
+import { hasPermanentProviderBadge } from '../../utils/providerBadgeEligibility.js';
+
+
 
 /*
   UserProfileHeader
@@ -62,6 +64,8 @@ export default function UserProfileHeader({
     return localStorage.getItem(key);
   };
 
+
+
   useEffect(() => {
     let cancelled = false;
 
@@ -78,6 +82,7 @@ export default function UserProfileHeader({
         profilePic: profileData.profilePic || null,
         bannerPic: profileData.bannerPic || null,
         activePromoExpiry: profileData.activePromoExpiry || null,
+        badgeType: profileData.badgeType || "",
       });
       setBioInput(profileData.bio || "");
       setLocationInput(profileData.location || "");
@@ -93,6 +98,8 @@ export default function UserProfileHeader({
       if (ctxUser) applyProfile(ctxUser);
       return;
     }
+
+    
 
     // Owner: use context + localStorage for optimistic updates
     if (isOwner) {
@@ -168,6 +175,8 @@ export default function UserProfileHeader({
     }
   };
 
+  
+
   const handleBioSave = async () => {
     if (!isOwner) {
       alert("You can only update your own bio.");
@@ -212,9 +221,8 @@ export default function UserProfileHeader({
     }
   };
 
-  const isPromotedAccount = Boolean(
-    user.activePromoExpiry && new Date(user.activePromoExpiry).getTime() > Date.now()
-  );
+  // BADGE LOGIC (NEW): Use badgeType from backend
+  // badgeType: "blue" (monthly), "pink" (promo), "" (none)
   const isPermanentProvider = hasPermanentProviderBadge(user?.createdAt);
   const displayPhoneNumber = user?.phoneNumber || "";
   const displayEmail = user?.email || "";
@@ -299,11 +307,18 @@ export default function UserProfileHeader({
 
           <h1 className={`${usernameSizeClass} font-bold text-gray-900 inline-flex items-center gap-2 break-words leading-tight`} style={usernameStyle}>
             <span>{user.username || "Unnamed User"}</span>
-            <CheckCircle2
-              size={18}
-              className={isPromotedAccount ? "text-pink-500" : "text-gray-400"}
-              aria-label={isPromotedAccount ? "Promoted account" : "Standard account"}
-            />
+            {/* BADGE LOGIC (ALWAYS SHOW CHECK MARK) */}
+            <span
+              className={`inline-flex items-center gap-1 rounded-full font-semibold px-1.5 sm:px-2 py-0.5 whitespace-nowrap leading-none
+                ${user.badgeType === 'blue' ? 'bg-blue-600 text-white' : user.badgeType === 'pink' ? 'bg-pink-500 text-white' : 'bg-gray-200 text-gray-400'}`}
+              aria-label={user.badgeType === 'blue' ? 'Verified' : user.badgeType === 'pink' ? 'Promo Badge' : 'Unverified'}
+              title={user.badgeType === 'blue' ? 'Verified (Monthly Badge)' : user.badgeType === 'pink' ? 'Promotional Badge' : 'Unverified'}
+              style={{ fontSize: '11px' }}
+            >
+              <CheckCircle2 size={14} className={user.badgeType === 'blue' || user.badgeType === 'pink' ? 'text-white' : 'text-gray-400'} />
+              {user.badgeType === 'blue' && 'Verified'}
+              {user.badgeType === 'pink' && 'Promo'}
+            </span>
             {isPermanentProvider && (
               <span
                 className="inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white text-[9px] sm:text-[10px] md:text-xs font-semibold px-1.5 sm:px-2 py-0.5 whitespace-nowrap leading-none"

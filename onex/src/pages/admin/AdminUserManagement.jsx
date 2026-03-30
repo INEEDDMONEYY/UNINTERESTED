@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import api from "../../utils/api";
 import PromoteAccountSettings from "../../components/Settings/AdminDashboardSettings/PromoteAccountSettings";
 import PromocodeSettings from "../../components/Settings/AdminDashboardSettings/PromocodeSettings";
+import PromotionRequestsAdmin from "../../components/Settings/AdminDashboardSettings/PromotionRequestsAdmin.jsx";
 
 export default function AdminUserManagement() {
   const [users, setUsers] = useState([]);
@@ -280,6 +281,8 @@ export default function AdminUserManagement() {
 
         {/* Promocode Settings */}
         <PromocodeSettings />
+
+        <PromotionRequestsAdmin />
 
       </div>
     </div>

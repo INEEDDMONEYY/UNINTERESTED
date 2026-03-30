@@ -38,23 +38,9 @@ export default function PostCard({ post, onDelete }) {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isOwner = user._id && post.userId?._id === user._id;
 
-  // -------------------- Promotion Status --------------------
-  const hasActivePromotion = () => {
-    const postExpiry = post?.promoExpiresAt ? new Date(post.promoExpiresAt) : null;
-    const userExpiry = post?.userId?.activePromoExpiry
-      ? new Date(post.userId.activePromoExpiry)
-      : null;
-    const now = Date.now();
-
-    const postPromoActive =
-      post?.isPromo && postExpiry && !Number.isNaN(postExpiry.getTime()) && postExpiry.getTime() > now;
-    const userPromoActive =
-      userExpiry && !Number.isNaN(userExpiry.getTime()) && userExpiry.getTime() > now;
-
-    return Boolean(postPromoActive || userPromoActive);
-  };
-
-  const isPromoted = hasActivePromotion();
+  // -------------------- Badge Logic (NEW) --------------------
+  // Use post.badgeType as primary, fallback to userId.badgeType
+  const badgeType = post?.badgeType || post?.userId?.badgeType || "";
 
   const hasTrustedAccountAge = () => {
     const createdAt = post?.userId?.createdAt;
@@ -211,14 +197,16 @@ export default function PostCard({ post, onDelete }) {
                 </>
               )}
 
+              {/* Always show check mark badge, color by badgeType */}
               <div
-                className="absolute bottom-2 left-2 inline-flex items-center justify-center h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-white/95 ring-1 shadow-md"
-                title={isPromoted ? "Promoted account" : "Not promoted"}
-                aria-label={isPromoted ? "Promoted account" : "Not promoted"}
+                className={`absolute bottom-2 left-2 inline-flex items-center justify-center h-6 w-6 sm:h-7 sm:w-7 rounded-full ring-1 shadow-md
+                  ${badgeType === 'blue' ? 'bg-blue-600' : badgeType === 'pink' ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-fuchsia-500' : 'bg-gray-200'}`}
+                title={badgeType === 'blue' ? 'Verified (Monthly Badge)' : badgeType === 'pink' ? 'Paid Promo' : 'Unverified'}
+                aria-label={badgeType === 'blue' ? 'Verified' : badgeType === 'pink' ? 'Paid Promo' : 'Unverified'}
               >
                 <BadgeCheck
                   size={14}
-                  className={isPromoted ? "text-pink-500" : "text-gray-400"}
+                  className={badgeType === 'blue' || badgeType === 'pink' ? 'text-white' : 'text-gray-400'}
                 />
               </div>
             </>
@@ -238,15 +226,19 @@ export default function PostCard({ post, onDelete }) {
           <div className="absolute top-2 left-2 right-2 flex justify-between items-start gap-2 flex-wrap pointer-events-none">
             {/* Founding Provider / Promotion Indicator */}
             <div className="inline-flex items-center gap-1 sm:gap-2">
-              {isPromoted ? (
-                <div className="relative inline-flex rounded-full p-[1px] overflow-hidden shadow-md">
+              {badgeType === 'blue' || badgeType === 'pink' ? (
+                <div className={`relative inline-flex rounded-full p-[1px] overflow-hidden shadow-md`}>
                   <span
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 rounded-full bg-[conic-gradient(from_180deg_at_50%_50%,#e9d5ff_0deg,#c4b5fd_90deg,#a78bfa_180deg,#ddd6fe_270deg,#e9d5ff_360deg)] animate-[spin_8s_linear_infinite]"
+                    className={`pointer-events-none absolute inset-0 rounded-full ${badgeType === 'blue'
+                      ? 'bg-[conic-gradient(from_180deg_at_50%_50%,#60a5fa_0deg,#2563eb_90deg,#1e40af_180deg,#93c5fd_270deg,#60a5fa_360deg)]'
+                      : 'bg-[conic-gradient(from_180deg_at_50%_50%,#a78bfa_0deg,#c084fc_90deg,#e879f9_180deg,#f472b6_270deg,#a78bfa_360deg)]'} animate-[spin_8s_linear_infinite]`}
                   />
-                  <div className="relative inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-violet-500/90 via-purple-500/90 to-indigo-500/90 text-white text-[9px] sm:text-[10px] md:text-xs font-semibold px-1.5 sm:px-2 py-0.5">
+                  <div className={`relative inline-flex items-center gap-1 rounded-full ${badgeType === 'blue'
+                    ? 'bg-gradient-to-r from-blue-600/90 via-blue-500/90 to-blue-400/90'
+                    : 'bg-gradient-to-r from-purple-500 via-pink-500 to-fuchsia-500'} text-white text-[9px] sm:text-[10px] md:text-xs font-semibold px-1.5 sm:px-2 py-0.5`}>
                     <BadgeCheck size={12} className="text-white" />
-                    <span>Promo</span>
+                    <span>{badgeType === 'blue' ? 'Verified' : 'Paid Promo'}</span>
                   </div>
                 </div>
               ) : isTrustedProvider ? (

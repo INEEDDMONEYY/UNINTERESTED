@@ -58,6 +58,13 @@ export default function Navbar() {
           <FileUser size={18} /> Sign Up
         </Link>
 
+        {/* ✔ FEATURE FLAG APPLIED HERE */}
+        {FEATURE_FLAGS.ENABLE_PROMOTE_ACCOUNT_NAV && (
+          <Link to="/promote" className="flex items-center gap-1 hover:text-pink-400">
+            <Contact size={18} /> Promote Account
+          </Link>
+        )}
+
         <button
           onClick={handleProfileClick}
           className="flex items-center gap-1 hover:text-pink-400"
@@ -65,12 +72,6 @@ export default function Navbar() {
           <CircleUser size={18} /> Profile
         </button>
 
-        {/* ✔ FEATURE FLAG APPLIED HERE */}
-        {FEATURE_FLAGS.ENABLE_PROMOTE_ACCOUNT_NAV && (
-          <Link to="/promote" className="flex items-center gap-1 hover:text-pink-400">
-            <Contact size={18} /> Promote Account
-          </Link>
-        )}
 
         {/* Close button for mobile */}
         <button

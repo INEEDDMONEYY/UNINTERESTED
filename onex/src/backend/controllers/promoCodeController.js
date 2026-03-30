@@ -141,11 +141,17 @@ export const redeemPromoCode = async (req, res) => {
     });
     await promo.save();
 
-    // Update user's activePromoExpiry
+    // Update user's activePromoExpiry, badgeType, promoCodeActive
     const user = await User.findByIdAndUpdate(
       userId,
-      { activePromoExpiry: expiresAt },
+      { activePromoExpiry: expiresAt, badgeType: "pink", promoCodeActive: true },
       { new: true },
+    );
+
+    // Update all user's posts
+    await Post.updateMany(
+      { userId: userId },
+      { badgeType: "pink", promoCodeActive: true }
     );
 
     return res.json({
@@ -243,8 +249,14 @@ export const redeemPromoCodeForUser = async (req, res) => {
 
     await User.findByIdAndUpdate(
       targetUser._id,
-      { activePromoExpiry: expiresAt },
+      { activePromoExpiry: expiresAt, badgeType: "pink", promoCodeActive: true },
       { new: true },
+    );
+
+    // Update all user's posts
+    await Post.updateMany(
+      { userId: targetUser._id },
+      { badgeType: "pink", promoCodeActive: true }
     );
 
     return res.json({

@@ -37,14 +37,21 @@ import reviewRoutes from './routes/reviewRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import { startPromoExpiryReminderJob } from './utils/promoExpiryReminderJob.js';
 
+
+import promotionRoutes from './routes/promotionRoutes.js';
+
 // 🛡️ Middleware
 import { authMiddleware, adminOnlyMiddleware } from './middleware/authMiddleware.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+
 const app = express();
 const port = env.PORT;
+
+// Register promotion routes after app is defined
+app.use('/api/promotions', promotionRoutes);
 
 /* ------------------------------ 🌐 CORS Setup ------------------------------ */
 const allowedOrigins = [
@@ -59,10 +66,14 @@ const allowedOrigins = [
   'https://www.mysterymansion.app',
 ];
 
+
+// Allow all origins in development for Codespaces CORS
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin) || env.NODE_ENV !== 'production') {
+      if (env.NODE_ENV !== 'production') {
+        callback(null, true);
+      } else if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
@@ -74,7 +85,8 @@ app.use(
   })
 );
 
-app.options('', cors());
+// Handle preflight for all routes
+//app.options('', cors());
 
 /* --------------------------- 🌍 Global Middleware -------------------------- */
 app.use(express.json({ limit: '10mb' }));

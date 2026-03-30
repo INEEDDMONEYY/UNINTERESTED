@@ -14,7 +14,7 @@ export const FEATURE_FLAGS = {
   DELETE_ACCOUNT_SETTINGS: true,
   //Navbar flag
   ENABLE_PROMOTE_ACCOUNT: true,
-  ENABLE_PROMOTE_ACCOUNT_NAV: false,
+  ENABLE_PROMOTE_ACCOUNT_NAV: true,
   //Post Details comment flag
   ENABLE_COMMENTS: true,
   //User Search Flag

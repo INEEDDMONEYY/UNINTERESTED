@@ -10,6 +10,7 @@ import DeleteUserSetting from "../../components/Settings/AdminDashboardSettings/
 import PlatformUpdatesForm from "../../components/updates/PlatformUpdatesForm.jsx";
 import NewFeatureUpdatesForm from "../../components/updates/NewFeatureUpdatesForm.jsx";
 
+
 export default function AdminSettings({ onProfileUpdate, settingsData }) {
   const [users, setUsers] = useState([]);
 
@@ -31,21 +32,16 @@ export default function AdminSettings({ onProfileUpdate, settingsData }) {
       <h1 className="text-2xl font-bold text-pink-700 mb-4">Admin Settings</h1>
 
       <RestrictUserSetting users={users} />
-
       <UnrestrictUserSetting users={users} />
-
       <SuspendUserSetting users={users} />
-
       <DeveloperMessageSetting />
-
       <AdminCredentialsSetting />
-
       <ProfilePictureSetting
         currentProfile={settingsData?.profilePicture}
         onProfileUpdate={onProfileUpdate}
       />
-
       <DeleteUserSetting users={users} />
+
 
       <div className="bg-white border border-pink-200 rounded-lg p-4 shadow-sm">
         <h2 className="text-lg font-bold text-black mb-3">Platform Updates</h2>

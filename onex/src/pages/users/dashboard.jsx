@@ -482,6 +482,12 @@ export default function UserDashboard() {
                 <li className="flex items-start gap-2">
                   <CheckCircle2 size={16} className="mt-0.5 text-green-600" />
                   <span>
+                    <strong>Profile account & Badge payment integration:</strong> You can now pay for account upgrades and badges for further account creditability.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="mt-0.5 text-green-600" />
+                  <span>
                     <strong>Profile header improvement:</strong> very long usernames now scale down automatically so badges remain visible on smaller screens.
                   </span>
                 </li>
@@ -500,7 +506,7 @@ export default function UserDashboard() {
                 <li className="flex items-start gap-2">
                   <CheckCircle2 size={16} className="mt-0.5 text-green-600" />
                   <span>
-                    When creating a post, there is now <strong>one media uploader</strong> for both photos and videos from your device gallery.
+                    When creating a post, there is now <strong>two media uploaders</strong> for both photos and videos from your device gallery.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">

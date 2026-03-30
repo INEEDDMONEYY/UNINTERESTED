@@ -7,6 +7,10 @@ import env from "../config/env.js"; // central env file for JWT_SECRET
    Verifies JWT from header or cookie and attaches user to req
 --------------------------------------------------------- */
 const authMiddleware = async (req, res, next) => {
+  // Allow all OPTIONS requests through for CORS preflight
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
   try {
     console.log("\n[AuthMiddleware] ---------------- NEW REQUEST ----------------");
     console.log("[AuthMiddleware] Headers:", req.headers);

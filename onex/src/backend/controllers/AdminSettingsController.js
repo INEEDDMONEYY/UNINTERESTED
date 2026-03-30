@@ -337,10 +337,10 @@ export const deleteUser = async (req, res) => {
 
 /* --------------------------- ⭐ Promote User (Admin) --------------------------- */
 const PROMO_DURATION_MAP = {
-  "24hrs": 1,
-  "2days": 2,
-  "4days": 4,
   "1week": 7,
+  "2weeks": 14,
+  "3weeks": 21,
+  "monthly": 30,
 };
 
 export const promoteUser = async (req, res) => {
@@ -348,11 +348,57 @@ export const promoteUser = async (req, res) => {
     const adminId = req.user?.id || req.user?._id;
     if (!adminId) return res.status(401).json({ success: false, error: "Unauthorized" });
 
-    const { userId, duration } = req.body || {};
-    if (!userId || !duration) {
-      return res.status(400).json({ success: false, error: "User and duration are required" });
+    const { userId, duration, cancel } = req.body || {};
+    if (!userId || (!duration && !cancel)) {
+      return res.status(400).json({ success: false, error: "User and duration or cancel flag are required" });
     }
 
+    if (cancel && ["monthly", "1week", "2weeks", "3weeks"].includes(duration)) {
+      // Cancel any promotion: remove all promo fields from user and posts
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { badgeType: "", activePromoExpiry: null },
+        { new: true }
+      ).select("-password");
+      if (!updatedUser) {
+        return res.status(404).json({ success: false, error: "User not found" });
+      }
+      await Post.updateMany(
+        { userId: updatedUser._id },
+        { badgeType: "", isPromo: false, promoExpiresAt: null }
+      );
+      return res.json({
+        success: true,
+        message: "Promotion cancelled for user.",
+        data: updatedUser,
+      });
+    }
+
+    if (duration === "monthly") {
+      // Only update badgeType to blue for user and posts
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { badgeType: "blue" },
+        { new: true }
+      ).select("-password");
+      if (!updatedUser) {
+        return res.status(404).json({ success: false, error: "User not found" });
+      }
+      const updateResult = await Post.updateMany(
+        { userId: updatedUser._id },
+        { badgeType: "blue" }
+      );
+      return res.json({
+        success: true,
+        message: "Monthly badge applied (blue badge)",
+        data: {
+          updatedUser,
+          updatedPosts: updateResult.modifiedCount,
+        },
+      });
+    }
+
+    // All other promo durations: set badgeType to pink and promote posts
     const durationDays = PROMO_DURATION_MAP[duration] || Number(duration);
     if (!Number.isFinite(durationDays) || durationDays < 1) {
       return res.status(400).json({ success: false, error: "Invalid promotion duration" });
@@ -363,7 +409,7 @@ export const promoteUser = async (req, res) => {
 
     const promotedUser = await User.findByIdAndUpdate(
       userId,
-      { activePromoExpiry: expiresAt },
+      { activePromoExpiry: expiresAt, badgeType: "pink" },
       { new: true }
     ).select("-password");
 
@@ -373,7 +419,7 @@ export const promoteUser = async (req, res) => {
 
     const updateResult = await Post.updateMany(
       { userId: promotedUser._id },
-      { isPromo: true, promoExpiresAt: expiresAt }
+      { isPromo: true, promoExpiresAt: expiresAt, badgeType: "pink" }
     );
 
     return res.json({

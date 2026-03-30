@@ -11,9 +11,9 @@ export default function PromotionFAQ() {
         "No, refunds after account promotion are not valid. Once a user promotes their account, it will remain promoted for the duration they paid for.",
     },
     {
-      question: "After promoting account, how will I know to renew promotion fee if I wanted to?",
+      question: "After promoting account, how long will it take for the promotion to take effect?",
       answer:
-        "After promoting an account, a notification will appear confirming the promotion and its duration. One day before expiration, another notification will remind the user that the promotion will expire the following day.",
+        "After promoting an account, the promotion will take effect within 3-5 minutes. If the promotion does not take effect after 3-5 minutes, please contact support.",
     },
     {
       question: "Is there a limit on how many times I can promote my account?",
@@ -29,7 +29,7 @@ export default function PromotionFAQ() {
   return (
     <section className="px-6 py-10 max-w-5xl mx-auto">
       {/* 🖤 Title */}
-      <h2 className="text-3xl font-bold text-center text-white mb-8">
+      <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-center text-black mb-6 sm:mb-8 max-w-3xl mx-auto leading-snug">
         FAQ's are where all questions about the promotion system are answered
       </h2>
 

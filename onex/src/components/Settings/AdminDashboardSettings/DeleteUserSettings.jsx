@@ -15,7 +15,7 @@ export default function DeleteUserSetting({ users }) {
 
     try {
       // Send reason as query param or in body (adjust backend as needed)
-      const { data } = await api.delete(`/admin/users/${userId}`, { data: { reason } });
+      await api.delete(`/admin/users/${userId}`, { data: { reason } });
 
       alert(
         `User deleted.\nMessage to user: Your account has been deleted by our team due to ${reason}.`

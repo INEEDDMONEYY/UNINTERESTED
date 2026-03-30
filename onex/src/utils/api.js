@@ -1,8 +1,10 @@
 // API.js 
 import axios from "axios";
 
+
+// Use Codespaces public backend URL in development
 let API_BASE = import.meta.env.DEV
-  ? ""
+  ? "https://urban-rotary-phone-9vw7vw7prww26j4-5020.app.github.dev"
   : import.meta.env.VITE_BACKEND_URL ||
     import.meta.env.VITE_API_BASE?.trim() ||
     import.meta.env.VITE_API_URL?.trim() ||

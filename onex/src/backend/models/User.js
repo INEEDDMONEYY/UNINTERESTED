@@ -114,6 +114,17 @@ const UserSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    // Badge type: 'pink' (promo), 'blue' (monthly badge), or ''
+    badgeType: {
+      type: String,
+      enum: ["", "pink", "blue"],
+      default: "",
+    },
+    // Promo code-based promotion active
+    promoCodeActive: {
+      type: Boolean,
+      default: false,
+    },
     /* ----------------------------------------------------------- */
   },
   { timestamps: true },

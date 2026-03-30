@@ -1,0 +1,29 @@
+.paidPromoBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  background: linear-gradient(90deg, #a1c4fd 0%, #c2e9fb 100%);
+  color: #155fa0;
+  border: 2px solid transparent;
+  border-image: linear-gradient(270deg, #a1c4fd, #c2e9fb, #a1c4fd) 1;
+  position: relative;
+  z-index: 1;
+}
+
+.paidPromoBadge-animated {
+  border-image: linear-gradient(270deg, #a1c4fd, #c2e9fb, #a1c4fd) 1;
+  animation: rotate-border 2s linear infinite;
+}
+
+@keyframes rotate-border {
+  0% {
+    border-image-source: linear-gradient(270deg, #a1c4fd, #c2e9fb, #a1c4fd);
+  }
+  100% {
+    border-image-source: linear-gradient(630deg, #a1c4fd, #c2e9fb, #a1c4fd);
+  }
+}
