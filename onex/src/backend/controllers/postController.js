@@ -94,6 +94,8 @@ export async function createPost(req, res) {
       videos: videoUrls,
       isPromo: hasActivePromo,
       promoExpiresAt: hasActivePromo ? promoExpiry : null,
+      // Set badgeType to match the user's badgeType (e.g., 'blue', 'pink', or '')
+      badgeType: req.user.badgeType || '',
     });
 
     const savedPost = await newPost.save();
