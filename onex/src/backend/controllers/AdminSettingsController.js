@@ -348,13 +348,14 @@ export const promoteUser = async (req, res) => {
     const adminId = req.user?.id || req.user?._id;
     if (!adminId) return res.status(401).json({ success: false, error: "Unauthorized" });
 
-    const { userId, duration, cancel } = req.body || {};
-    if (!userId || (!duration && !cancel)) {
-      return res.status(400).json({ success: false, error: "User and duration or cancel flag are required" });
+    // Accept new fields for more flexible badge/promo assignment
+    const { userId, duration, cancel, badgeType, promoActive } = req.body || {};
+    if (!userId || (duration === undefined && badgeType === undefined && promoActive === undefined && !cancel)) {
+      return res.status(400).json({ success: false, error: "User and at least one action (duration, badgeType, promoActive, or cancel) are required" });
     }
 
-    if (cancel && ["monthly", "1week", "2weeks", "3weeks"].includes(duration)) {
-      // Cancel any promotion: remove all promo fields from user and posts
+    // Cancel all promo/badge
+    if (cancel) {
       const updatedUser = await User.findByIdAndUpdate(
         userId,
         { badgeType: "", activePromoExpiry: null },
@@ -369,74 +370,78 @@ export const promoteUser = async (req, res) => {
       );
       return res.json({
         success: true,
-        message: "Promotion cancelled for user.",
+        message: "Promotion and badge cancelled for user.",
         data: updatedUser,
       });
     }
 
-    if (duration === "monthly") {
-      // Only update badgeType to blue for user and posts
-      const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        { badgeType: "blue" },
-        { new: true }
-      ).select("-password");
-      if (!updatedUser) {
-        return res.status(404).json({ success: false, error: "User not found" });
+    // Determine badgeType and promo fields to set
+    let newBadgeType = badgeType;
+    let setPromo = promoActive;
+    let promoExpiry = null;
+    let promoDurationDays = null;
+    if (duration) {
+      // If duration is provided, treat as promo
+      promoDurationDays = PROMO_DURATION_MAP[duration] || Number(duration);
+      if (!Number.isFinite(promoDurationDays) || promoDurationDays < 1) {
+        return res.status(400).json({ success: false, error: "Invalid promotion duration" });
       }
-      const updateResult = await Post.updateMany(
-        { userId: updatedUser._id },
-        { badgeType: "blue" }
-      );
-      return res.json({
-        success: true,
-        message: "Monthly badge applied (blue badge)",
-        data: {
-          updatedUser,
-          updatedPosts: updateResult.modifiedCount,
-        },
-      });
+      const now = new Date();
+      promoExpiry = new Date(now.getTime() + promoDurationDays * 24 * 60 * 60 * 1000);
+      setPromo = true;
+      // If badgeType not explicitly set, default to 'pink' for promo
+      if (!newBadgeType) newBadgeType = "pink";
     }
 
-    // All other promo durations: set badgeType to pink and promote posts
-    const durationDays = PROMO_DURATION_MAP[duration] || Number(duration);
-    if (!Number.isFinite(durationDays) || durationDays < 1) {
-      return res.status(400).json({ success: false, error: "Invalid promotion duration" });
-    }
+    // If badgeType is set to 'blue' and promoActive is true, allow both
+    // If only badgeType is set, allow just badge
+    // If only promoActive is set, allow just promo
+    // If both, set both
+    const userUpdate = {};
+    if (newBadgeType !== undefined) userUpdate.badgeType = newBadgeType;
+    if (setPromo) userUpdate.activePromoExpiry = promoExpiry || null;
+    if (!setPromo) userUpdate.activePromoExpiry = null;
 
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
-
-    const promotedUser = await User.findByIdAndUpdate(
+    const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { activePromoExpiry: expiresAt, badgeType: "pink" },
+      userUpdate,
       { new: true }
     ).select("-password");
-
-    if (!promotedUser) {
+    if (!updatedUser) {
       return res.status(404).json({ success: false, error: "User not found" });
     }
 
-    const updateResult = await Post.updateMany(
-      { userId: promotedUser._id },
-      { isPromo: true, promoExpiresAt: expiresAt, badgeType: "pink" }
+    // Update posts accordingly
+    const postUpdate = {};
+    if (newBadgeType !== undefined) postUpdate.badgeType = newBadgeType;
+    if (setPromo) {
+      postUpdate.isPromo = true;
+      postUpdate.promoExpiresAt = promoExpiry || null;
+    } else {
+      postUpdate.isPromo = false;
+      postUpdate.promoExpiresAt = null;
+    }
+    await Post.updateMany(
+      { userId: updatedUser._id },
+      postUpdate
     );
 
     return res.json({
       success: true,
-      message: "User promotion updated successfully",
+      message: "User badge/promo updated successfully",
       data: {
-        promotedUser,
-        durationDays,
-        expiresAt,
-        updatedPosts: updateResult.modifiedCount,
+        updatedUser,
+        badgeType: newBadgeType,
+        promoActive: !!setPromo,
+        promoExpiry,
+        promoDurationDays,
       },
     });
   } catch (err) {
     console.error("❌ Error promoting user:", err);
     return res.status(500).json({ success: false, error: "Failed to promote user" });
   }
-};
+}
 
 /* --------------------------- �🖼 Upload Profile Picture --------------------------- */
 /* --------------------------- 🖼 Upload Profile Picture to Cloudinary --------------------------- */

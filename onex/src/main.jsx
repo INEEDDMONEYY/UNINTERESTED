@@ -36,6 +36,7 @@ const ResetPassword = lazy(() => import("./pages/resetPasswordPage.jsx"));
 const PostDetail = lazy(() => import("./components/Posts/PostDetail.jsx"));
 const UserProfileView = lazy(() => import("./pages/users/UserProfileViewPage.jsx"));
 const ReviewsPage = lazy(() => import('./pages/Reviews/ReviewsPage.jsx')) ;
+const ContactPage = lazy(() => import("./pages/ContactPage.jsx"));
 
 const router = createBrowserRouter([
   { path: "/", element: <App /> },
@@ -82,6 +83,7 @@ const router = createBrowserRouter([
   { path: "signout", element: <Signout /> },
   { path: "/profile/:username", element: <ProfilePage /> },
   { path: "reviews/:userId", element: <ReviewsPage /> },
+  { path: "contact", element: <ContactPage /> },
 ]);
 
 export function AppGate() {

@@ -14,7 +14,7 @@ export default function PromotionTiers() {
     },
     {
       label: "3 Weeks Promotion",
-      price: "$36",
+      price: "$32",
       description:
         "Maximum promotional coverage for 21 days. Perfect for sustained exposure and long-term visibility on the platform.",
     },

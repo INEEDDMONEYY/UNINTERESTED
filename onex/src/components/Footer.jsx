@@ -88,7 +88,16 @@ export default function Footer() {
 
         {/* ── Bottom bar ── */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-gray-600 text-xs">
-          <p>Built with ❤️ for a safer experience. Designed by Mystery Mansion.</p>
+          <div className="flex flex-col sm:flex-row items-center gap-2">
+            <p>Built with ❤️ for a safer experience. Designed by Mystery Mansion.</p>
+            <span className="hidden sm:inline">|</span>
+            <Link
+              to="/contact"
+              className="text-pink-400 hover:text-pink-300 underline underline-offset-2 transition-colors duration-200"
+            >
+              Contact Support
+            </Link>
+          </div>
           <div className="flex items-center gap-2">
             <span>Powered by</span>
             <a

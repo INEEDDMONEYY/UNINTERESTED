@@ -1,12 +1,14 @@
 
+
 import { useEffect, useState } from "react";
 import api from "../../../utils/api";
-
 
 export default function PromotionRequestsAdmin() {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState("");
-  const [tier, setTier] = useState("");
+  const [badgeChecked, setBadgeChecked] = useState(false);
+  const [promoChecked, setPromoChecked] = useState(false);
+  const [promoDuration, setPromoDuration] = useState("");
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -29,14 +31,27 @@ export default function PromotionRequestsAdmin() {
     setError("");
     setSuccess("");
     try {
-      if (!tier) throw new Error("Select a promotion tier");
+      if (!badgeChecked && !promoChecked) throw new Error("Select at least one option");
+      if (promoChecked && !promoDuration) throw new Error("Select a promo duration");
+      let badgeType = undefined;
+      let promoActive = undefined;
+      let duration = undefined;
+      if (badgeChecked) badgeType = "blue";
+      if (promoChecked) {
+        promoActive = true;
+        duration = promoDuration;
+      }
       await api.post(`/admin/users/promote`, {
         userId: selectedUser,
-        duration: tier,
+        badgeType,
+        promoActive,
+        duration,
       });
-      setSuccess("User promoted successfully!");
+      setSuccess("User promotion updated successfully!");
       setSelectedUser("");
-      setTier("");
+      setBadgeChecked(false);
+      setPromoChecked(false);
+      setPromoDuration("");
     } catch (e) {
       setError(e?.response?.data?.error || e.message || "Failed to promote user");
     } finally {
@@ -51,12 +66,13 @@ export default function PromotionRequestsAdmin() {
     try {
       await api.post(`/admin/users/promote`, {
         userId: selectedUser,
-        duration: tier,
         cancel: true,
       });
-      setSuccess("Promotion cancelled for user.");
+      setSuccess("Promotion and badge cancelled for user.");
       setSelectedUser("");
-      setTier("");
+      setBadgeChecked(false);
+      setPromoChecked(false);
+      setPromoDuration("");
     } catch (e) {
       setError(e?.response?.data?.error || e.message || "Failed to cancel promotion");
     } finally {
@@ -84,36 +100,57 @@ export default function PromotionRequestsAdmin() {
             ))}
           </select>
         </div>
-        <div>
-          <label className="block mb-1 font-medium">Promotion Tier</label>
-          <select
-            className="w-full border rounded px-3 py-2"
-            value={tier}
-            onChange={e => setTier(e.target.value)}
-            disabled={saving}
-          >
-            <option value="">-- Select a tier --</option>
-            <option value="1week">1 Week</option>
-            <option value="2weeks">2 Weeks</option>
-            <option value="3weeks">3 Weeks</option>
-            <option value="monthly">Monthly Badge Verification</option>
-          </select>
+        <div className="flex flex-col gap-2">
+          <label className="block mb-1 font-medium">Options</label>
+          <label className="inline-flex items-center">
+            <input
+              type="checkbox"
+              className="form-checkbox mr-2"
+              checked={badgeChecked}
+              onChange={e => setBadgeChecked(e.target.checked)}
+              disabled={saving}
+            />
+            Badge Verification (Blue Check)
+          </label>
+          <label className="inline-flex items-center">
+            <input
+              type="checkbox"
+              className="form-checkbox mr-2"
+              checked={promoChecked}
+              onChange={e => setPromoChecked(e.target.checked)}
+              disabled={saving}
+            />
+            Paid Promo
+          </label>
+          {promoChecked && (
+            <select
+              className="w-full border rounded px-3 py-2 mt-2"
+              value={promoDuration}
+              onChange={e => setPromoDuration(e.target.value)}
+              disabled={saving}
+            >
+              <option value="">-- Select promo duration --</option>
+              <option value="1week">1 Week</option>
+              <option value="2weeks">2 Weeks</option>
+              <option value="3weeks">3 Weeks</option>
+            </select>
+          )}
         </div>
         <div className="md:col-span-1 flex flex-wrap items-center gap-2 mt-2">
           <button
             className="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 disabled:opacity-60"
             onClick={handleSave}
-            disabled={saving || !selectedUser || !tier}
+            disabled={saving || !selectedUser || (!badgeChecked && !promoChecked) || (promoChecked && !promoDuration)}
           >
             Save Promotion
           </button>
-          {tier && (
+          {(badgeChecked || promoChecked) && (
             <button
               className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
               onClick={handleCancel}
               disabled={saving}
             >
-              Cancel {tier === 'monthly' ? 'Monthly Badge' : `${tier.replace('week', ' Week')} Promotion`}
+              Cancel Promotion/Badge
             </button>
           )}
         </div>
