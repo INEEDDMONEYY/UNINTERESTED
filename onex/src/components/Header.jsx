@@ -81,7 +81,7 @@ export default function Header() {
                 to="/signup"
                 className="inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-3 text-[0.68rem] font-medium uppercase tracking-[0.11em] text-[#111] transition hover:-translate-y-px hover:bg-[#e8e8e8] sm:px-10 sm:text-xs sm:tracking-[0.15em]"
               >
-                Redeem Promo Code 🎁
+                Join Now 🎉
               </Link>
             </Motion.div>
           )}

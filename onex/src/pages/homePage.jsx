@@ -5,6 +5,7 @@ import Footer from '../components/Footer.jsx';
 import PolicyToast from './/../components/Toasts/HomeToasts/PolicyToast.jsx';
 import AgeRequirementToast from './/../components/Toasts/HomeToasts/AgeRequirementToast.jsx';
 import { useEffect, useState } from 'react';
+import { setSEO } from '../utils/seo';
 
 export default function HomePage() {
   const [user, setUser] = useState(null);
@@ -12,14 +13,11 @@ export default function HomePage() {
   const [showAgeToast, setShowAgeToast] = useState(false);
 
   useEffect(() => {
-    document.title = 'Find Escorts Near You | Search Profiles & Reviews | Mystery Mansion';
-    const description = document.querySelector('meta[name="description"]');
-    if (description) {
-      description.setAttribute(
-        'content',
-        'Mystery Mansion is an escort ad platform where users can discover listings, connect with profiles, and browse categorized updates.'
-      );
-    }
+    setSEO(
+      'Find Escorts Near You | Search Profiles & Reviews | Mystery Mansion',
+      'Mystery Mansion is an escort and sex work advertising platform where users can discover listings, connect with profiles, and browse categorized updates.',
+      { robots: 'index, follow', canonicalPath: '/home' }
+    );
 
     // ✅ Load user info from localStorage
     const storedUser = localStorage.getItem('user');

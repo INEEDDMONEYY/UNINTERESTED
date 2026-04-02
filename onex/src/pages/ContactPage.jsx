@@ -1,11 +1,21 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { useEffect } from "react";
+import { setSEO } from "../utils/seo";
 
 // Future contact image (will appear inside the contact card area)
 // Example later: const CONTACT_IMAGE = "/contact-support.jpg";
 const CONTACT_IMAGE = "/mm-hero.png";
 
 export default function ContactPage() {
+  useEffect(() => {
+    setSEO(
+      "Contact Support | Mystery Mansion",
+      "Contact Mystery Mansion support for help with your escort and sex work advertising account, safety concerns, and platform questions.",
+      { robots: "index, follow", canonicalPath: "/contact" }
+    );
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Navbar />

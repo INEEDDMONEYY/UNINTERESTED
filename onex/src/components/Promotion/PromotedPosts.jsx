@@ -38,7 +38,7 @@ function useCountdown(expiryDate) {
   return remaining;
 }
 
-function CountdownBadge({ expiryDate }) {
+function CountdownBadge({ expiryDate, isVerified = false }) {
   const remaining = useCountdown(expiryDate);
 
   if (!remaining) {
@@ -58,7 +58,7 @@ function CountdownBadge({ expiryDate }) {
   );
 
   return (
-    <span className="mt-2 block w-full bg-transparent text-[10px] font-semibold leading-tight text-pink-500 tabular-nums">
+    <span className={`mt-2 block w-full bg-transparent text-[10px] font-semibold leading-tight ${isVerified ? "text-blue-500" : "text-pink-500"} tabular-nums`}>
       ⏱ {parts.join(" ")}
     </span>
   );
@@ -73,16 +73,25 @@ function ProfileCard({ profile, isPlaceholder = false }) {
       ? `/profile/${encodeURIComponent(username)}`
       : null;
 
+  // Check if user has blue badge (verified)
+  const isVerified = profile?.badgeType === "blue";
+
   const cardClasses = `relative z-10 flex h-[238px] w-[210px] flex-shrink-0 flex-col rounded-[11px] p-4 text-center transition-all duration-200 sm:h-[248px] ${
     isPlaceholder
       ? "bg-gradient-to-br from-pink-50 via-white to-rose-50 shadow-sm"
-      : "bg-gradient-to-br from-pink-50/85 via-white to-rose-50/80 backdrop-blur-sm shadow-sm hover:shadow-pink-200"
+      : isVerified
+        ? "bg-gradient-to-br from-blue-50/85 via-white to-cyan-50/80 backdrop-blur-sm shadow-sm hover:shadow-blue-200"
+        : "bg-gradient-to-br from-pink-50/85 via-white to-rose-50/80 backdrop-blur-sm shadow-sm hover:shadow-pink-200"
   }`;
 
   const rotatingBorder = (
     <Motion.span
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 rounded-xl bg-[conic-gradient(from_180deg_at_50%_50%,#f9a8d4_0deg,#fbcfe8_90deg,#fda4af_180deg,#fce7f3_270deg,#f9a8d4_360deg)]"
+      className={`pointer-events-none absolute inset-0 rounded-xl ${
+        isVerified
+          ? "bg-[conic-gradient(from_180deg_at_50%_50%,#93c5fd_0deg,#60a5fa_90deg,#3b82f6_180deg,#bfdbfe_270deg,#93c5fd_360deg)]"
+          : "bg-[conic-gradient(from_180deg_at_50%_50%,#f9a8d4_0deg,#fbcfe8_90deg,#fda4af_180deg,#fce7f3_270deg,#f9a8d4_360deg)]"
+      }`}
       animate={{ rotate: 360 }}
       transition={{ duration: 10, ease: "linear", repeat: Infinity }}
     />
@@ -90,9 +99,11 @@ function ProfileCard({ profile, isPlaceholder = false }) {
 
   const verifiedBadge = !isPlaceholder ? (
     <span
-      className="absolute right-2 top-2 z-30 inline-flex h-6 w-6 items-center justify-center rounded-full bg-pink-600 shadow-md pointer-events-none"
-      aria-label="Promoted account"
-      title="Promoted account"
+      className={`absolute right-2 top-2 z-30 inline-flex h-6 w-6 items-center justify-center rounded-full ${
+        isVerified ? "bg-blue-600" : "bg-pink-600"
+      } shadow-md pointer-events-none`}
+      aria-label={isVerified ? "Verified account" : "Promoted account"}
+      title={isVerified ? "Verified account" : "Promoted account"}
     >
       <BadgeCheck size={14} className="text-white" />
     </span>
@@ -103,9 +114,13 @@ function ProfileCard({ profile, isPlaceholder = false }) {
       <img
         src={profile.profilePic || "https://via.placeholder.com/64?text=?"}
         alt={username || "Promoted user"}
-        className="w-16 h-16 rounded-full object-cover border-2 border-pink-300 mx-auto mb-3"
+        className={`w-16 h-16 rounded-full object-cover border-2 ${
+          isVerified ? "border-blue-300" : "border-pink-300"
+        } mx-auto mb-3`}
       />
-      <h3 className="text-sm font-semibold text-pink-600 break-words">{username}</h3>
+      <h3 className={`text-sm font-semibold ${
+        isVerified ? "text-blue-600" : "text-pink-600"
+      } break-words`}>{username}</h3>
       <div className="mt-1 min-h-[48px]">
         <p
           className="text-xs text-gray-600 break-words overflow-hidden"
@@ -120,7 +135,7 @@ function ProfileCard({ profile, isPlaceholder = false }) {
       </div>
       <div className="mt-auto min-h-[28px]">
         {!isPlaceholder && profile.activePromoExpiry && (
-          <CountdownBadge expiryDate={profile.activePromoExpiry} />
+          <CountdownBadge expiryDate={profile.activePromoExpiry} isVerified={isVerified} />
         )}
       </div>
     </>

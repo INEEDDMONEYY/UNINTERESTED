@@ -10,12 +10,10 @@ import {
   UserRound,
   Menu,
   X,
-  Clock,
   Sparkles,
   Link2,
   ShieldAlert,
   CheckCircle2,
-  Circle,
 } from "lucide-react";
 
 import UserProfileSettings from "./UserProfileSettings.jsx";
@@ -27,36 +25,12 @@ import api from "../../utils/api";
 
 export default function UserDashboard() {
   const navigate = useNavigate();
-  const { user, logout, refreshUser } = useContext(UserContext);
+  const { user, logout } = useContext(UserContext);
   const [activeView, setActiveView] = useState("dashboard");
   const [profilePic, setProfilePic] = useState(user?.profilePic || "");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [promoCountdown, setPromoCountdown] = useState("");
-  const [hasActivePromo, setHasActivePromo] = useState(false);
-  const [promoInput, setPromoInput] = useState("");
-  const [promoLoading, setPromoLoading] = useState(false);
-  const [promoMessage, setPromoMessage] = useState(null);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const SHOW_WHATS_NEW_BADGE = true;
-
-  const setupChecklist = [
-    {
-      key: "profilePic",
-      label: "Profile picture",
-      complete: Boolean(user?.profilePic),
-    },
-    {
-      key: "age",
-      label: "Age",
-      complete: Number.isFinite(Number(user?.age)) && Number(user?.age) > 0,
-    },
-    {
-      key: "bio",
-      label: "Bio",
-      complete: Boolean(user?.bio?.trim()),
-    },
-  ];
-  const completedSetupSteps = setupChecklist.filter((step) => step.complete).length;
 
   const restrictionLabelMap = {
     "no-posting": "Posting disabled",
@@ -102,74 +76,8 @@ export default function UserDashboard() {
 
   // -------- Promo Countdown Timer --------
   useEffect(() => {
-    if (!user?.activePromoExpiry) {
-      setHasActivePromo(false);
-      return;
-    }
-
-    const updateCountdown = () => {
-      const now = new Date();
-      const expiryDate = new Date(user.activePromoExpiry);
-      const diffMs = expiryDate.getTime() - now.getTime();
-
-      if (diffMs <= 0) {
-        setHasActivePromo(false);
-        setPromoCountdown("");
-        return;
-      }
-
-      setHasActivePromo(true);
-
-      const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-
-      let countdown = "";
-      if (days > 0) {
-        countdown = `${days}d ${hours}h ${minutes}m`;
-      } else if (hours > 0) {
-        countdown = `${hours}h ${minutes}m ${seconds}s`;
-      } else {
-        countdown = `${minutes}m ${seconds}s`;
-      }
-
-      setPromoCountdown(countdown);
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-
-    return () => clearInterval(interval);
-  }, [user?.activePromoExpiry]);
-
-  const handleActivatePromo = async (e) => {
-    e.preventDefault();
-    const code = promoInput.trim();
-    if (!code) return;
-    setPromoLoading(true);
-    setPromoMessage(null);
-    try {
-      const { data } = await api.post("/promo-codes/redeem", { code });
-      if (data.success) {
-        await refreshUser();
-        setPromoInput("");
-        setPromoMessage({
-          type: "success",
-          text: data.message || "Promo code activated! You're now featured in promoted accounts.",
-        });
-      } else {
-        setPromoMessage({ type: "error", text: data.error || "Failed to activate promo code." });
-      }
-    } catch (err) {
-      setPromoMessage({
-        type: "error",
-        text: err.response?.data?.error || "Invalid or expired promo code.",
-      });
-    } finally {
-      setPromoLoading(false);
-    }
-  };
+    // Promo countdown logic removed with dashboard promo sections
+  }, []);
 
   const handleSignOut = async () => {
     navigate("/signout");
@@ -397,68 +305,6 @@ export default function UserDashboard() {
         {activeView === "dashboard" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
 
-            <div className="bg-gradient-to-br from-pink-50 via-white to-yellow-50 p-6 rounded-xl shadow border border-pink-200 sm:col-span-2 xl:col-span-3">
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-                <h2 className="text-lg font-semibold inline-flex items-center gap-2">
-                  <Sparkles size={18} className="text-pink-600" />
-                  Promotion Setup Steps
-                </h2>
-                <span className="rounded-full bg-pink-600 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.05em] text-white">
-                  Highlight
-                </span>
-              </div>
-
-              <p className="text-sm text-gray-700 mb-3">
-                Redeeming a valid promo code will place your account in the promoted accounts section while the code is active.
-              </p>
-
-              <ol className="list-decimal pl-5 space-y-2 text-sm text-gray-700 mb-4">
-                <li>Complete your profile basics before activating a promo code.</li>
-                <li>Redeem your promo code in the 'Edit profile settings', there will be a section for you to redeem code. You can also redeem it when posting.</li>
-                <li>Upon confirmation, a countdown appears to verify your promoted status is live and how long it will be live for you and users of the platform before it is deleted.</li>
-                <li>Check homepage upon completion to see your promoted status in action.</li>
-              </ol>
-
-              <div className="rounded-lg border border-pink-100 bg-white p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                  <p className="text-sm font-semibold text-gray-800">Account readiness</p>
-                  <span className="text-xs font-medium text-gray-600">
-                    {completedSetupSteps}/{setupChecklist.length} complete
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {setupChecklist.map((step) => (
-                    <div
-                      key={step.key}
-                      className={`rounded-md border px-3 py-2 text-sm inline-flex items-center gap-2 ${
-                        step.complete
-                          ? "border-green-200 bg-green-50 text-green-800"
-                          : "border-gray-200 bg-gray-50 text-gray-700"
-                      }`}
-                    >
-                      {step.complete ? (
-                        <CheckCircle2 size={16} className="text-green-600" />
-                      ) : (
-                        <Circle size={16} className="text-gray-400" />
-                      )}
-                      {step.label}
-                    </div>
-                  ))}
-                </div>
-
-                {completedSetupSteps < setupChecklist.length ? (
-                  <p className="mt-3 text-xs text-amber-700">
-                    Tip: Finish all items above for the best first impression when your promotion goes live.
-                  </p>
-                ) : (
-                  <p className="mt-3 text-xs text-green-700">
-                    Looks great. Your account is ready for promotion.
-                  </p>
-                )}
-              </div>
-            </div>
-
             <div className="bg-white p-6 rounded-xl shadow border border-pink-200 sm:col-span-2 xl:col-span-3">
               <div className="flex items-center justify-between gap-3 mb-3">
                 <h2 className="text-lg font-semibold inline-flex items-center gap-2">
@@ -524,85 +370,6 @@ export default function UserDashboard() {
               >
                 Open Profile Settings
               </button>
-            </div>
-
-            {/* Activate Promo Code — shown only when no promotion is active */}
-            {!hasActivePromo && (
-              <div className="bg-white p-6 rounded-xl shadow border border-gray-200">
-                <h2 className="text-lg font-semibold mb-1">Activate Promo Code</h2>
-                <p className="text-gray-500 text-sm mb-4">
-                  Have a promo code? Enter it here to get featured in the promoted accounts section.
-                </p>
-                <form onSubmit={handleActivatePromo} className="flex flex-col gap-3">
-                  <input
-                    type="text"
-                    placeholder="Enter your promo code"
-                    value={promoInput}
-                    onChange={(e) => setPromoInput(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
-                  />
-                  <button
-                    type="submit"
-                    disabled={promoLoading || !promoInput.trim()}
-                    className="bg-pink-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-pink-700 disabled:opacity-50 transition"
-                  >
-                    {promoLoading ? "Activating..." : "Activate"}
-                  </button>
-                </form>
-                {promoMessage && (
-                  <p className={`text-sm mt-3 ${promoMessage.type === "success" ? "text-green-700" : "text-red-600"}`}>
-                    {promoMessage.text}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Promo Status Badge */}
-            {hasActivePromo && (
-              <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl shadow border-2 border-green-400">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="bg-green-500 rounded-full p-2">
-                    <Clock size={20} className="text-white" />
-                  </div>
-                  <h2 className="text-lg font-semibold text-green-800">Promo Code Active</h2>
-                </div>
-                <p className="text-green-700 text-sm mb-2">
-                  Your promo posts are live on the platform!
-                </p>
-                <div className="bg-green-600 text-white font-bold text-center py-3 rounded-lg text-xl">
-                  {promoCountdown || "Calculating..."}
-                </div>
-                <p className="text-green-600 text-xs mt-2 text-center">
-                  Expires at {new Date(user.activePromoExpiry).toLocaleString()}
-                </p>
-              </div>
-            )}
-
-            <div className="bg-white p-6 rounded-xl shadow border border-pink-200 sm:col-span-2 xl:col-span-3">
-              <h2 className="text-lg font-semibold mb-2">First Post Tips</h2>
-              <ul className="list-disc pl-5 space-y-2 text-gray-700 text-sm mb-4">
-                <li>
-                  Edit all settings in your dashboard before posting to ensure your post shows the correct information.
-                </li>
-                <li>
-                  If profile fields like phone number, profile picture, age, or bio are not set, those areas may appear blank on your post until you update Settings.
-                </li>
-                <li>
-                  Active promo codes always display in your dashboard while live, including the countdown timer.
-                </li>
-                <li>
-                  New feature: one media upload field now supports both photos and videos from your phone or device gallery.
-                </li>
-                <li>
-                  Add clear photos/videos and a complete description to improve trust and visibility.
-                </li>
-              </ul>
-              <Link
-                to="/platform-updates"
-                className="inline-flex items-center rounded-md bg-pink-600 px-4 py-2 text-sm font-medium text-white hover:bg-pink-700 transition"
-              >
-                View Platform Updates
-              </Link>
             </div>
 
           </div>

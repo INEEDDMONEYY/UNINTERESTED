@@ -1,7 +1,9 @@
 /**
  * Updates document title and key meta tags for SEO.
  */
-export function setSEO(title, description) {
+export function setSEO(title, description, options = {}) {
+  const { robots = "index, follow", canonicalPath } = options;
+
   if (title) document.title = title;
 
   const canonicalOrigin =
@@ -9,7 +11,9 @@ export function setSEO(title, description) {
     'https://mysterymansion.app';
   const canonicalUrl =
     typeof window !== 'undefined'
-      ? `${canonicalOrigin}${window.location.pathname}${window.location.search}`
+      ? canonicalPath
+        ? `${canonicalOrigin}${canonicalPath}`
+        : `${canonicalOrigin}${window.location.pathname}${window.location.search}`
       : canonicalOrigin;
 
   const set = (selector, attr, value) => {
@@ -35,6 +39,7 @@ export function setSEO(title, description) {
   set('meta[name="twitter:title"]', 'content', title);
   set('meta[name="twitter:description"]', 'content', description);
   set('meta[name="twitter:url"]', 'content', canonicalUrl);
+  set('meta[name="robots"]', 'content', robots);
   setCanonical(canonicalUrl);
 }
 

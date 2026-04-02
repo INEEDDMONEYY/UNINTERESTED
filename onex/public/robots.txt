@@ -1,4 +1,13 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /analytics
+Disallow: /user/
+Disallow: /signin
+Disallow: /signup
+Disallow: /forgotpass
+Disallow: /reset-password/
+Disallow: /signout
+Disallow: /post
 
 Sitemap: https://mysterymansion.app/sitemap.xml

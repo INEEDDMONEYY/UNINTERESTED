@@ -111,7 +111,7 @@ export default function PostList({ authorId = "" }) {
 
   return (
     <section className="px-4 sm:px-6 lg:px-12 py-10">
-      <h2 className="text-2xl font-bold text-pink-700 mb-6 text-center sm:text-left">
+      <h2 className="text-lg sm:text-2xl font-bold text-pink-700 mb-6 text-center sm:text-left">
         {authorUsername ? `${authorUsername}'s Posts` : "Account Holder Posts"}
       </h2>
 

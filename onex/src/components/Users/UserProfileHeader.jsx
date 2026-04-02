@@ -20,6 +20,7 @@ export default function UserProfileHeader({
 
   const [user, setUser] = useState({
     username: "",
+    role: "",
     bio: "",
     age: null,
     createdAt: null,
@@ -73,6 +74,7 @@ export default function UserProfileHeader({
       if (!profileData || cancelled) return;
       setUser({
         username: profileData.username || "",
+        role: profileData.role || "",
         bio: profileData.bio || "",
         age: profileData.age ?? null,
         createdAt: profileData.createdAt || null,
@@ -221,9 +223,11 @@ export default function UserProfileHeader({
     }
   };
 
+
   // BADGE LOGIC (NEW): Use badgeType from backend
   // badgeType: "blue" (monthly), "pink" (promo), "" (none)
   const isPermanentProvider = hasPermanentProviderBadge(user?.createdAt);
+  const isAdmin = user?.role === "admin";
   const displayPhoneNumber = user?.phoneNumber || "";
   const displayEmail = user?.email || "";
   const usernameLength = (user?.username || "").trim().length;
@@ -307,18 +311,50 @@ export default function UserProfileHeader({
 
           <h1 className={`${usernameSizeClass} font-bold text-gray-900 inline-flex items-center gap-2 break-words leading-tight`} style={usernameStyle}>
             <span>{user.username || "Unnamed User"}</span>
-            {/* BADGE LOGIC (ALWAYS SHOW CHECK MARK) */}
-            <span
-              className={`inline-flex items-center gap-1 rounded-full font-semibold px-1.5 sm:px-2 py-0.5 whitespace-nowrap leading-none
-                ${user.badgeType === 'blue' ? 'bg-blue-600 text-white' : user.badgeType === 'pink' ? 'bg-pink-500 text-white' : 'bg-gray-200 text-gray-400'}`}
-              aria-label={user.badgeType === 'blue' ? 'Verified' : user.badgeType === 'pink' ? 'Promo Badge' : 'Unverified'}
-              title={user.badgeType === 'blue' ? 'Verified (Monthly Badge)' : user.badgeType === 'pink' ? 'Promotional Badge' : 'Unverified'}
-              style={{ fontSize: '11px' }}
-            >
-              <CheckCircle2 size={14} className={user.badgeType === 'blue' || user.badgeType === 'pink' ? 'text-white' : 'text-gray-400'} />
-              {user.badgeType === 'blue' && 'Verified'}
-              {user.badgeType === 'pink' && 'Promo'}
-            </span>
+            {/* BADGE LOGIC: Show blue verified and DEV badge for admins */}
+            {isAdmin ? (
+              <>
+                {/* Blue Verified Badge for Admin */}
+                <span
+                  className="inline-flex items-center gap-1 rounded-full bg-blue-600 text-white font-semibold px-1.5 sm:px-2 py-0.5 whitespace-nowrap leading-none"
+                  aria-label="Verified"
+                  title="Verified Admin"
+                  style={{ fontSize: '11px' }}
+                >
+                  <CheckCircle2 size={14} className="text-white" />
+                  Verified
+                </span>
+                {/* Gold Dev Badge */}
+                <span
+                  className="relative inline-flex rounded-full p-[1px] overflow-hidden"
+                  aria-label="Developer"
+                  title="Developer"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 rounded-full bg-[conic-gradient(from_180deg_at_50%_50%,#fbbf24_0deg,#f59e0b_90deg,#d97706_180deg,#fef3c7_270deg,#fbbf24_360deg)] animate-[spin_8s_linear_infinite]"
+                  />
+                  <div className="relative inline-flex items-center gap-1 bg-gradient-to-r from-amber-500/90 via-yellow-400/90 to-amber-500/90 text-white text-[9px] sm:text-[10px] md:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full">
+                    DEV
+                  </div>
+                </span>
+              </>
+            ) : (
+              <>
+                {/* BADGE LOGIC (SHOW CHECK MARK FOR NON-ADMINS) */}
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full font-semibold px-1.5 sm:px-2 py-0.5 whitespace-nowrap leading-none
+                    ${user.badgeType === 'blue' ? 'bg-blue-600 text-white' : user.badgeType === 'pink' ? 'bg-pink-500 text-white' : 'bg-gray-200 text-gray-400'}`}
+                  aria-label={user.badgeType === 'blue' ? 'Verified' : user.badgeType === 'pink' ? 'Promo Badge' : 'Unverified'}
+                  title={user.badgeType === 'blue' ? 'Verified (Monthly Badge)' : user.badgeType === 'pink' ? 'Promotional Badge' : 'Unverified'}
+                  style={{ fontSize: '11px' }}
+                >
+                  <CheckCircle2 size={14} className={user.badgeType === 'blue' || user.badgeType === 'pink' ? 'text-white' : 'text-gray-400'} />
+                  {user.badgeType === 'blue' && 'Verified'}
+                  {user.badgeType === 'pink' && 'Promo'}
+                </span>
+              </>
+            )}
             {isPermanentProvider && (
               <span
                 className="inline-flex items-center gap-1 rounded-full bg-emerald-600 text-white text-[9px] sm:text-[10px] md:text-xs font-semibold px-1.5 sm:px-2 py-0.5 whitespace-nowrap leading-none"

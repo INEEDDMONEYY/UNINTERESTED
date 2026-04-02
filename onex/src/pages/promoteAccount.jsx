@@ -3,8 +3,18 @@ import PromotionTiers from "../components/Promotion/PromotionTiers";
 import PromotionFAQ from "../components/Promotion/PromotionFAQ";
 import PromotionPayment from "../components/Promotion/PromotionPayment";
 import Footer from "../components/Footer.jsx";
+import { useEffect } from "react";
+import { setSEO } from "../utils/seo";
 
 export default function PromoteAccount() {
+  useEffect(() => {
+    setSEO(
+      "Promote Your Escort Profile | Mystery Mansion",
+      "Promote your profile on Mystery Mansion, an escort and sex work advertising platform, to increase visibility and reach more potential clients.",
+      { robots: "index, follow", canonicalPath: "/promote" }
+    );
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-pink-50 via-white to-yellow-50 text-gray-900">
       {/* 🧭 Navbar */}

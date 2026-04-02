@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { setSEO } from "../utils/seo";
 import {
     ChevronDown,
     ShieldCheck,
@@ -111,6 +113,14 @@ function FAQAccordionItem({ item, isOpen, onToggle }) {
 
 export default function FAQPage() {
     const [openIndex, setOpenIndex] = useState(0);
+
+    useEffect(() => {
+        setSEO(
+            "FAQ | Mystery Mansion Escort Platform Help Center",
+            "Read frequently asked questions about Mystery Mansion, an escort and sex work advertising platform, including safety, content, and account support.",
+            { robots: "index, follow", canonicalPath: "/faq" }
+        );
+    }, []);
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-rose-50 via-white to-pink-50 flex flex-col">
