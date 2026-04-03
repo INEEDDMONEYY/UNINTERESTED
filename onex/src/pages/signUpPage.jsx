@@ -1,7 +1,13 @@
+import { useEffect } from 'react';
 import SignupForm from "../components/Forms/SignUpForm.jsx"
 import Logo from '../assets/Logo.png'
+import { setSEO } from '../utils/seo';
 
 export default function SignupPage() {
+    useEffect(() => {
+        setSEO('Sign Up | Mystery Mansion', '', { robots: 'noindex, nofollow' });
+    }, []);
+
     return(
         <>
         <div className="flex flex-col signup-bg h-screen p-[200px] overflow-hidden place-content-center">

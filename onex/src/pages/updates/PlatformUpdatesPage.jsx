@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../utils/api";
 import { useUser } from "../../context/useUser";
+import { setSEO } from "../../utils/seo";
 
 export default function PlatformUpdatesPage() {
   const [updates, setUpdates] = useState([]);
@@ -31,6 +32,14 @@ export default function PlatformUpdatesPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    setSEO(
+      'Platform Updates | Mystery Mansion',
+      'Stay up to date with the latest features, improvements, and announcements from Mystery Mansion, the escort and sex work advertising platform.',
+      { robots: 'index, follow', canonicalPath: '/platform-updates' }
+    );
+  }, []);
 
   useEffect(() => {
     fetchUpdates();

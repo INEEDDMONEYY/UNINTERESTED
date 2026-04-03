@@ -1,10 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SignInForm from '../components/Forms/SignInForm.jsx';
 import SigninLogo from '../assets/Logo.png';
 import SigninLoader from '../components/Loaders/SigninLoader.jsx';
+import { setSEO } from '../utils/seo';
 
 export default function SignIn() {
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setSEO('Sign In | Mystery Mansion', '', { robots: 'noindex, nofollow' });
+  }, []);
 
   return (
     <>

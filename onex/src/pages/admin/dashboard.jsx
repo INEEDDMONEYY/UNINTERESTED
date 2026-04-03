@@ -24,6 +24,7 @@ import AdminCreateUserForm from "./AdminCreateUserForm";
 import UserProfileHeader from "../../components/Users/UserProfileHeader.jsx";
 import { useUser } from "../../context/useUser";
 import api from "../../utils/api";
+import { setSEO } from "../../utils/seo";
 
 const API_BASE =
   import.meta.env.VITE_BACKEND_URL ||
@@ -37,6 +38,10 @@ export default function AdminDashboard() {
 
   const [activeView, setActiveView] = useState("dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // ⭐ NEW
+
+  useEffect(() => {
+    setSEO('Admin | Mystery Mansion', '', { robots: 'noindex, nofollow' });
+  }, []);
 
   const [stats, setStats] = useState({ totalUsers: 0, totalAdmins: 0 });
   const [restrictedAccounts, setRestrictedAccounts] = useState([]);

@@ -87,7 +87,14 @@ export default function PromotionPayment() {
             <li>Send the correct payment amount for your selected promotion.</li>
             <li>Include your username & promotion tier in the payment note.</li>
             <li>
-              After sending payment, send a screenshot of the confirmation to our support email: support.mysterymansion@gmail.com. Please allow up to 3-5 minutes for processing after we receive your payment confirmation.
+                <span className="font-semibold">Optional:</span> After sending payment, send a screenshot of the confirmation to our support email:{" "}
+                <a
+                  href="mailto:support.mysterymansion@gmail.com"
+                  className="font-medium text-blue-600 underline underline-offset-2 hover:text-blue-700"
+                >
+                  support.mysterymansion@gmail.com
+                </a>
+                . Please allow up to 3-5 minutes for processing after we receive your payment confirmation.
             </li>
           </ol>
         </div>
@@ -96,7 +103,7 @@ export default function PromotionPayment() {
         <div className="text-xs sm:text-sm text-gray-500 border-t pt-4 mt-6">
           <p>
             We are actively working to integrate automated payment processing.
-            Cash App payments are temporary while our platform grows to 200+
+            Cash App payments are temporary while our platform grows to 500+
             users.
           </p>
         </div>

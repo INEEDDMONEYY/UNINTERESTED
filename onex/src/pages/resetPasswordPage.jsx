@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../utils/api";
+import { setSEO } from "../utils/seo";
 
 export default function ResetPassword() {
   const { token } = useParams(); // ✅ Step 3: read token from URL
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setSEO('Reset Password | Mystery Mansion', '', { robots: 'noindex, nofollow' });
+  }, []);
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

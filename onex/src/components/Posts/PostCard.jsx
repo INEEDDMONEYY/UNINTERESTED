@@ -146,8 +146,26 @@ export default function PostCard({ post, onDelete }) {
   };
 
   return (
-    <div className="relative bg-gradient-to-r from-pink-500 via-black to-yellow-500 p-[1.5px] rounded-md shadow-md w-full transition-transform hover:scale-[1.01]">
-      <div className="bg-white rounded-md p-3 relative">
+    <div className={`relative p-[1.5px] rounded-md shadow-md w-full overflow-hidden${
+      showBlueBadge
+        ? " verified-post-card"
+        : " transition-transform hover:scale-[1.01]"
+    }`}>
+      {/* Rotating border for verified cards */}
+      {showBlueBadge && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-[-100%] bg-[conic-gradient(from_0deg_at_50%_50%,#93c5fd_0deg,#2563eb_90deg,#1e40af_180deg,#3b82f6_270deg,#93c5fd_360deg)] animate-[spin_3s_linear_infinite]"
+        />
+      )}
+      {/* Default gradient border for non-verified cards */}
+      {!showBlueBadge && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-md bg-gradient-to-r from-pink-500 via-black to-yellow-500"
+        />
+      )}
+      <div className="relative bg-white rounded-md p-3">
         {/* -------------------- Image Carousel -------------------- */}
         <div className="mb-4 relative">
           {totalImages > 0 ? (
@@ -156,13 +174,17 @@ export default function PostCard({ post, onDelete }) {
                 <video
                   src={mediaItems[currentImage]?.url}
                   controls
-                  className="w-full h-40 sm:h-36 md:h-40 lg:h-40 rounded-md object-cover border border-pink-300"
+                  className={`w-full h-40 sm:h-36 md:h-40 lg:h-40 rounded-md object-cover border ${
+                    showBlueBadge ? 'border-blue-400' : 'border-pink-300'
+                  }`}
                 />
               ) : mediaItems[currentImage]?.url ? (
                 <img
                   src={mediaItems[currentImage]?.url}
                   alt={`Post image ${currentImage + 1}`}
-                  className="w-full h-40 sm:h-36 md:h-40 lg:h-40 rounded-md object-cover border border-pink-300"
+                  className={`w-full h-40 sm:h-36 md:h-40 lg:h-40 rounded-md object-cover border ${
+                    showBlueBadge ? 'border-blue-400' : 'border-pink-300'
+                  }`}
                 />
               ) : (
                 <div className="w-full h-40 sm:h-36 md:h-40 lg:h-40 bg-gray-200 flex items-center justify-center text-gray-500 text-xs rounded-md">
@@ -285,7 +307,13 @@ export default function PostCard({ post, onDelete }) {
 
             {/* Visibility Badge */}
             {post.visibility && (
-              <div className="bg-pink-600 text-white text-[9px] sm:text-[10px] md:text-xs font-semibold px-1.5 sm:px-2 py-0.5 rounded-full shadow-md">
+              <div
+                className={`text-white text-[9px] sm:text-[10px] md:text-xs font-semibold px-1.5 sm:px-2 py-0.5 rounded-full shadow-md ${
+                  showBlueBadge
+                    ? "bg-gradient-to-r from-blue-700 via-sky-500 to-cyan-400"
+                    : "bg-pink-600"
+                }`}
+              >
                 {post.visibility === "Both"
                   ? "See's Both"
                   : `See's Only: ${post.visibility}`}
@@ -299,10 +327,18 @@ export default function PostCard({ post, onDelete }) {
               <img
                 src={profilePic}
                 alt={username}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-pink-300"
+                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border ${
+                  showBlueBadge ? "border-blue-400" : "border-pink-300"
+                }`}
               />
             )}
-            <h2 className="text-base sm:text-lg font-bold text-pink-600 break-words leading-tight">
+            <h2
+              className={`text-base sm:text-lg font-bold break-words leading-tight ${
+                showBlueBadge
+                  ? "bg-gradient-to-r from-blue-700 via-sky-500 to-cyan-400 bg-clip-text text-transparent"
+                  : "text-pink-600"
+              }`}
+            >
               {username}
             </h2>
           </div>

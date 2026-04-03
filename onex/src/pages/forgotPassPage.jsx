@@ -1,7 +1,13 @@
+import { useEffect } from 'react';
 import ForgotPassword from '../components/Forms/ForgotPassForm.jsx'
 import Logo from '../assets/Logo.png'
+import { setSEO } from '../utils/seo';
 
 export default function ForgotPasswordPage() {
+    useEffect(() => {
+        setSEO('Forgot Password | Mystery Mansion', '', { robots: 'noindex, nofollow' });
+    }, []);
+
     return(
         <>
         <div className="flex flex-col signin-bg h-screen p-[200px] overflow-hidden place-content-center">

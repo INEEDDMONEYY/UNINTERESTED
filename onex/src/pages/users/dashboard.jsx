@@ -22,6 +22,7 @@ import UserActivity from "./UserActivity.jsx";
 import { UserContext } from "../../context/UserContext";
 import { FEATURE_FLAGS } from "../../config/featureFlags";
 import api from "../../utils/api";
+import { setSEO } from "../../utils/seo";
 
 export default function UserDashboard() {
   const navigate = useNavigate();
@@ -31,6 +32,10 @@ export default function UserDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const SHOW_WHATS_NEW_BADGE = true;
+
+  useEffect(() => {
+    setSEO('Dashboard | Mystery Mansion', '', { robots: 'noindex, nofollow' });
+  }, []);
 
   const restrictionLabelMap = {
     "no-posting": "Posting disabled",

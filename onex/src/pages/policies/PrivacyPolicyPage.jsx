@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import PrivacyPolicy from '../../components/policy/PrivacyPolicy';
+import { setSEO } from '../../utils/seo';
 
 export default function PrivacyPolicyPage() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setSEO(
+      'Privacy Policy | Mystery Mansion',
+      'Learn how Mystery Mansion handles your personal data on our escort and sex work advertising platform. We do not sell or share your information with third parties.',
+      { robots: 'index, follow', canonicalPath: '/privacy-policy' }
+    );
+  }, []);
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-purple-500 via-pink-400 to-black text-white flex flex-col justify-between">

@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import TermsPolicy from '../../components/policy/TermsPolicy';
+import { setSEO } from '../../utils/seo';
 
 export default function TermsOfUsePage() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setSEO(
+      'Terms of Use | Mystery Mansion',
+      'Read the Terms of Use for Mystery Mansion, an escort and sex work advertising platform. Understand your rights, responsibilities, and platform rules.',
+      { robots: 'index, follow', canonicalPath: '/terms-policy' }
+    );
+  }, []);
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-pink-500 via-yellow-400 to-black text-white flex flex-col justify-between">

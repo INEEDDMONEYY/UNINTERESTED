@@ -77,6 +77,33 @@ button:hover {
     background: hsla(308, 81%, 43%, 0.486)
 }
 
+@keyframes verified-card-shake {
+    0%, 100% {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    15% {
+        transform: translate3d(-5px, 0, 0) rotate(-0.8deg);
+    }
+    30% {
+        transform: translate3d(5px, 0, 0) rotate(0.8deg);
+    }
+    45% {
+        transform: translate3d(-4px, 0, 0) rotate(-0.6deg);
+    }
+    60% {
+        transform: translate3d(4px, 0, 0) rotate(0.6deg);
+    }
+    75% {
+        transform: translate3d(-2px, 0, 0) rotate(-0.3deg);
+    }
+}
+
+.verified-post-card {
+    animation: verified-card-shake 2.4s ease-in-out infinite;
+    transform-origin: center;
+    will-change: transform;
+}
+
 
 
 @media only screen and (max-width: 1024px) {
