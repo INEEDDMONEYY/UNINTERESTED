@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import PrivacyPolicy from '../../components/policy/PrivacyPolicy';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import { setSEO } from '../../utils/seo';
 
 export default function PrivacyPolicyPage() {
@@ -17,6 +19,7 @@ export default function PrivacyPolicyPage() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-purple-500 via-pink-400 to-black text-white flex flex-col justify-between">
+      <Navbar />  
       <div className="max-w-5xl mx-auto py-10 px-6">
         <PrivacyPolicy />
       </div>
@@ -31,6 +34,7 @@ export default function PrivacyPolicyPage() {
           Return Home
         </button>
       </div>
+      <Footer />
     </div>
   );
 }

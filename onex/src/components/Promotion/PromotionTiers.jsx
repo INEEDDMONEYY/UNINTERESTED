@@ -1,28 +1,77 @@
+import { Star, CheckCircle2, ShieldCheck } from "lucide-react";
+
 export default function PromotionTiers() {
   const tiers = [
     {
       label: "1 Week Promotion",
       price: "$12",
-      description:
-        "Boost your visibility for a full 7 days. Your profile will receive priority placement and increased exposure across the platform.",
+      benefits: [
+        "Priority placement for 7 full days",
+        "Increased profile visibility in feed",
+        "More profile clicks and engagement",
+      ],
+      cardClass: "bg-gradient-to-br from-rose-50 via-pink-100 to-pink-200 border-pink-300",
+      labelClass: "text-pink-700",
     },
     {
       label: "2 Weeks Promotion",
       price: "$24",
-      description:
-        "Stay promoted for 14 days straight. Ideal for maintaining consistent visibility and attracting more engagement.",
+      benefits: [
+        "14 days of boosted placement",
+        "Steady visibility across key sections",
+        "Better consistency for lead flow",
+      ],
+      cardClass: "bg-gradient-to-br from-purple-50 via-purple-100 to-purple-200 border-purple-300",
+      labelClass: "text-purple-700",
+    },
+    {
+      label: "2 Weeks Promotion + Verification",
+      price: "$27",
+      benefits: [
+        "14 days of promoted visibility",
+        "Blue verification badge included",
+        "Higher trust and stronger profile credibility",
+        "Post card background color change to blue exclusively for verified accounts",
+      ],
+      cardClass: "bg-gradient-to-br from-amber-100 via-yellow-200 to-orange-200 border-amber-400",
+      labelClass: "text-amber-800",
+      popular: true,
     },
     {
       label: "3 Weeks Promotion",
       price: "$32",
-      description:
-        "Maximum promotional coverage for 21 days. Perfect for sustained exposure and long-term visibility on the platform.",
+      benefits: [
+        "21 days of continuous priority exposure",
+        "Longer campaign for sustained reach",
+        "Great for maintaining top-of-feed momentum",
+      ],
+      cardClass: "bg-gradient-to-br from-violet-100 via-indigo-200 to-violet-300 border-violet-400",
+      labelClass: "text-violet-800",
+    },
+    {
+      label: "3 Weeks Promotion + Verification",
+      price: "$35",
+      benefits: [
+        "21 days of premium promoted reach",
+        "Blue verification badge included",
+        "Best long-term value for visibility + trust",
+        "Post card background color change to blue exclusively for verified accounts",
+      ],
+      cardClass: "bg-gradient-to-br from-emerald-50 via-lime-100 to-green-200 border-green-300",
+      labelClass: "text-green-800",
+      valueable: true,
     },
     {
       label: "Blue Badge Verification",
       price: "$3 / Monthly",
-      description:
-        "Verify your profile with a blue badge to build trust and credibility. This subscription renews monthly.",
+      benefits: [
+        "Blue badge shown on your profile and posts",
+        "Builds trust with potential clients",
+        "Keeps your verified status active monthly",
+      ],
+      cardClass: "bg-gradient-to-br from-sky-50 via-blue-100 to-blue-200 border-blue-300",
+      labelClass: "text-blue-700",
+      cancelAnytime: true,
     },
   ];
 
@@ -35,13 +84,35 @@ export default function PromotionTiers() {
         {tiers.map((tier, index) => (
           <div
             key={index}
-            className="bg-white/80 backdrop-blur-md border border-pink-200 rounded-xl shadow-lg p-6 text-center hover:scale-105 transition"
+            className={`relative backdrop-blur-md border rounded-xl shadow-lg p-6 text-center hover:scale-105 transition ${tier.cardClass}`}
           >
-            <h3 className="text-xl font-semibold text-pink-700 mb-2">
+            {tier.popular && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md ring-2 ring-white inline-flex items-center gap-1">
+                <Star size={11} className="fill-white text-white" /> Most Popular
+              </div>
+            )}
+            {tier.valueable && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gradient-to-r from-emerald-500 via-lime-500 to-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md ring-2 ring-white inline-flex items-center gap-1">
+                <Star size={11} className="fill-white text-white" /> Most Valueable
+              </div>
+            )}
+            <h3 className={`text-xl font-semibold mb-2 ${tier.labelClass}`}>
               {tier.label}
             </h3>
             <p className="text-gray-600 font-medium mb-2">{tier.price}</p>
-            <p className="text-sm text-gray-500">{tier.description}</p>
+            <ul className="text-sm text-gray-600 text-left space-y-1.5">
+              {tier.benefits.map((benefit) => (
+                <li key={benefit} className="inline-flex items-start gap-2">
+                  <CheckCircle2 size={14} className="mt-[2px] shrink-0 text-emerald-600" />
+                  <span>{benefit}</span>
+                </li>
+              ))}
+            </ul>
+            {tier.cancelAnytime && (
+              <p className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-blue-700">
+                <ShieldCheck size={13} className="shrink-0" /> cancel anytime
+              </p>
+            )}
           </div>
         ))}
       </div>

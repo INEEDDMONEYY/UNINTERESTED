@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import TermsPolicy from '../../components/policy/TermsPolicy';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import { setSEO } from '../../utils/seo';
 
 export default function TermsOfUsePage() {
@@ -17,6 +19,7 @@ export default function TermsOfUsePage() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-pink-500 via-yellow-400 to-black text-white flex flex-col justify-between">
+      <Navbar />
       <div className="max-w-5xl mx-auto py-10 px-6">
         <TermsPolicy />
       </div>
@@ -31,6 +34,7 @@ export default function TermsOfUsePage() {
           Return Home
         </button>
       </div>
+      <Footer />
     </div>
   );
 }

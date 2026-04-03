@@ -4,7 +4,7 @@ export default function PrivacyPolicy() {
       <header className="mb-10 text-center">
         <h1 className="text-3xl md:text-4xl font-bold mb-4">🔐 Privacy Policy – Mystery Mansion</h1>
         <p className="text-lg text-gray-700 italic">
-          Effective Date: 10-15-2025
+          Effective Date: 04-03-2026
         </p>
       </header>
 

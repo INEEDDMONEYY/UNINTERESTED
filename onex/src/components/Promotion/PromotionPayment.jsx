@@ -26,8 +26,7 @@ export default function PromotionPayment() {
           </h1>
           <p className="text-gray-600 mt-2 text-sm sm:text-base max-w-xl">
             We currently accept payments through Cash App while our platform
-            grows. This is a temporary payment method until automated payments
-            are enabled.
+            grows. Payments are securely processed through Cash App while we finlize automated payments.
           </p>
         </div>
 

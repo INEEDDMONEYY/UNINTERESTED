@@ -13,7 +13,7 @@ export default function PromotionFAQ() {
     {
       question: "After promoting account, how long will it take for the promotion to take effect?",
       answer:
-        "After promoting an account, the promotion will take effect within 3-5 minutes. If the promotion does not take effect after 3-5 minutes, please contact support.",
+        "After promoting an account, the promotion will take effect within 2-5 minutes. If the promotion does not take effect after 2-5 minutes, please contact support.",
     },
     {
       question: "Is there a limit on how many times I can promote my account?",

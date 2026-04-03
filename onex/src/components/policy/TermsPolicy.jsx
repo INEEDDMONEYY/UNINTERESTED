@@ -14,8 +14,7 @@ export default function TermsPolicy() {
 
       {/* Terms of Service Section */}
       <section className="policy-section max-w-4xl mx-auto space-y-6">
-        <h2 className="text-2xl font-semibold">📝 Terms of Service – Escort Application</h2>
-        <p><strong>Effective Date:</strong> 10-15-2025</p>
+        <p><strong>Effective Date:</strong> 04-03-2026</p>
 
         <p>
           Welcome to Mystery Mansion. These Terms of Service (“Terms”) govern your access to and use of our mobile application,
