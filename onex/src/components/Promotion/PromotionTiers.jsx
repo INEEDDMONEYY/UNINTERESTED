@@ -88,7 +88,7 @@ export default function PromotionTiers() {
           >
             {tier.popular && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-md ring-2 ring-white inline-flex items-center gap-1">
-                <Star size={11} className="fill-white text-white" /> Most Popular
+                <Star size={11} className="fill-white text-white" /> Best Value
               </div>
             )}
             {tier.valueable && (
