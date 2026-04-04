@@ -13,8 +13,9 @@ const resend = new Resend(env.RESEND_API_KEY);
  * @param {string} params.to - Recipient email
  * @param {string} params.username - Username for personalization
  * @param {string} params.resetToken - Token to append to frontend reset password URL
+ * @param {boolean} [params.isAdminInvite=false] - Whether this reset email is for an admin-created account
  */
-async function sendResetEmail({ to, username, resetToken }) {
+async function sendResetEmail({ to, username, resetToken, isAdminInvite = false }) {
   if (!to || !resetToken) {
     throw new Error("Missing required email parameters: 'to' or 'resetToken'");
   }
@@ -23,16 +24,34 @@ async function sendResetEmail({ to, username, resetToken }) {
     // Construct the full reset URL pointing to your frontend route
     const resetUrl = `${env.CLIENT_URL}/reset-password/${resetToken}`;
 
+    const subject = isAdminInvite
+      ? "Your Mystery Mansion Account Is Ready"
+      : "Reset Your Mystery Mansion Password";
+
+    const heading = isAdminInvite
+      ? "Your Account Was Created by an Admin"
+      : "Password Reset Request";
+
+    const introText = isAdminInvite
+      ? `An admin created a <strong>Mystery Mansion</strong> account for you. To finish setup, please create your password using the secure button below.`
+      : `We received a request to reset your password for your <strong>Mystery Mansion</strong> account.`;
+
+    const actionLabel = isAdminInvite ? "Create Password" : "Reset Password";
+
+    const footerText = isAdminInvite
+      ? "If you were not expecting this account, please contact support."
+      : "If you didn’t request this, you can safely ignore this email.";
+
     await resend.emails.send({
       from: "Mystery Mansion <no-reply@mysterymansion.app>",
       to,
-      subject: "Reset Your Mystery Mansion Password",
+      subject,
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-          <h2>Password Reset Request</h2>
+          <h2>${heading}</h2>
           <p>Hi ${username || "there"},</p>
-          <p>We received a request to reset your password for your <strong>Mystery Mansion</strong> account.</p>
-          <p>Click the button below to reset your password:</p>
+          <p>${introText}</p>
+          <p>Click the button below to continue:</p>
           <p style="margin: 20px 0;">
             <a
               href="${resetUrl}"
@@ -45,11 +64,11 @@ async function sendResetEmail({ to, username, resetToken }) {
                 display: inline-block;
               "
             >
-              Reset Password
+              ${actionLabel}
             </a>
           </p>
           <p>This link will expire in <strong>1 hour</strong>.</p>
-          <p>If you didn’t request this, you can safely ignore this email.</p>
+          <p>${footerText}</p>
           <hr />
           <p style="font-size: 12px; color: #777;">© ${new Date().getFullYear()} Mystery Mansion. All rights reserved.</p>
         </div>

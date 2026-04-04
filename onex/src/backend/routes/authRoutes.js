@@ -22,12 +22,14 @@ const normalizeUsername = (value = "") =>
     .replace(/\u00A0/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-  const looksLikeEmail = (value = "") => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
+const looksLikeEmail = (value = "") => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
+const strongPasswordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
 /* -------------------------- 🔑 Signup -------------------------- */
 router.post("/signup", async (req, res) => {
   try {
-    const { username, email, password, role = "user" } = req.body;
+    const { username, email, password } = req.body;
     const normalizedUsername = normalizeUsername(username || "");
     const normalizedEmail = (email || "").trim().toLowerCase();
 
@@ -39,6 +41,13 @@ router.post("/signup", async (req, res) => {
 
     if (looksLikeEmail(normalizedUsername)) {
       return res.status(400).json({ error: "Username cannot be an email address" });
+    }
+
+    if (!strongPasswordRegex.test(password)) {
+      return res.status(400).json({
+        error:
+          "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
+      });
     }
 
     const existingUser = await User.findOne({
@@ -55,7 +64,7 @@ router.post("/signup", async (req, res) => {
       username: normalizedUsername,
       email: normalizedEmail,
       password: hashedPassword,
-      role
+      role: "user",
     });
 
     await user.save();
@@ -202,6 +211,7 @@ router.post("/admin/create-user", authMiddleware, adminOnlyMiddleware, async (re
         to: newUser.email,
         username: newUser.username,
         resetToken,
+        isAdminInvite: true,
       }).catch((mailErr) => {
         console.warn("Admin setup email failed:", mailErr?.message || mailErr);
       });

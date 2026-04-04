@@ -1,14 +1,25 @@
 // API.js 
 import axios from "axios";
 
+const deriveDevApiBase = () => {
+  if (typeof window === "undefined") return "";
 
-// Use Codespaces public backend URL in development
-let API_BASE = import.meta.env.DEV
-  ? "https://urban-rotary-phone-9vw7vw7prww26j4-5020.app.github.dev"
-  : import.meta.env.VITE_BACKEND_URL ||
-    import.meta.env.VITE_API_BASE?.trim() ||
-    import.meta.env.VITE_API_URL?.trim() ||
-    "https://uninterested.onrender.com";
+  const { origin, hostname } = window.location;
+
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return "http://localhost:5020";
+  }
+
+  // Codespaces pattern: ...-5173.app.github.dev -> ...-5020.app.github.dev
+  return origin.replace(/-5173(\.)app\.github\.dev$/, "-5020$1app.github.dev");
+};
+
+let API_BASE =
+  import.meta.env.VITE_BACKEND_URL?.trim() ||
+  import.meta.env.VITE_API_BASE?.trim() ||
+  import.meta.env.VITE_API_URL?.trim() ||
+  (import.meta.env.DEV ? deriveDevApiBase() : "") ||
+  "https://uninterested.onrender.com";
 
 API_BASE = API_BASE.replace(/\/+$/, "");
 
