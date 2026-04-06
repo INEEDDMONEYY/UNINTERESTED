@@ -85,6 +85,29 @@ export default function Header() {
               </Link>
             </Motion.div>
           )}
+
+          {isLoggedIn && (
+            <Motion.div
+              animate={{
+                y: [0, 0, -2, 1, -1, 0],
+                rotate: [0, 0, -1.2, 1.2, -0.7, 0],
+              }}
+              transition={{
+                duration: 3,
+                ease: "easeInOut",
+                repeat: Infinity,
+                times: [0, 0.78, 0.85, 0.91, 0.96, 1],
+              }}
+              className="inline-flex w-full max-w-[260px] sm:w-auto sm:max-w-none"
+            >
+              <Link
+                to="/promote"
+                className="inline-flex w-full items-center justify-center rounded-sm bg-white px-6 py-3 text-[0.68rem] font-medium uppercase tracking-[0.11em] text-[#111] transition hover:-translate-y-px hover:bg-[#e8e8e8] sm:px-10 sm:text-xs sm:tracking-[0.15em]"
+              >
+                Promote Account
+              </Link>
+            </Motion.div>
+          )}
         </div>
 
       </div>
