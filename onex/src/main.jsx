@@ -11,7 +11,6 @@ import { DevMessageProvider } from "./context/DevMessageContext.jsx";
 import { ServerReadyProvider, useServerReady } from "./context/ServerReadyContext.jsx";
 import { startAnalyticsTracking } from "./utils/analyticsTracker.js";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import ServerWarmupScreen from "./components/Loaders/ServerWarmupScreen.jsx";
 
 // Lazy loaded pages
 const App = lazy(() => import("./App.jsx"));
@@ -94,9 +93,13 @@ export function AppGate() {
     return () => stop();
   }, []);
 
-  if (!serverReady) return <ServerWarmupScreen />;
   return (
     <>
+      {!serverReady && (
+        <div className="fixed inset-x-0 top-0 z-50 border-b border-amber-200 bg-amber-50/95 px-4 py-2 text-center text-sm text-amber-900 backdrop-blur-sm">
+          The server is waking up. Public pages can still load, but sign in, posting, and other live data may be delayed.
+        </div>
+      )}
       <Toaster position="top-right" toastOptions={{ duration: 6000 }} />
       <Suspense
         fallback={
