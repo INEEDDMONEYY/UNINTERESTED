@@ -26,12 +26,6 @@ import { useUser } from "../../context/useUser";
 import api from "../../utils/api";
 import { setSEO } from "../../utils/seo";
 
-const API_BASE =
-  import.meta.env.VITE_BACKEND_URL ||
-  import.meta.env.VITE_API_BASE ||
-  import.meta.env.VITE_API_URL ||
-  "https://uninterested.onrender.com";
-
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { user, setUser } = useUser();
@@ -98,33 +92,28 @@ export default function AdminDashboard() {
     const token = localStorage.getItem("token");
     if (!token) return navigate("/home");
 
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    };
-
     const fetchData = async () => {
       try {
         const [statsRes, usersRes, postsRes, restrictedRes, settingsRes, promoCodesRes] =
           await Promise.allSettled([
-            fetch(`${API_BASE}/api/admin/settings/stats`, { headers, credentials: "include" }),
-            fetch(`${API_BASE}/api/admin/users`, { headers, credentials: "include" }),
-            fetch(`${API_BASE}/api/posts`, { headers, credentials: "include" }),
-            fetch(`${API_BASE}/api/admin/users/restricted`, { headers, credentials: "include" }),
-            fetch(`${API_BASE}/api/admin/settings`, { headers, credentials: "include" }),
-            fetch(`${API_BASE}/api/admin/promo-codes`, { headers, credentials: "include" }),
+            api.get("/admin/settings/stats"),
+            api.get("/admin/users"),
+            api.get("/posts"),
+            api.get("/admin/users/restricted"),
+            api.get("/admin/settings"),
+            api.get("/admin/promo-codes"),
           ]);
 
-        if (statsRes.status === "fulfilled" && statsRes.value.ok) {
-          const statsData = await statsRes.value.json();
+        if (statsRes.status === "fulfilled") {
+          const statsData = statsRes.value?.data;
           const payload = statsData?.data || statsData;
           setStats({
             totalUsers: payload?.totalUsers || 0,
             totalAdmins: payload?.totalAdmins || 0,
           });
-        } else if (usersRes.status === "fulfilled" && usersRes.value.ok) {
+        } else if (usersRes.status === "fulfilled") {
           // Fallback when canonical stats endpoint is unavailable.
-          const usersData = await usersRes.value.json();
+          const usersData = usersRes.value?.data;
           const userList = Array.isArray(usersData)
             ? usersData
             : Array.isArray(usersData?.data)
@@ -134,20 +123,20 @@ export default function AdminDashboard() {
           setStats({ totalUsers: userList.length, totalAdmins });
         }
 
-        if (postsRes.status === "fulfilled" && postsRes.value.ok) {
-          const postsData = await postsRes.value.json();
+        if (postsRes.status === "fulfilled") {
+          const postsData = postsRes.value?.data;
           setPosts(Array.isArray(postsData) ? postsData : []);
         }
 
-        if (restrictedRes.status === "fulfilled" && restrictedRes.value.ok) {
-          const restrictedData = await restrictedRes.value.json();
+        if (restrictedRes.status === "fulfilled") {
+          const restrictedData = restrictedRes.value?.data;
           setRestrictedAccounts(Array.isArray(restrictedData) ? restrictedData : []);
         }
 
         // Messages fetch is temporarily disabled until the messages view is re-enabled.
 
-        if (settingsRes.status === "fulfilled" && settingsRes.value.ok) {
-          const settingsData = await settingsRes.value.json();
+        if (settingsRes.status === "fulfilled") {
+          const settingsData = settingsRes.value?.data;
           const payload = settingsData?.data || settingsData;
           setSettings(payload);
 
@@ -160,8 +149,8 @@ export default function AdminDashboard() {
           }
         }
 
-        if (promoCodesRes.status === "fulfilled" && promoCodesRes.value.ok) {
-          const promoCodesData = await promoCodesRes.value.json();
+        if (promoCodesRes.status === "fulfilled") {
+          const promoCodesData = promoCodesRes.value?.data;
           const normalized = Array.isArray(promoCodesData)
             ? promoCodesData
             : Array.isArray(promoCodesData?.data)

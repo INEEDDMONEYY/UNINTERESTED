@@ -216,7 +216,23 @@ app.use((err, req, res, next) => {
 
 /* ------------------------------ 🚀 Server Init ----------------------------- */
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
+  const host = process.env.HOST || '0.0.0.0';
+
+  const server = app.listen(port, host, () => {
+    console.log(`🚀 Server running on ${host}:${port}`);
+  });
+
+  server.on('error', (err) => {
+    console.error('🚨 HTTP server error:', err);
+  });
+
+  process.on('uncaughtException', (err) => {
+    console.error('🚨 uncaughtException:', err);
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    console.error('🚨 unhandledRejection:', reason);
+  });
 }
 
 export default app;
