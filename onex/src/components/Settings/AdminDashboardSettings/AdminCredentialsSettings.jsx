@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { User, Lock, Save } from "lucide-react";
+import api from "../../../utils/api";
 
 export default function AdminCredentialsSetting() {
   const [username, setUsername] = useState("");
@@ -7,23 +8,10 @@ export default function AdminCredentialsSetting() {
 
   const saveCredentials = async () => {
     try {
-      const res = await fetch(
-        "https://uninterested.onrender.com/api/admin/settings/credentials",
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            username: username || undefined,
-            password: newPassword || undefined,
-          }),
-          credentials: "include",
-        }
-      );
-
-      if (!res.ok) throw new Error("Failed to update credentials");
+      await api.put("/admin/settings/credentials", {
+        username: username || undefined,
+        password: newPassword || undefined,
+      });
 
       alert("Admin credentials updated!");
       setUsername("");

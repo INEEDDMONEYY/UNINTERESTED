@@ -14,11 +14,16 @@ const deriveDevApiBase = () => {
   return origin.replace(/-5173(\.)app\.github\.dev$/, "-5020$1app.github.dev");
 };
 
+const deriveProdApiBase = () => {
+  if (typeof window === "undefined") return "";
+  return window.location.origin;
+};
+
 let API_BASE =
   import.meta.env.VITE_BACKEND_URL?.trim() ||
   import.meta.env.VITE_API_BASE?.trim() ||
   import.meta.env.VITE_API_URL?.trim() ||
-  (import.meta.env.DEV ? deriveDevApiBase() : "") ||
+  (import.meta.env.DEV ? deriveDevApiBase() : deriveProdApiBase()) ||
   "https://uninterested.onrender.com";
 
 API_BASE = API_BASE.replace(/\/+$/, "");

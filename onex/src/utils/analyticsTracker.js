@@ -2,6 +2,9 @@ import api from "./api";
 
 const SESSION_KEY = "analytics_session_id";
 const HEARTBEAT_SECONDS = 15;
+const QUEUE_KEY = "analytics_event_queue_v1";
+const MAX_QUEUE_SIZE = 150;
+const FLUSH_INTERVAL_MS = 15000;
 
 function getSessionId() {
   const existing = sessionStorage.getItem(SESSION_KEY);
@@ -11,10 +14,72 @@ function getSessionId() {
   return generated;
 }
 
+function readQueue() {
+  try {
+    const raw = localStorage.getItem(QUEUE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeQueue(queue) {
+  try {
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(queue.slice(-MAX_QUEUE_SIZE)));
+  } catch {
+    // Queue persistence is best effort.
+  }
+}
+
+function enqueueEvent(payload) {
+  const queue = readQueue();
+  queue.push({ ...payload, queuedAt: Date.now() });
+  writeQueue(queue);
+}
+
+async function postEvent(payload) {
+  await api.post("/analytics/track", payload);
+}
+
 function sendEvent(payload) {
-  api.post("/analytics/track", payload).catch(() => {
+  postEvent(payload).catch(() => {
     // Best effort analytics tracking; failures are intentionally non-blocking.
+    enqueueEvent(payload);
   });
+}
+
+let isFlushing = false;
+
+async function flushQueuedEvents() {
+  if (isFlushing) return;
+
+  const queue = readQueue();
+  if (!queue.length) return;
+
+  isFlushing = true;
+  try {
+    const remaining = [];
+
+    for (const item of queue) {
+      try {
+        const payload = {
+          eventType: item.eventType,
+          sessionId: item.sessionId,
+          pagePath: item.pagePath,
+          activeSeconds: item.activeSeconds,
+        };
+        await postEvent(payload);
+      } catch {
+        remaining.push(item);
+      }
+    }
+
+    writeQueue(remaining);
+  } finally {
+    isFlushing = false;
+  }
 }
 
 let isHistoryPatched = false;
@@ -43,6 +108,8 @@ export function startAnalyticsTracking() {
   if (typeof window === "undefined") return () => {};
 
   patchHistoryEvents();
+  flushQueuedEvents();
+
   const sessionId = getSessionId();
   let currentPath = `${window.location.pathname}${window.location.search}`;
   let lastVisibleTs = document.visibilityState === "visible" ? Date.now() : null;
@@ -91,14 +158,25 @@ export function startAnalyticsTracking() {
     }
   }, HEARTBEAT_SECONDS * 1000);
 
+  const flushIntervalId = window.setInterval(() => {
+    flushQueuedEvents();
+  }, FLUSH_INTERVAL_MS);
+
+  const onOnline = () => {
+    flushQueuedEvents();
+  };
+
   window.addEventListener("popstate", onNavigation);
   window.addEventListener("app:navigation", onNavigation);
+  window.addEventListener("online", onOnline);
   document.addEventListener("visibilitychange", onVisibilityChange);
 
   return () => {
     window.clearInterval(heartbeatId);
+    window.clearInterval(flushIntervalId);
     window.removeEventListener("popstate", onNavigation);
     window.removeEventListener("app:navigation", onNavigation);
+    window.removeEventListener("online", onOnline);
     document.removeEventListener("visibilitychange", onVisibilityChange);
   };
 }
