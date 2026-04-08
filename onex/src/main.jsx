@@ -1,8 +1,9 @@
-import { StrictMode, Suspense, lazy, useEffect } from "react";
+import { StrictMode, Suspense, lazy, useEffect, useState } from "react";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { X } from "lucide-react";
 
 import "./index.css";
 
@@ -87,6 +88,7 @@ const router = createBrowserRouter([
 
 export function AppGate() {
   const serverReady = useServerReady();
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   useEffect(() => {
     const stop = startAnalyticsTracking();
@@ -95,9 +97,21 @@ export function AppGate() {
 
   return (
     <>
-      {!serverReady && (
-        <div className="fixed inset-x-0 top-0 z-50 border-b border-amber-200 bg-amber-50/95 px-4 py-2 text-center text-sm text-amber-900 backdrop-blur-sm">
-          The server is waking up. Public pages can still load, but sign in, posting, and other live data may be delayed.
+      {!serverReady && !bannerDismissed && (
+        <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-amber-950 shadow-sm">
+          <div className="mx-auto flex max-w-6xl items-start justify-between gap-3 text-sm">
+            <p className="pr-2">
+              Mystery Mansion is temporarily affected by a Render regional outage. Some features like sign in, posting, messaging, and live updates may be unavailable until Render restores service. We will be back online as soon as their systems recover.
+            </p>
+            <button
+              type="button"
+              onClick={() => setBannerDismissed(true)}
+              aria-label="Dismiss outage notice"
+              className="shrink-0 rounded p-1 text-amber-900 transition hover:bg-amber-100"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
       )}
       <Toaster position="top-right" toastOptions={{ duration: 6000 }} />
