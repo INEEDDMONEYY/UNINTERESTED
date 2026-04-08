@@ -26,6 +26,11 @@ let API_BASE =
   (import.meta.env.DEV ? deriveDevApiBase() : deriveProdApiBase()) ||
   "https://uninterested.onrender.com";
 
+// In production, always use same-origin API and rely on host-level proxy rewrites.
+if (typeof window !== "undefined" && import.meta.env.PROD) {
+  API_BASE = window.location.origin;
+}
+
 API_BASE = API_BASE.replace(/\/+$/, "");
 
 const api = axios.create({
