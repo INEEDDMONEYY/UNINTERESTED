@@ -174,6 +174,11 @@ app.use('/api', forgotPasswordRoutes);
 /* ---------------------- 🆕 Platform Updates Routes --------------------- */
 app.use('/api/updates', platformUpdatesRoutes);
 
+/* -------------------------- 🏥 Health Check -------------------------------- */
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', ts: Date.now() });
+});
+
 /* -------------------------- 🧭 Serve Frontend Build ------------------------ */
 const frontendPath = path.join(__dirname, 'client', 'build');
 
@@ -196,11 +201,6 @@ if (fs.existsSync(frontendPath)) {
     }
   });
 }
-
-/* -------------------------- 🏥 Health Check -------------------------------- */
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok', ts: Date.now() });
-});
 
 /* ------------------------ ❌ 404 & Global Error Handlers -------------------- */
 app.use((req, res) => {

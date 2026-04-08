@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
 import LocationSet from "../components/Location/LocationSet";
 import Heading from "../components/Header";
@@ -12,6 +11,7 @@ import PostCard from "../components/Posts/PostCard";
 import { FEATURE_FLAGS } from "../config/featureFlags";
 import { statesMatch } from "../utils/stateNormalizer";
 import { setLocationSEO } from "../utils/seo";
+import api from "../utils/api";
 
 // Strip punctuation and normalize whitespace so inputs like ".Great falls." match "Great Falls"
 const sanitizeLocation = (str) =>
@@ -39,12 +39,6 @@ const formatUploadDateLabel = (createdAt) => {
     year: "numeric",
   });
 };
-
-const API_BASE =
-  import.meta.env.VITE_BACKEND_URL ||
-  import.meta.env.VITE_API_BASE ||
-  import.meta.env.VITE_API_URL ||
-  "https://uninterested.onrender.com";
 
 // ------------------ Onboarding Guide Component ------------------
 function OnboardingGuide({ steps, onFinish }) {
@@ -132,9 +126,7 @@ export default function Body() {
   // --------------------------- Fetch Posts ---------------------------
   const fetchPosts = async () => {
     try {
-      const { data } = await axios.get(
-        `${API_BASE}/api/posts`
-      );
+      const { data } = await api.get("/posts");
       const normalized = Array.isArray(data) ? data : [];
       setPosts(dedupePostsById(normalized));
     } catch (err) {
@@ -146,9 +138,7 @@ export default function Body() {
   // --------------------------- Fetch Users ---------------------------
   const fetchUsers = async () => {
     try {
-      const { data } = await axios.get(
-        `${API_BASE}/api/users`
-      );
+      const { data } = await api.get("/public/users");
       setUsers(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch users:", err);
