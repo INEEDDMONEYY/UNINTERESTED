@@ -4,9 +4,10 @@ import UserProfileHeader from "../../components/Users/UserProfileHeader";
 import PostList from "../../components/Posts/PostList";
 import UserAvailabilityDisplay from "../../components/UserDisplay/UserAvailabilityDisplay";
 import UserMeetupDisplay from "../../components/UserDisplay/UserMeetupDisplay";
-import { FEATURE_FLAGS } from "../../config/featureFlags";
 import ReviewButton from "../../components/Buttons/reviewButtons/ReviewButton";
 import ReferencesLinks from "../../components/References/ReferencesLinks.jsx";
+import CompletedDates from "../../components/References/CompletedDates.jsx";
+import api from "../../utils/api.js";
 
 
 export default function UserProfileViewPage({ userId: propUserId = null, disableActionButtons = false }) {
@@ -23,60 +24,39 @@ export default function UserProfileViewPage({ userId: propUserId = null, disable
     return routeUserId || null;
   }, [propUserId, params]);
 
-  // Build per-user localStorage keys
-  const availabilityKey = useMemo(() => `availability_${userId}`, [userId]);
-  const incallKey = useMemo(() => `incallPrice_${userId}`, [userId]);
-  const outcallKey = useMemo(() => `outcallPrice_${userId}`, [userId]);
-
-  // State controlled by parent
   const [availability, setAvailability] = useState({ status: "" });
-  const [incallPrice, setIncallPrice] = useState("");
-  const [outcallPrice, setOutcallPrice] = useState("");
+  const [prices, setPrices] = useState({});
 
-  // Hydrate state from localStorage when userId changes
   useEffect(() => {
-    try {
-      const savedAvail = localStorage.getItem(availabilityKey);
-      setAvailability(savedAvail ? JSON.parse(savedAvail) : { status: "" });
+    if (!userId) return;
+    let cancelled = false;
 
-      const savedIncall = localStorage.getItem(incallKey);
-      setIncallPrice(savedIncall ?? "");
+    api.get(`/public/users/id/${userId}`)
+      .then((res) => {
+        if (cancelled) return;
+        const u = res?.data || {};
+        const rawAvail = u.availability;
+        const status =
+          typeof rawAvail === "string"
+            ? rawAvail
+            : rawAvail?.status ?? "";
+        setAvailability({ status });
+        setPrices({
+          incall: u.incallPrice != null ? String(u.incallPrice) : "",
+          outcall: u.outcallPrice != null ? String(u.outcallPrice) : "",
+          overnights: u.overnightPrice != null ? String(u.overnightPrice) : "",
+          flyOut: u.flyOutPrice != null ? String(u.flyOutPrice) : "",
+        });
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAvailability({ status: "" });
+          setPrices({});
+        }
+      });
 
-      const savedOutcall = localStorage.getItem(outcallKey);
-      setOutcallPrice(savedOutcall ?? "");
-    } catch {
-      setAvailability({ status: "" });
-      setIncallPrice("");
-      setOutcallPrice("");
-    }
-  }, [userId, availabilityKey, incallKey, outcallKey]);
-
-  // Persist availability
-  useEffect(() => {
-    try {
-      localStorage.setItem(availabilityKey, JSON.stringify(availability));
-    } catch {
-      // Ignore localStorage write failures (quota/private mode).
-    }
-  }, [availability, availabilityKey]);
-
-  // Persist incall price
-  useEffect(() => {
-    try {
-      localStorage.setItem(incallKey, incallPrice ?? "");
-    } catch {
-      // Ignore localStorage write failures (quota/private mode).
-    }
-  }, [incallPrice, incallKey]);
-
-  // Persist outcall price
-  useEffect(() => {
-    try {
-      localStorage.setItem(outcallKey, outcallPrice ?? "");
-    } catch {
-      // Ignore localStorage write failures (quota/private mode).
-    }
-  }, [outcallPrice, outcallKey]);
+    return () => { cancelled = true; };
+  }, [userId]);
 
   return (
     <>
@@ -90,23 +70,21 @@ export default function UserProfileViewPage({ userId: propUserId = null, disable
           <ReferencesLinks userId={userId} />
         </section>
 
+        <section>
+          <CompletedDates userId={userId} />
+        </section>
+
         {/* Availability */}
-        {FEATURE_FLAGS.availability && (
+        {availability.status && (
           <section>
             <UserAvailabilityDisplay availability={availability} />
           </section>
         )}
 
         {/* Meetup Prices */}
-        {FEATURE_FLAGS.meetupPricing && (
+        {Object.values(prices).some((v) => v !== "" && Number(v) > 0) && (
           <section>
-            <UserMeetupDisplay
-              userId={userId}
-              incallPrice={incallPrice}
-              setIncallPrice={setIncallPrice}
-              outcallPrice={outcallPrice}
-              setOutcallPrice={setOutcallPrice}
-            />
+            <UserMeetupDisplay prices={prices} />
           </section>
         )}
 

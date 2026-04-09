@@ -25,6 +25,7 @@ export default function UserProfileHeader({
     age: null,
     createdAt: null,
     location: "",
+    gender: "",
     phoneNumber: "",
     email: "",
     profilePic: null,
@@ -79,6 +80,7 @@ export default function UserProfileHeader({
         age: profileData.age ?? null,
         createdAt: profileData.createdAt || null,
         location: profileData.location || "",
+        gender: profileData.gender || "",
         phoneNumber: profileData.phoneNumber || "",
         email: profileData.email || "",
         profilePic: profileData.profilePic || null,
@@ -369,7 +371,6 @@ export default function UserProfileHeader({
 
           {/* Bio Section */}
           <div className="mt-3 max-w-xl">
-
             {!editingBio ? (
               <div className="flex items-start gap-2">
                 <p className="text-gray-600 text-sm md:text-base flex-1">
@@ -387,7 +388,6 @@ export default function UserProfileHeader({
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-
                 <textarea
                   value={bioInput}
                   onChange={(e) => setBioInput(e.target.value)}
@@ -414,7 +414,6 @@ export default function UserProfileHeader({
                     Cancel
                   </button>
                 </div>
-
               </div>
             )}
 
@@ -501,11 +500,15 @@ export default function UserProfileHeader({
                   </div>
                 </div>
               )}
-            </div>
 
+              {user.gender && (
+                <p className="text-gray-700 text-sm md:text-base">
+                  Gender: {user.gender}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-
       </div>
     </div>
   );

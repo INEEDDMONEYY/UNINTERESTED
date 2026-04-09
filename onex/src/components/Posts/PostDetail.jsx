@@ -122,8 +122,14 @@ export default function PostDetail() {
   const isTrustedProvider = hasTrustedAccountAge();
   const isPermanentProvider = hasPermanentProviderBadge(effectiveUser?.createdAt);
   const availability = effectiveUser?.availability || { status: "" };
-  const incallPrice = effectiveUser?.incallPrice || "";
-  const outcallPrice = effectiveUser?.outcallPrice || "";
+  const gender = effectiveUser?.gender || "";
+  const prices = {
+    incall: effectiveUser?.incallPrice != null ? String(effectiveUser.incallPrice) : "",
+    outcall: effectiveUser?.outcallPrice != null ? String(effectiveUser.outcallPrice) : "",
+    overnights: effectiveUser?.overnightPrice != null ? String(effectiveUser.overnightPrice) : "",
+    flyOut: effectiveUser?.flyOutPrice != null ? String(effectiveUser.flyOutPrice) : "",
+  };
+  const hasPrices = Object.values(prices).some((v) => v !== "" && Number(v) > 0);
 
   const loadComments = async () => {
     try {
@@ -347,6 +353,9 @@ export default function PostDetail() {
         <p className="text-sm text-gray-500 mt-1">
           by {effectiveUser?.username || "Anonymous"}
         </p>
+        {gender && (
+          <p className="text-sm text-gray-500 mt-1">{gender}</p>
+        )}
         {effectiveUser?.age && (
           <p className="text-sm text-gray-500 mt-1">
             Age: {effectiveUser.age}
@@ -412,7 +421,7 @@ export default function PostDetail() {
       </p>
 
       {/* 🟢 User Availability */}
-      {FEATURE_FLAGS.ENABLE_DISPLAY_AVAILABILITY && (
+      {availability.status && (
         <div className="mb-6">
           <div className="h-auto overflow-hidden p-1">
             <UserAvailabilityDisplay availability={availability} />
@@ -421,16 +430,10 @@ export default function PostDetail() {
       )}
 
       {/* 💲 User Meetup Prices */}
-      {FEATURE_FLAGS.MEETUP_SERVICE_SETTINGS && (
+      {hasPrices && (
         <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-600 mb-1">
-            Meetup Prices
-          </h3>
           <div className="h-auto overflow-hidden p-1">
-            <UserMeetupDisplay
-              incallPrice={incallPrice}
-              outcallPrice={outcallPrice}
-            />
+            <UserMeetupDisplay prices={prices} />
           </div>
         </div>
       )}

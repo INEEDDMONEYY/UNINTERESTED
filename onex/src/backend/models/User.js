@@ -62,6 +62,11 @@ const UserSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    gender: {
+      type: String,
+      enum: ["Man escort", "Woman escort", "TS escort", ""],
+      default: "",
+    },
     availability: {
       status: {
         type: String,
@@ -88,6 +93,14 @@ const UserSchema = new mongoose.Schema(
       default: 0,
     },
     outcallPrice: {
+      type: Number,
+      default: 0,
+    },
+    overnightPrice: {
+      type: Number,
+      default: 0,
+    },
+    flyOutPrice: {
       type: Number,
       default: 0,
     },

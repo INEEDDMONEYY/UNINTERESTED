@@ -102,7 +102,7 @@ export async function createPost(req, res) {
 
     const populatedPost = await Post.findById(savedPost._id).populate({
       path: 'userId',
-      select: 'username email bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry createdAt',
+      select: 'username email bio profilePic phoneNumber age availability incallPrice outcallPrice overnightPrice flyOutPrice gender activePromoExpiry createdAt',
     });
 
     res.status(201).json(populatedPost);
@@ -143,7 +143,7 @@ export async function getPosts(req, res) {
 
     const posts = await Post.find(filter)
       .sort({ createdAt: -1 })
-      .populate({ path: 'userId', select: 'username email bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry createdAt' });
+      .populate({ path: 'userId', select: 'username email bio profilePic phoneNumber age availability incallPrice outcallPrice overnightPrice flyOutPrice gender activePromoExpiry createdAt' });
 
     res.json(posts);
   } catch (err) {
@@ -157,7 +157,7 @@ export async function getPostById(req, res) {
   try {
     const post = await Post.findById(req.params.id).populate({
       path: 'userId',
-      select: 'username email bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry createdAt',
+      select: 'username email bio profilePic phoneNumber age availability incallPrice outcallPrice overnightPrice flyOutPrice gender activePromoExpiry createdAt',
     });
 
     if (!post) return res.status(404).json({ error: 'Post not found' });
@@ -192,7 +192,7 @@ export async function updatePost(req, res) {
 
     const updatedPost = await Post.findByIdAndUpdate(req.params.id, updateData, { new: true }).populate({
       path: 'userId',
-      select: 'username email bio profilePic phoneNumber age availability incallPrice outcallPrice activePromoExpiry',
+      select: 'username email bio profilePic phoneNumber age availability incallPrice outcallPrice overnightPrice flyOutPrice gender activePromoExpiry',
     });
 
     res.json(updatedPost);

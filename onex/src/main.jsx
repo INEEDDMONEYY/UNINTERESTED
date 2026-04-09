@@ -89,24 +89,33 @@ const router = createBrowserRouter([
 export function AppGate() {
   const serverReady = useServerReady();
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [countdown, setCountdown] = useState(80);
 
   useEffect(() => {
     const stop = startAnalyticsTracking();
     return () => stop();
   }, []);
 
+  useEffect(() => {
+    if (serverReady || bannerDismissed) return;
+    if (countdown <= 0) return;
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [serverReady, bannerDismissed, countdown]);
+
   return (
     <>
       {!serverReady && !bannerDismissed && (
         <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-amber-950 shadow-sm">
-          <div className="mx-auto flex max-w-6xl items-start justify-between gap-3 text-sm">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 text-sm">
             <p className="pr-2">
-              Mystery Mansion is temporarily affected by a Render regional outage. Some features like sign in, posting, messaging, and live updates may be unavailable until Render restores service. We will be back online as soon as their systems recover.
+              Server is waking up — ready in approximately{" "}
+              <span className="font-semibold">{Math.max(countdown, 0)}s</span>.
             </p>
             <button
               type="button"
               onClick={() => setBannerDismissed(true)}
-              aria-label="Dismiss outage notice"
+              aria-label="Dismiss notice"
               className="shrink-0 rounded p-1 text-amber-900 transition hover:bg-amber-100"
             >
               <X size={18} />

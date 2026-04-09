@@ -1,6 +1,7 @@
 // Availability Settings
-import React, { useState, useEffect } from "react";
-import { Loader2, CheckCircle, XCircle, Clock } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Loader2, CheckCircle, XCircle, Clock, DollarSign } from "lucide-react";
+import api from "../../../utils/api";
 
 export default function AvailabilitySettings({
   availability,
@@ -9,11 +10,23 @@ export default function AvailabilitySettings({
 }) {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [prices, setPrices] = useState({
+    incall: "",
+    outcall: "",
+    overnight: "",
+    flyOut: "",
+  });
 
-  const apiBase = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE || '');
-
-  // Per-user localStorage key. If no userId yet, skip storage to avoid cross-user bleed.
-  const storageKey = userId ? `availability_${userId}` : null;
+  const storageKeys = useMemo(
+    () => ({
+      availability: userId ? `availability_${userId}` : null,
+      incall: userId ? `incallPrice_${userId}` : null,
+      outcall: userId ? `outcallPrice_${userId}` : null,
+      overnight: userId ? `overnightPrice_${userId}` : null,
+      flyOut: userId ? `flyOutPrice_${userId}` : null,
+    }),
+    [userId]
+  );
 
   const normalizeAvailabilityStatus = (rawAvailability) => {
     if (!rawAvailability) return "";
@@ -22,125 +35,160 @@ export default function AvailabilitySettings({
     return "";
   };
 
-  // ✅ Load availability from backend first (true cross-device persistence)
+  const normalizeNumberLike = (value) => {
+    if (value === null || value === undefined || value === "") return "";
+    const numeric = Number(value);
+    if (Number.isNaN(numeric) || numeric < 0) return "";
+    return String(numeric);
+  };
+
+  const toPayloadPrice = (value) => {
+    const parsed = Number(value);
+    if (Number.isNaN(parsed) || parsed < 0) return 0;
+    return parsed;
+  };
+
   useEffect(() => {
     async function loadFromBackend() {
       try {
-        const res = await fetch(`${apiBase}/api/me`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-
-        const data = await res.json();
+        const res = await api.get("/me");
+        const data = res?.data || {};
 
         const normalizedStatus = normalizeAvailabilityStatus(data?.availability);
-        if (normalizedStatus) {
-          setAvailability({ status: normalizedStatus });
+        setAvailability({ status: normalizedStatus });
 
-          // Sync to localStorage
-          if (storageKey) {
-            localStorage.setItem(storageKey, JSON.stringify({ status: normalizedStatus }));
-          }
+        const nextPrices = {
+          incall: normalizeNumberLike(data?.incallPrice),
+          outcall: normalizeNumberLike(data?.outcallPrice),
+          overnight: normalizeNumberLike(data?.overnightPrice),
+          flyOut: normalizeNumberLike(data?.flyOutPrice),
+        };
+        setPrices(nextPrices);
 
-          return; // stop here if backend had data
+        if (storageKeys.availability) {
+          localStorage.setItem(
+            storageKeys.availability,
+            JSON.stringify({ status: normalizedStatus })
+          );
         }
+
+        Object.entries(nextPrices).forEach(([key, value]) => {
+          const storageKey = storageKeys[key];
+          if (!storageKey) return;
+          localStorage.setItem(storageKey, value);
+        });
+
+        return;
       } catch (err) {
-        console.error("Failed to load availability from backend", err);
+        console.error("Failed to load availability/pricing from backend", err);
       }
 
-      // Fallback: load from localStorage
       try {
-        if (!storageKey) return;
-        const raw = localStorage.getItem(storageKey);
-        if (raw) {
-          const saved = JSON.parse(raw);
-          if (saved && typeof saved === "object" && "status" in saved) {
-            setAvailability(saved);
+        if (!storageKeys.availability) return;
+
+        const rawAvailability = localStorage.getItem(storageKeys.availability);
+        if (rawAvailability) {
+          const savedAvailability = JSON.parse(rawAvailability);
+          if (savedAvailability && typeof savedAvailability === "object" && "status" in savedAvailability) {
+            setAvailability(savedAvailability);
           }
         }
+
+        setPrices((prev) => ({
+          incall: localStorage.getItem(storageKeys.incall) ?? prev.incall,
+          outcall: localStorage.getItem(storageKeys.outcall) ?? prev.outcall,
+          overnight: localStorage.getItem(storageKeys.overnight) ?? prev.overnight,
+          flyOut: localStorage.getItem(storageKeys.flyOut) ?? prev.flyOut,
+        }));
       } catch (err) {
-        console.error("Failed to read availability from localStorage", err);
+        console.error("Failed to read availability/pricing from localStorage", err);
       }
     }
 
     loadFromBackend();
-  }, [apiBase, userId, setAvailability, storageKey]);
-  
+  }, [setAvailability, storageKeys]);
 
-  // Persist to localStorage whenever availability changes
   useEffect(() => {
-    if (!availability || !storageKey) return;
+    if (!availability || !storageKeys.availability) return;
     try {
-      localStorage.setItem(storageKey, JSON.stringify(availability));
+      localStorage.setItem(storageKeys.availability, JSON.stringify(availability));
     } catch (err) {
       console.error("Failed to persist availability", err);
     }
-  }, [availability, storageKey]);
+  }, [availability, storageKeys]);
 
-
-  // Toast on status change
   useEffect(() => {
-    if (availability.status) {
-      setToast({
-        type: "success",
-        message: `Availability set to "${availability.status}"`,
-      });
-
-      const timer = setTimeout(() => setToast(null), 3000);
-      return () => clearTimeout(timer);
+    try {
+      if (storageKeys.incall) localStorage.setItem(storageKeys.incall, prices.incall ?? "");
+      if (storageKeys.outcall) localStorage.setItem(storageKeys.outcall, prices.outcall ?? "");
+      if (storageKeys.overnight) localStorage.setItem(storageKeys.overnight, prices.overnight ?? "");
+      if (storageKeys.flyOut) localStorage.setItem(storageKeys.flyOut, prices.flyOut ?? "");
+    } catch (err) {
+      console.error("Failed to persist pricing", err);
     }
-  }, [availability.status]);
+  }, [prices, storageKeys]);
 
+  const handlePriceChange = (key, value) => {
+    if (value === "") {
+      setPrices((prev) => ({ ...prev, [key]: "" }));
+      return;
+    }
 
-  // Save to backend
+    if (!/^\d*\.?\d*$/.test(value)) return;
+    setPrices((prev) => ({ ...prev, [key]: value }));
+  };
+
   const handleSave = async () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`${apiBase}/api/users/update-profile`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          availability: { status: availability.status },
-        }),
-      });
+      const payload = {
+        availability: { status: availability.status || "" },
+        incallPrice: toPayloadPrice(prices.incall),
+        outcallPrice: toPayloadPrice(prices.outcall),
+        overnightPrice: toPayloadPrice(prices.overnight),
+        flyOutPrice: toPayloadPrice(prices.flyOut),
+      };
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data?.error || "Failed to save availability");
-      }
+      const res = await api.post("/users/update-profile", payload);
+      const updatedUser = res?.data?.user || {};
 
-      const savedStatus = normalizeAvailabilityStatus(data?.user?.availability) || availability.status;
+      const savedStatus =
+        normalizeAvailabilityStatus(updatedUser?.availability) || availability.status;
+      const savedPrices = {
+        incall: normalizeNumberLike(updatedUser?.incallPrice),
+        outcall: normalizeNumberLike(updatedUser?.outcallPrice),
+        overnight: normalizeNumberLike(updatedUser?.overnightPrice),
+        flyOut: normalizeNumberLike(updatedUser?.flyOutPrice),
+      };
+
       setAvailability({ status: savedStatus });
+      setPrices(savedPrices);
 
-      if (storageKey) {
-        localStorage.setItem(storageKey, JSON.stringify({ status: savedStatus }));
+      if (storageKeys.availability) {
+        localStorage.setItem(
+          storageKeys.availability,
+          JSON.stringify({ status: savedStatus })
+        );
       }
+      if (storageKeys.incall) localStorage.setItem(storageKeys.incall, savedPrices.incall);
+      if (storageKeys.outcall) localStorage.setItem(storageKeys.outcall, savedPrices.outcall);
+      if (storageKeys.overnight) localStorage.setItem(storageKeys.overnight, savedPrices.overnight);
+      if (storageKeys.flyOut) localStorage.setItem(storageKeys.flyOut, savedPrices.flyOut);
 
-      setToast({
-        type: "success",
-        message: "Availability saved!",
-      });
+      setToast({ type: "success", message: "Availability and pricing saved!" });
     } catch (err) {
       setToast({
         type: "error",
-        message: err.message || "Failed to save availability",
+        message: err.response?.data?.error || err.message || "Failed to save settings",
       });
     }
 
     setLoading(false);
   };
 
-
   return (
     <section className="w-full px-4 py-6 md:px-6 lg:px-8">
-      <h2 className="text-xl md:text-2xl font-semibold text-pink-700 mb-6 text-center">
-        Set your availability status
-      </h2>
 
       {toast && (
         <div
@@ -148,35 +196,96 @@ export default function AvailabilitySettings({
             toast.type === "success" ? "bg-green-500" : "bg-red-500"
           }`}
         >
-          {toast.type === "success" ? (
-            <CheckCircle size={18} />
-          ) : (
-            <XCircle size={18} />
-          )}
+          {toast.type === "success" ? <CheckCircle size={18} /> : <XCircle size={18} />}
           <span>{toast.message}</span>
         </div>
       )}
 
-      <div className="bg-white rounded-lg p-6 flex flex-col items-center justify-center space-y-4 max-w-md mx-auto text-center">
-        <label className="block text-pink-600 font-medium">Availability</label>
+      <div className="bg-white rounded-lg border border-pink-100 p-4 sm:p-6 max-w-2xl mx-auto">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5">
+          <div className="space-y-2 text-left">
+            <label className="block text-pink-600 font-medium">Availability</label>
 
-        <select
-          value={availability.status || ""}
-          onChange={(e) =>
-            setAvailability({ ...availability, status: e.target.value })
-          }
-          className="w-full max-w-xs border border-pink-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400 text-center"
-        >
-          <option value="">Select status</option>
-          <option value="Available">Available</option>
-          <option value="Not Available">Not Available</option>
-        </select>
+            <select
+              value={availability.status || ""}
+              onChange={(e) =>
+                setAvailability({ ...availability, status: e.target.value })
+              }
+              className="w-full border border-pink-300 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400"
+            >
+              <option value="">Select status</option>
+              <option value="Available">Available</option>
+              <option value="Not Available">Not Available</option>
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700">Incall Price</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={prices.incall}
+                onChange={(e) => handlePriceChange("incall", e.target.value)}
+                placeholder="e.g. 220"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700">Outcall Price</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={prices.outcall}
+                onChange={(e) => handlePriceChange("outcall", e.target.value)}
+                placeholder="e.g. 280"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700">Overnight Price</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={prices.overnight}
+                onChange={(e) => handlePriceChange("overnight", e.target.value)}
+                placeholder="e.g. 900"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700">Fly-out Price</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={prices.flyOut}
+                onChange={(e) => handlePriceChange("flyOut", e.target.value)}
+                placeholder="e.g. 1800"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400"
+              />
+            </div>
+          </div>
+
+          <div className="rounded-lg bg-pink-50 border border-pink-100 px-3 py-2 text-left text-sm text-pink-700">
+            <div className="inline-flex items-center gap-1.5 font-medium">
+              <DollarSign size={14} />
+              Prices are saved to your account and available across devices.
+            </div>
+          </div>
+        </div>
 
         <button
           type="button"
           disabled={loading}
           onClick={handleSave}
-          className={`flex items-center justify-center gap-2 bg-pink-600 text-white px-6 py-2 rounded transition ${
+          className={`mt-5 w-full sm:w-auto flex items-center justify-center gap-2 bg-pink-600 text-white px-6 py-2.5 rounded-lg transition ${
             loading ? "opacity-70 cursor-not-allowed" : "hover:bg-pink-700"
           }`}
         >
