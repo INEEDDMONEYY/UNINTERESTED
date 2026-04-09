@@ -104,6 +104,23 @@ const UserSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    completedDates: [
+      {
+        id: {
+          type: String,
+          default: "",
+        },
+        date: {
+          type: String,
+          default: "",
+        },
+        status: {
+          type: String,
+          enum: ["incall", "outcall", "overnight", "flyOut", ""],
+          default: "",
+        },
+      },
+    ],
     conversations: [
       {
         type: mongoose.Schema.Types.ObjectId,

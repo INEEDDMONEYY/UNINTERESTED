@@ -1,17 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CalendarPlus, CheckCircle2, XCircle, RefreshCcw, Trash2 } from "lucide-react";
 import { useUser } from "../../context/useUser";
+import api from "../../utils/api";
 
 const STATUS_OPTIONS = [
-  { value: "yes", label: "Yes", icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50 border-green-300" },
-  { value: "no", label: "No", icon: XCircle, color: "text-red-500", bg: "bg-red-50 border-red-300" },
-  { value: "reschedule", label: "Reschedule", icon: RefreshCcw, color: "text-amber-600", bg: "bg-amber-50 border-amber-300" },
+  { value: "incall", label: "Incall", icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50 border-green-300" },
+  { value: "outcall", label: "Outcall", icon: XCircle, color: "text-red-500", bg: "bg-red-50 border-red-300" },
+  { value: "overnight", label: "Overnight", icon: RefreshCcw, color: "text-amber-600", bg: "bg-amber-50 border-amber-300" },
+  { value: "flyOut", label: "Fly-Out", icon: CalendarPlus, color: "text-sky-600", bg: "bg-sky-50 border-sky-300" },
 ];
 
 const STATUS_BADGE = {
-  yes: "bg-green-100 text-green-700 border border-green-200",
-  no: "bg-red-100 text-red-600 border border-red-200",
-  reschedule: "bg-amber-100 text-amber-700 border border-amber-200",
+  incall: "bg-green-100 text-green-700 border border-green-200",
+  outcall: "bg-red-100 text-red-600 border border-red-200",
+  overnight: "bg-amber-100 text-amber-700 border border-amber-200",
+  flyOut: "bg-sky-100 text-sky-700 border border-sky-200",
 };
 
 export default function CompletedDates({ userId }) {
@@ -20,20 +23,103 @@ export default function CompletedDates({ userId }) {
 
   const [entries, setEntries] = useState([]);
   const [date, setDate] = useState("");
-  const [status, setStatus] = useState("yes");
+  const [status, setStatus] = useState("incall");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleAdd = () => {
-    if (!date) return;
-    setEntries((prev) => [
-      { id: crypto.randomUUID(), date, status },
-      ...prev,
-    ]);
-    setDate("");
-    setStatus("yes");
+  const normalizeEntries = (rawEntries) => {
+    if (!Array.isArray(rawEntries)) return [];
+
+    return rawEntries
+      .map((entry) => {
+        const id = String(entry?.id || entry?._id || crypto.randomUUID());
+        const rawDate = String(entry?.date || "").slice(0, 10);
+        const nextStatus = String(entry?.status || "");
+        const isValidStatus = STATUS_OPTIONS.some((opt) => opt.value === nextStatus);
+
+        if (!rawDate || !isValidStatus) return null;
+        return { id, date: rawDate, status: nextStatus };
+      })
+      .filter(Boolean);
   };
 
-  const handleRemove = (id) => {
-    setEntries((prev) => prev.filter((e) => e.id !== id));
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCompletedDates = async () => {
+      if (!userId) {
+        setEntries([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError("");
+
+      try {
+        const res = await api.get(`/public/users/id/${userId}`);
+        if (cancelled) return;
+        const userData = res?.data || {};
+        setEntries(normalizeEntries(userData.completedDates));
+      } catch {
+        if (cancelled) return;
+        setEntries([]);
+        setError("Unable to load completed dates.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadCompletedDates();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  const persistEntries = async (nextEntries) => {
+    if (!isOwner) return;
+    setSaving(true);
+    setError("");
+    try {
+      await api.post("/users/update-profile", { completedDates: nextEntries });
+    } catch {
+      setError("Failed to save completed dates.");
+      throw new Error("save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAdd = async () => {
+    if (!date) return;
+    const nextEntries = [
+      { id: crypto.randomUUID(), date, status },
+      ...entries,
+    ];
+    setEntries(nextEntries);
+
+    try {
+      await persistEntries(nextEntries);
+    } catch {
+      setEntries(entries);
+      return;
+    }
+
+    setDate("");
+    setStatus("incall");
+  };
+
+  const handleRemove = async (id) => {
+    const nextEntries = entries.filter((e) => e.id !== id);
+    setEntries(nextEntries);
+
+    try {
+      await persistEntries(nextEntries);
+    } catch {
+      setEntries(entries);
+    }
   };
 
   return (
@@ -56,7 +142,7 @@ export default function CompletedDates({ userId }) {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-500">Outcome</label>
+          <label className="text-xs font-medium text-gray-500">Service Type</label>
           <div className="flex flex-wrap gap-2">
             {STATUS_OPTIONS.map((opt) => (
               <button
@@ -79,17 +165,19 @@ export default function CompletedDates({ userId }) {
         <button
           type="button"
           onClick={handleAdd}
-          disabled={!date}
+          disabled={!date || saving}
           className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-pink-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-pink-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <CalendarPlus size={15} />
-          Add
+          {saving ? "Saving..." : "Add"}
         </button>
       </div>
       )}
 
       {/* Entries list */}
-      {entries.length > 0 ? (
+      {loading ? (
+        <p className="mt-5 text-center text-xs text-gray-400">Loading completed dates...</p>
+      ) : entries.length > 0 ? (
         <ul className="mt-5 space-y-2">
           {entries.map(({ id, date, status }) => {
             const opt = STATUS_OPTIONS.find((o) => o.value === status);
@@ -118,6 +206,7 @@ export default function CompletedDates({ userId }) {
                   <button
                     type="button"
                     onClick={() => handleRemove(id)}
+                    disabled={saving}
                     className="shrink-0 rounded p-1 text-gray-400 transition hover:text-red-500 active:scale-95"
                     aria-label="Remove entry"
                   >
@@ -133,6 +222,8 @@ export default function CompletedDates({ userId }) {
           No dates recorded yet.
         </p>
       )}
+
+      {error && <p className="mt-3 text-center text-xs text-red-500">{error}</p>}
     </div>
   );
 }
