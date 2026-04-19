@@ -89,6 +89,7 @@ const router = createBrowserRouter([
 export function AppGate() {
   const serverReady = useServerReady();
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [emailBannerDismissed, setEmailBannerDismissed] = useState(false);
   const [countdown, setCountdown] = useState(80);
 
   useEffect(() => {
@@ -111,12 +112,31 @@ export function AppGate() {
             <p className="pr-2">
               Server is waking up — ready in approximately{" "}
               <span className="font-semibold">{Math.max(countdown, 0)}s</span>.
+              Platform content and authentication services will be available once the server is online.
             </p>
             <button
               type="button"
               onClick={() => setBannerDismissed(true)}
               aria-label="Dismiss notice"
               className="shrink-0 rounded p-1 text-amber-900 transition hover:bg-amber-100"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+      )}
+      {serverReady && !emailBannerDismissed && (
+        <div className="border-b border-red-500 bg-gradient-to-r from-red-50 to-red-100 px-4 py-3 text-red-950 shadow-sm">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 text-sm">
+            <p className="pr-2">
+              <strong>Note:</strong> Email functionality is temporarily paused due to a security incident. No user data has been impacted.
+During this time, users will not receive automated emails such as welcome messages, password reset emails, or platform updates. We are actively working on restoring email services and implementing additional security measures to help prevent this from happening again.
+            </p>
+            <button
+              type="button"
+              onClick={() => setEmailBannerDismissed(true)}
+              aria-label="Dismiss notice"
+              className="shrink-0 rounded p-1 text-red-900 transition hover:bg-red-200"
             >
               <X size={18} />
             </button>
